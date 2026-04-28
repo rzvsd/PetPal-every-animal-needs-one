@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "PetPal",
+    "slug": "petpal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/petpal/app-icon-v1.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/petpal/welcome-screen-v1.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#101714"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.petpal.app"
+    },
+    "android": {
+      "package": "com.petpal.app",
+      "adaptiveIcon": {
+          "foregroundImage": "./assets/petpal/app-icon-v1.png",
+          "backgroundColor": "#101714"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/petpal/app-icon-v1.png"
+    }
+  }
+}

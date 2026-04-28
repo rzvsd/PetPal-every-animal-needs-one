@@ -2,9 +2,9 @@
 
 PetPal is a trusted local adoption and foster platform for animals. The first public product focuses on verified shelters and rescuers, starting with dogs and cats in Bucharest / Ilfov.
 
-This folder is an umbrella workspace, not the main Git repository. Each project below is its own repo so code, backend, shared contracts, and OSS notes can evolve independently.
+This repository is the PetPal monorepo. It keeps the mobile app, admin app, shared contracts, Supabase backend, OSS notes, design docs, milestone proof, and QA evidence together in one GitHub repository.
 
-## Repos
+## Workspace
 
 - `PetPalMobileBuild`: Expo / React Native public mobile app and Android build workspace.
 - `petpal-admin`: internal React admin console for verification and moderation.
