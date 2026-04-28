@@ -1,0 +1,20 @@
+env: load .env.local
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY
+The /android project does not contain any URI schemes. Expo CLI will not be able to use links to launch the project. You can configure a custom URI scheme using the --scheme option.
+Starting project at C:\BOTS\PetPal - every animal needs one\petpal-mobile
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android .\index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android .\index.ts ▓▓░░░░░░░░░░░░░░ 14.8% ( 11/110)
+Android .\index.ts ▓▓░░░░░░░░░░░░░░ 14.8% ( 52/187)
+Android .\index.ts ▓▓▓▓░░░░░░░░░░░░ 27.5% (159/303)
+Android .\index.ts ▓▓▓▓▓░░░░░░░░░░░ 36.1% (262/441)
+Android .\index.ts ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 70.8% (445/529)
+Android .\index.ts ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 80.6% (536/597)
+Android .\index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 97.6% (725/734)
+Android .\index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (736/736)
+Android Bundled 29209ms index.ts (736 modules)
+ WARN  Deep imports from the 'react-native' package are deprecated ('react-native/Libraries/Network/FormData'). Source: C:\BOTS\PetPal - every animal needs one\petpal-mobile\src\polyfills\nativeFormData.ts 4:0
+ WARN  Deep imports from the 'react-native' package are deprecated ('react-native/Libraries/Core/setUpXHR'). Source: C:\BOTS\PetPal - every animal needs one\petpal-mobile\index.ts 2:0

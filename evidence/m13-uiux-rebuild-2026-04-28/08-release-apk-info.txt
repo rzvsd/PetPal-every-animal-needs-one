@@ -1,0 +1,9 @@
+﻿
+
+FullName      : C:\BOTS\PetPal - every animal needs 
+                one\PetPalMobileBuild\android\app\build\outputs\apk\release\app-release.apk
+Length        : 67220292
+LastWriteTime : 4/28/2026 12:49:46 PM
+
+
+

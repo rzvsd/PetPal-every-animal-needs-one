@@ -1,0 +1,1200 @@
+﻿04-28 10:47:11.244  3072  3297 D MARsDBManager: updatePkgsToSMDB : end
+04-28 10:47:11.251  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140040, isSameBssidAndFreq true
+04-28 10:47:11.252  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:11.253  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:11.253  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -63.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -63.0 / 12 / 583 / 7 / 1 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864102677 0 || 2026-04-28 10:47:10  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:11.254  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:11.255  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -63 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:11.255  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -63 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:11.255  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: getHandoverThresholdMet: value is: false
+04-28 10:47:11.277  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:11.277  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:11.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362431
+04-28 10:47:11.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:11.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:11.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:11.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:11.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:11.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:11.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:11.518  1211  1211 D io_stats: !@   8,0 r 211121106 4226812904 w 53126439 1021850068 d 6838436 995008016 f 1576423 3506185 iot 33811724 0 th 0 0 0 pt 0 inp 0 0 864102.944
+04-28 10:47:11.616  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][143281] accel_sample [ 0.206,  0.462,  9.918] 1556974875547561
+04-28 10:47:11.776  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 80(80),c:1,b:173,m:13,cl:0,l:78,s:79,l0:16480,l1:1056,s0:15500,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:11.794  3072  4709 D WifiConnectivityMonitor.NetworkStatsAnalyzer: Backhaul result - RSSI:-63, CE:19, PE:22, TI:23, PTI:26, TW:0, PTW:0, Tx:18, Rx:19, TxS:11, RxS:12, RESULT:true, IC:0, ICT:5, WC:0, WCT:5, R:0, RC:0, IE:0, EC:0
+04-28 10:47:11.878  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:12.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362432
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:12.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:12.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:12.375  1991  2009 I GnssAidl: ===> injectLocation line 289 
+04-28 10:47:12.376  3072  5288 D ActivityManager: Received BROADCAST intent 0x8109dad Key{broadcastIntent pkg=com.samsung.android.mcfds intent=act=com.samsung.android.ce.sensor.location.PASSIVE_INTENT xflg=0x4 pkg=com.samsung.android.mcfds flags=0x2000000 u=0} requestCode=20247613 sent=0 from uid 1000
+04-28 10:47:12.376  1991  2030 I LocSvc_api_v02: ---> locClientSendReq line 2462 QMI_LOC_INJECT_POSITION_REQ_V02
+04-28 10:47:12.378  3072  5011 D SLocation: PositionManager - Passive handleLocationChanged [N, A : 100.00, T : 1777362432362, ET : 1556975724, h : 19/14]
+04-28 10:47:12.379  3072  5011 W SLocation: GeopointGeofenceManger - refresh wifi to receive loc
+04-28 10:47:12.379  3072  5011 D SLocation: GeopointGeofenceManger - Location reported : fix method = 4 / 100.0
+04-28 10:47:12.379  3072  5011 D SLocation: LocationBuffer - receivedLocation - op[interval(min 60000, max 300000), waitTime 36000000, numOfUpdates 20, minDistance 200.0]dist : 2.289491 diffTime : 20002 filtered Location
+04-28 10:47:12.379  1991  7873 I LocSvc_ApiV02: <--- globalRespCb line 355 QMI_LOC_INJECT_POSITION_REQ_V02
+04-28 10:47:12.379  3072  5011 D SLocation: BatchManager - received batch location buffered = false
+04-28 10:47:12.379  3072  5011 D SLocation: LastLocations - update latest location [N, A : 100.00, T : 1777362432362, ET : 1556975724, h : 19/14]
+04-28 10:47:12.380  3072  3255 I ActivityManager: Changes in 10347 10 to 10, 0 to 128
+04-28 10:47:12.380  3072  5011 D SLocation: ARDistanceLibManager - request distance diff to AR Distance Library
+04-28 10:47:12.380  3072  5011 D SLocation: SLocationCoreSem - send to coreSem, packet length : 1 / [34]
+04-28 10:47:12.380  3072  5011 D SemContextLocationCoreAttribute: setAttribute() mode : 0 action : 23
+04-28 10:47:12.380  3072  5011 D SemContextService: lock : changeParameters
+04-28 10:47:12.380  3072  5011 D SemContext.CaeProvider.LocationCoreImpl: setAttribute() mode : 0 action : 23
+04-28 10:47:12.381  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:509) - [setProperty 01] Mutex is locked for SLOCATION_RUNNER
+04-28 10:47:12.381  3072  5011 I CAE     : setPropertyValue(SLocationRunner.java:116) - SLocationRunner setProperty header : 34, len : 1
+04-28 10:47:12.381  3072  4553 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+04-28 10:47:12.382  3072  4553 D SensorService: setSContextDataLocked 223717c1
+04-28 10:47:12.383  6705  7012 I ehlg    : (REDACTED) appOpsListener %s %s
+04-28 10:47:12.383  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:12.383  1995  1995 I sensors-hal: sendContextData:290, sensor hal 4, (0xc1, 0x17, 0x37, 0x22)
+04-28 10:47:12.383  1995  1995 E sensors-hal: sendContextData:133, slocationcore h 193 m 23 s 55
+04-28 10:47:12.383  1995  1995 I sensors-hal: sendUserData:119, slocationcore sendUserData
+04-28 10:47:12.383  1995  1995 E sensors-hal: create_send_context_data:64, slocationcore create_send_context_data
+04-28 10:47:12.383  1995  1995 I sensors-hal: send_context_data:694, slocationcore, 4986366670857974562, 1320970896291267344, msgid:700
+04-28 10:47:12.383  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:515) - [setProperty 02] Mutex is unlocked for SLOCATION_RUNNER
+04-28 10:47:12.383  6705  7012 I ehlg    : (REDACTED) Ignoring irrelevant audio permission changes for package %s
+04-28 10:47:12.383  3072  5011 D SemContextService: unlock : changeParameters
+04-28 10:47:12.384  3072  5011 D SemContextManager:   .changeParameters : listener = Z.i@6bce72b, service=SLocation Core
+04-28 10:47:12.384  3072  5011 D SLocation: SLocationCoreSem - send to coreSem, packet length : 23 / [2, 27, 63, 50, 232, 12, 169, 196, 224, 0, 0, 0, 100, 2, 0, 0, 1, 157, 211, 14, 113, 106, 0]
+04-28 10:47:12.384  3072  5011 D SemContextLocationCoreAttribute: setAttribute() mode : 0 action : 23
+04-28 10:47:12.384  3072  5011 D SemContextService: lock : changeParameters
+04-28 10:47:12.384  3072  5011 D SemContext.CaeProvider.LocationCoreImpl: setAttribute() mode : 0 action : 23
+04-28 10:47:12.384  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:509) - [setProperty 01] Mutex is locked for SLOCATION_RUNNER
+04-28 10:47:12.384  3072  5011 I CAE     : setPropertyValue(SLocationRunner.java:116) - SLocationRunner setProperty header : 2, len : 23
+04-28 10:47:12.384  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for slocationcore 
+04-28 10:47:12.385  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035265191
+04-28 10:47:12.385  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.385  3072  4553 D SensorService: setSContextDataLocked ints length 8 , byte length 26
+04-28 10:47:12.385  3072  4553 D SensorService: setSContextDataLocked 23717c1
+04-28 10:47:12.385  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:12.385  1995  1995 I sensors-hal: sendContextData:290, sensor hal 26, (0xc1, 0x17, 0x37, 0x2)
+04-28 10:47:12.385  1995  1995 E sensors-hal: sendContextData:133, slocationcore h 193 m 23 s 55
+04-28 10:47:12.385  1995  1995 I sensors-hal: sendUserData:119, slocationcore sendUserData
+04-28 10:47:12.385  1995  1995 E sensors-hal: create_send_context_data:64, slocationcore create_send_context_data
+04-28 10:47:12.385  1995  1995 I sensors-hal: send_context_data:694, slocationcore, 4986366670857974562, 1320970896291267344, msgid:700
+04-28 10:47:12.385  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:515) - [setProperty 02] Mutex is unlocked for SLOCATION_RUNNER
+04-28 10:47:12.385  3072  5011 D SemContextService: unlock : changeParameters
+04-28 10:47:12.385  3072  5011 D SemContextManager:   .changeParameters : listener = Z.i@6bce72b, service=SLocation Core
+04-28 10:47:12.385  5630  5742 I RequestManager_FLP: onOpChanged, op=0 / packageName=com.sec.android.app.shealth
+04-28 10:47:12.386  7885  7901 I [CE]_ContextEngineReceiver: onReceive - action: com.samsung.android.ce.sensor.location.PASSIVE_INTENT
+04-28 10:47:12.386  3072  5011 D SLocation: ReceiverPair - ignore direction of location due to wifi, id = 71, reason = 400
+04-28 10:47:12.387  7885  7901 I [CE]_SLocationManager: onReceive - [Passive Location] 20247613
+04-28 10:47:12.387  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035265511
+04-28 10:47:12.387  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.387  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035265751
+04-28 10:47:12.387  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.387  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035266081
+04-28 10:47:12.387  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.387  3072  5011 D SLocation: ReceiverPair - ignore direction of location due to wifi, id = 543, reason = 400
+04-28 10:47:12.387  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for slocationcore 
+04-28 10:47:12.387  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035307458
+04-28 10:47:12.387  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.388  3072  5011 D SLocation: ReceiverPairWithAdaptive - id : 396, dir : 2
+04-28 10:47:12.389  3072  5011 D SLocation: GeopointLastLocation - last location still available 27 / 9223372036854775807
+04-28 10:47:12.389  3072  5011 D SLocation: GeopointGeofenceObserver - location : [N, A : 100.00, T : 1777362432362, ET : 1556975724, h : 19/14], radius : 4096
+04-28 10:47:12.389  3072  5011 D SLocation: LocationProviderStatus - try to update provider status (GPS/NLP)
+04-28 10:47:12.389  3072  5011 D SLocation: LocationProviderStatus - set isGpsOn : true, isNlpOn : true
+04-28 10:47:12.389  3072  5011 D SLocation: LocationProviderStatus - gps & nlp status not changed
+04-28 10:47:12.389  3072  5011 D SLocation: GeofenceCoreManager - geofence core command pending size : 2
+04-28 10:47:12.389  3072  5011 D SLocation: GeofenceCoreRecovery - removeGeofenceInfo id = 15000
+04-28 10:47:12.389  3072  5011 D SLocation: SLocationCoreSem - send to coreSem, packet length : 3 / [17, 58, 152]
+04-28 10:47:12.389  3072  5011 D SemContextLocationCoreAttribute: setAttribute() mode : 0 action : 23
+04-28 10:47:12.389  3072  5011 D SemContextService: lock : changeParameters
+04-28 10:47:12.389  3072  5011 D SemContext.CaeProvider.LocationCoreImpl: setAttribute() mode : 0 action : 23
+04-28 10:47:12.389  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:509) - [setProperty 01] Mutex is locked for SLOCATION_RUNNER
+04-28 10:47:12.389  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :56], AP_WAKEUP
+04-28 10:47:12.389  3072  5011 I CAE     : setPropertyValue(SLocationRunner.java:116) - SLocationRunner setProperty header : 17, len : 3
+04-28 10:47:12.389  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 56
+04-28 10:47:12.389  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 51, 5, 1, 16, 0, 0, 0, 0, 1, -85, 105, -8, 7, 2, 0, 0, 0, 0, 1, -85, 105, -8, 15, 5, 0, 0, 0, -56, 1, -85, 105, -8, 5, 1, 0, 0, 0, 100, 1, -85, 109, -32, 15, 5, 0, 0, 0, -56, 1, -85, 109, -32,
+04-28 10:47:12.390  3072  4553 D SensorService: setSContextDataLocked ints length 3 , byte length 6
+04-28 10:47:12.390  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.390  3072  4553 D SensorService: setSContextDataLocked 113717c1
+04-28 10:47:12.390  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.390  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:12.390  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 51, 5, 1, 16, 0, 0, 0, 0, 1, -85, 105, -8, 7, 2, 0, 0, 0, 0, 1, -85, 105, -8, 15, 5, 0, 0, 0, -56, 1, -85, 105, -8, 5, 1, 0, 0, 0, 100, 1, -85, 109, -32, 15, 5, 0, 0, 0, -56, 1, -85, 109, -32]
+04-28 10:47:12.390  1995  1995 I sensors-hal: sendContextData:290, sensor hal 6, (0xc1, 0x17, 0x37, 0x11)
+04-28 10:47:12.390  1995  1995 E sensors-hal: sendContextData:133, slocationcore h 193 m 23 s 55
+04-28 10:47:12.390  1995  1995 I sensors-hal: sendUserData:119, slocationcore sendUserData
+04-28 10:47:12.390  1995  1995 E sensors-hal: create_send_context_data:64, slocationcore create_send_context_data
+04-28 10:47:12.390  1995  1995 I sensors-hal: send_context_data:694, slocationcore, 4986366670857974562, 1320970896291267344, msgid:700
+04-28 10:47:12.390  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:56
+04-28 10:47:12.390  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :16], AP_WAKEUP
+04-28 10:47:12.390  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 16
+04-28 10:47:12.390  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 11, 5, 7, 2, 0, 0, 0, 11, 1, -85, -108, -16,
+04-28 10:47:12.390  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.391  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.391  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 11, 5, 7, 2, 0, 0, 0, 11, 1, -85, -108, -16]
+04-28 10:47:12.391  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.391  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:515) - [setProperty 02] Mutex is unlocked for SLOCATION_RUNNER
+04-28 10:47:12.391  3072  5011 D SemContextService: unlock : changeParameters
+04-28 10:47:12.391  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.391  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.391  3072  5011 D SemContextManager:   .changeParameters : listener = Z.i@6bce72b, service=SLocation Core
+04-28 10:47:12.391  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:16
+04-28 10:47:12.391  3072  5011 D SLocation: GeofenceCoreManager - geofence core command pending size : 1
+04-28 10:47:12.391  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.391  3072  5011 D SLocation: GeofenceCoreRecovery - storeGeofenceInfo 1 id = 15000, radius = 4096
+04-28 10:47:12.391  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :38], AP_WAKEUP
+04-28 10:47:12.391  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for slocationcore 
+04-28 10:47:12.391  3072  5011 D SLocation: SLocationCoreSem - send to coreSem, packet length : 16 / [16, 58, 152, 27, 63, 50, 232, 12, 169, 196, 224, 0, 0, 16, 0, 1]
+04-28 10:47:12.391  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035404037
+04-28 10:47:12.391  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.391  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.391  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 38
+04-28 10:47:12.391  3072  5011 D SemContextLocationCoreAttribute: setAttribute() mode : 0 action : 23
+04-28 10:47:12.392  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.392  3072  5011 D SemContextService: lock : changeParameters
+04-28 10:47:12.392  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 33, 33, 0, 0, 0, 0, 0, 0, 1, -99, -46, -1, -94, -16, 27, 63, 50, 64, 12, -87, -58, 80, 0, 0, 0, 9, 1, -85, 105, -8, 0, 0, 0, 0,
+04-28 10:47:12.392  3072  5011 D SemContext.CaeProvider.LocationCoreImpl: setAttribute() mode : 0 action : 23
+04-28 10:47:12.392  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.392  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:509) - [setProperty 01] Mutex is locked for SLOCATION_RUNNER
+04-28 10:47:12.392  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.392  3072  5011 I CAE     : setPropertyValue(SLocationRunner.java:116) - SLocationRunner setProperty header : 16, len : 16
+04-28 10:47:12.392  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 33, 33, 0, 0, 0, 0, 0, 0, 1, -99, -46, -1, -94, -16, 27, 63, 50, 64, 12, -87, -58, 80, 0, 0, 0, 9, 1, -85, 105, -8, 0, 0, 0, 0]
+04-28 10:47:12.392  3072  4553 D SensorService: setSContextDataLocked ints length 6 , byte length 19
+04-28 10:47:12.392  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:38
+04-28 10:47:12.392  3072  4553 D SensorService: setSContextDataLocked 103717c1
+04-28 10:47:12.392  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :10], AP_WAKEUP
+04-28 10:47:12.393  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:12.393  1995  1995 I sensors-hal: sendContextData:290, sensor hal 19, (0xc1, 0x17, 0x37, 0x10)
+04-28 10:47:12.393  1995  1995 E sensors-hal: sendContextData:133, slocationcore h 193 m 23 s 55
+04-28 10:47:12.393  1995  1995 I sensors-hal: sendUserData:119, slocationcore sendUserData
+04-28 10:47:12.393  1995  1995 E sensors-hal: create_send_context_data:64, slocationcore create_send_context_data
+04-28 10:47:12.393  1995  1995 I sensors-hal: send_context_data:694, slocationcore, 4986366670857974562, 1320970896291267344, msgid:700
+04-28 10:47:12.393  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 10
+04-28 10:47:12.393  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.393  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 5, 2, 34, 0, 0, 0,
+04-28 10:47:12.393  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.393  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.393  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.393  3072  5011 W CAE     : setCAProperty(ContextAwareService.java:515) - [setProperty 02] Mutex is unlocked for SLOCATION_RUNNER
+04-28 10:47:12.393  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for slocationcore 
+04-28 10:47:12.393  3072  5011 D SemContextService: unlock : changeParameters
+04-28 10:47:12.393  3072  5011 D SemContextManager:   .changeParameters : listener = Z.i@6bce72b, service=SLocation Core
+04-28 10:47:12.393  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:slocationcore  Wakeup, msg_id=1025, ts=29894035438381
+04-28 10:47:12.393  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.393  1995  4551 E sensors-hal: handle_sns_client_event:78, slocationcore_event: msgid:1025
+04-28 10:47:12.393  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 5, 2, 34, 0, 0, 0]
+04-28 10:47:12.393  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 51
+04-28 10:47:12.394  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:10
+04-28 10:47:12.394  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 51
+04-28 10:47:12.394  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :10], AP_WAKEUP
+04-28 10:47:12.394  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 10
+04-28 10:47:12.394  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 5, 2, 2, 0, 0, 0,
+04-28 10:47:12.394  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.394  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.394  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 11
+04-28 10:47:12.394  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 11
+04-28 10:47:12.394  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 5, 2, 2, 0, 0, 0]
+04-28 10:47:12.394  3072  5011 D SLocation: ARDistanceGetARDistance - convertSensorHubTimeToElapsedTime 1556005363
+04-28 10:47:12.394  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:10
+04-28 10:47:12.394  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 33
+04-28 10:47:12.394  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 33
+04-28 10:47:12.394  3072  5011 W Settings: Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+04-28 10:47:12.394  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :10], AP_WAKEUP
+04-28 10:47:12.394  3072  5011 W Settings: Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+04-28 10:47:12.395  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.395  3072  5011 D SLocation: FilteredLastLocation - notify all last locations, loc : 3
+04-28 10:47:12.395  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.395  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 10
+04-28 10:47:12.395  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.395  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.395  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 5, 2, 17, 0, 58, -104,
+04-28 10:47:12.395  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.395  3072  5011 D SLocation: ARDistanceLibManager - command callback received - CURRENT_LOCATION_REQUEST_DISTANCE ERROR CODE : ERROR_NONE
+04-28 10:47:12.395  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.395  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.395  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.395  3072  5011 D SLocation: GeofenceCoreManager - handleCommandCallback - UNKNOWN_CALLBACK 34 SUCCESS
+04-28 10:47:12.395  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.395  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.395  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 5, 2, 17, 0, 58, -104]
+04-28 10:47:12.395  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.395  3072  5011 D SLocation: GeofenceCoreManager - handleCommandCallback - UNKNOWN_CALLBACK 2 SUCCESS
+04-28 10:47:12.396  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.396  3072  5011 D SLocation: CommonCoreManager - handleCommandCallback - FUNC_TYPE : SET_LOCATION  ERROR_CODE : ERROR_NONE
+04-28 10:47:12.396  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:10
+04-28 10:47:12.396  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :10], AP_WAKEUP
+04-28 10:47:12.396  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 10
+04-28 10:47:12.396  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 55, 0, 5, 2, 16, 0, 58, -104,
+04-28 10:47:12.396  3072  4549 I CAE     : parse(SLocationRunner.java:88) - SLocationRunner parse start : 3
+04-28 10:47:12.396  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.396  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= SLOCATION_RUNNER =================
+04-28 10:47:12.396  3072  4549 I CAE     : display(ContextProvider.java:391) - ExtraDataArray=[1, 1, 55, 0, 5, 2, 16, 0, 58, -104]
+04-28 10:47:12.396  3072  4549 I CAE     : parse(SLocationRunner.java:96) - SLocationRunner parse end:10
+04-28 10:47:12.397  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.397  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.397  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.397  3072  5011 D SLocation: GeofenceCoreManager - handleCommandCallback - GEOFENCE_REMOVE SUCCESS
+04-28 10:47:12.397  3072  5011 I SLocation: SHardwareManager - handleRemoveCallback : GEOFENCE_SUCCESS, id = 15000
+04-28 10:47:12.397  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.398  3072  4546 D SemContextService: Service.updateContext() : service = SLocation Core
+04-28 10:47:12.398  7885  7901 I [CE]_ActivityDataManagerImpl: loadState - StayInfo loaded
+04-28 10:47:12.398  3072  3072 D SemContextManager: onSemContextChanged() : event = SLocation Core
+04-28 10:47:12.398  3072  3072 D SLocation: SensorHubWrapper - SemContextChanged type = 47, packet received
+04-28 10:47:12.398  3072  5011 D SLocation: GeofenceCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.398  3072  5011 D SLocation: GeofenceCoreManager - handleCommandCallback - GEOFENCE_ADD SUCCESS
+04-28 10:47:12.398  3072  5011 I SLocation: SHardwareManager - handleAddCallback : GEOFENCE_SUCCESS id = 15000
+04-28 10:47:12.398  3072  5011 D SLocation: CommonCoreManager - received Extra Data from core, len : 5
+04-28 10:47:12.400  7885  7901 I [CE]_ActivityDataManagerImpl: Scan receiver - Stay detected - start time : 1777308291799, end time : 1777362432398, timestamp : 1777362432398
+04-28 10:47:12.401  7885  7901 I [CE]_RealtimeMovingContextProvider: onReceive - Not started
+04-28 10:47:12.846 17123 30998 I NearbyMediums: No BLE Fast/GATT advertisements found in the latest cycle.
+04-28 10:47:12.846 17123 30998 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-28 10:47:12.882  3072  5011 D SLocation: WifiBssidMonitor - requestRefresh
+04-28 10:47:12.883  3072  5011 W SLocation: WifiBssidMonitor - connected wifi : (64:6e:60:**:**:71/728)
+04-28 10:47:12.893  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:12.896  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556976253941259 ns; value = [80, 80, 33, 83, 57, 173, 0, 66, 16480, 93]
+04-28 10:47:13.092  3072 14905 I AfterimageCompensationService: AfcThread mLuminance : 304 , AfpcPeriodCount : 2296 , rotation : 0 , AOD : false
+04-28 10:47:13.095  3072 14905 I SurfaceComposerClient: captureDisplay:Display-4630946315032985731
+04-28 10:47:13.099  2102  4418 I SurfaceFlinger: Capture layer list: 	 com.petpal.app/com.petpal.app.MainActivity$_30269#297755(seamlessTransition:0)
+04-28 10:47:13.099  2102  4418 I SurfaceFlinger: Capture layer list: 	 StatusBar$_4796#111(seamlessTransition:0)
+04-28 10:47:13.099  2102  4418 I SurfaceFlinger: Capture layer list: 	 com.sec.android.app.launcher/com.samsung.app.honeyspace.edge.edgepanel.app.CocktailBarService$_5210#297744(seamlessTransition:0)
+04-28 10:47:13.100  2102  4418 I SurfaceFlinger: Capture layer list: 	 NavigationBar0$_4796#109(seamlessTransition:0)
+04-28 10:47:13.100  2102  4418 I CompositionEngine: [setDisplaySize] size=(1440, 3120)
+04-28 10:47:13.101  2102  4418 E HwcComposer: getLuts failed Status(-129, EX_TRANSACTION_FAILED): 'UNKNOWN_TRANSACTION: '
+04-28 10:47:13.102  2102  2307 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1483, Rendering layer ScreenCaptureFillLayer at index 0
+04-28 10:47:13.102  2102  2307 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1483, Rendering layer com.petpal.app/com.petpal.app.MainActivity$_30269#297755 at index 1
+04-28 10:47:13.103  2102  2307 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1483, Rendering layer StatusBar$_4796#111 at index 2
+04-28 10:47:13.103  2102  2307 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1483, Rendering layer com.sec.android.app.launcher/com.samsung.app.honeyspace.edge.edgepanel.app.CocktailBarService$_5210#297744 at index 3
+04-28 10:47:13.104  2102  2307 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1483, Rendering layer NavigationBar0$_4796#109 at index 4
+04-28 10:47:13.120  3072 14905 D system_server: mAFPC_Read - w = 1440, h = 3120, s = 32, f = 4, s_size = 18370560, luminance = 304, count = 2296, captureOrientation = 0
+04-28 10:47:13.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362433
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:13.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:13.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:13.519  1211  1211 D io_stats: !@   8,0 r 211121114 4226812996 w 53126439 1021850068 d 6838436 995008016 f 1576423 3506185 iot 33811748 0 th 0 0 0 pt 0 inp 0 0 864104.945
+04-28 10:47:13.520  1211  1211 D io_stats: !@ Read_top(KB): ng.android.lool(14357) 1356 ng.android.scpm(29723) 1180 chbox:googleapp(20049) 1164
+04-28 10:47:13.520  1211  1211 D io_stats: !@ Write_top(KB): jbd2/sda9-8(1172) 20 vendor.samsung.(2040) 16
+04-28 10:47:13.536  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][143514] accel_sample [ 0.196,  0.469,  9.928] 1556976882508082
+04-28 10:47:13.696  1995  4777 I sensors-hal: handle_sns_std_sensor_event:131, [SSC_LIGHT] A: 80(80),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16480,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:13.746  3072  4319 D ActivityManager: freezing 25175 com.samsung.android.globalpostprocmgr
+04-28 10:47:13.752  8426  9263 I SDHMS:x : SIOP:: AP:378 BAT:378 USB:325 CHG:362 PA:378 WIFI:375 CF:372 BLK:0 SUBBAT:0 LRPTHM:369 SKIN:360 SKINF:347 SKINB:360 LRP2:360 LRF2:347 LRB2:360 AP2:359 CHG2:358 WIFI2:359 RCV2:340 SPK2:324 FCAM:324 UPSPK:371 DNSPK:322 VAP02:378 VWIFI:379 AMB2:279 AVGCUR:370 AVGSYS:168 POWER:1552
+04-28 10:47:13.760  3072  3255 D ActivityManager: sync unfroze 25175 com.samsung.android.globalpostprocmgr for 3
+04-28 10:47:13.760  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:13.760  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=ambient_light: convert sample_period=200000000 to batch_period=200000
+04-28 10:47:13.760  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:13.760  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for ambient_light with SUID low=3046173514946711665 high=5156882063447517846
+04-28 10:47:13.761  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:13.761 25175 25217 I a       : [#GPP#] onReceive completed :  0
+04-28 10:47:13.762 25175 25175 I c       : [#GPP#] EVENT_SIOP: 0 
+04-28 10:47:13.762  3072  3072 D SemWifiP2pGoPowerSave: GopsReceiver : received : com.samsung.intent.action.CHECK_SIOP_LEVEL
+04-28 10:47:13.762  3072  3072 I SemWifiP2pGoPowerSave: siop_level = 0
+04-28 10:47:13.762 25175 25175 I o       : [#GPP#] Send sendSystemConditionChangeNotification 
+04-28 10:47:13.762  1995  4777 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for ambient_light 
+04-28 10:47:13.762  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:13.762  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=200000000, max_latency=0 request completed
+04-28 10:47:13.763  5015 31593 D IpClient/wlan0: interfaceLinkStateChanged: ifindex 45 up
+04-28 10:47:13.764  1995  1995 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+04-28 10:47:13.764 15217 14670 I [SC]CtbDeviceRepository: updateSiopLevel. siopLevel: 0
+04-28 10:47:13.764 15217 31121 I [SC][ConfigurationPolicyRepositoryImpl]: getConcurrency. concurrency: 4, siop level: 0
+04-28 10:47:13.764 15217 31121 I [SC][SyncStarter]: Device thermal status updated to overheated: false
+04-28 10:47:13.764  1995  1995 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 1
+04-28 10:47:13.765  1995 31122 D SensorsFlicker: Als_common::sendCommand, send enable command
+04-28 10:47:13.765  3072  4911 D SemContextService: lock : registerCallback
+04-28 10:47:13.766  3072  4911 W CAE     : registerCallback(ContextAwareService.java:188) - [regi 01] Mutex is locked for TEST_FLAT_MOTION
+04-28 10:47:13.766  3072  4911 W CAE     : registerCallback(ContextAwareService.java:195) - [regi 04]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:13.766  3072  4911 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:13.766  3072  4911 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c
+04-28 10:47:13.766  3072  4911 V CAE     : start(ContextProvider.java:128)
+04-28 10:47:13.766  3072  4911 V CAE     : clear(TestFlatMotionRunner.java:126)
+04-28 10:47:13.766  3072  4911 V CAE     : enable(TestFlatMotionRunner.java:102)
+04-28 10:47:13.767  3072  4553 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+04-28 10:47:13.767  3072  4553 D SensorService: setSContextDataLocked 17b1
+04-28 10:47:13.767  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:13.767  1995  1995 I sensors-hal: sendContextData:290, sensor hal 4, (0xb1, 0x17, 0x0, 0x0)
+04-28 10:47:13.767  1995  1995 I sensors-hal: sendContextData:349, enable:177, handle:8, algo:26279936
+04-28 10:47:13.768  1995  1995 I sensors-hal: is_restrict_mode:147, mode:normal
+04-28 10:47:13.768  1995  1995 I sensors-hal: sendContextData:108, device_position 4
+04-28 10:47:13.768  1995  1995 I sensors-hal: acquire_qsh_interface:139, acquire_qsh_interface with sensor_id 46 , conn_type 2 
+04-28 10:47:13.768  1995  1995 I sensors-hal: acquire_qsh_interface:149, returning _shared_instance[SHARED_SENSORHUBS].conn
+04-28 10:47:13.768  1995  1995 I sensors-hal: acquire_shared_instance:173, re-use existing connection for type 2 
+04-28 10:47:13.768  1995  1995 I sensors-hal: register_cb:304, suid(low=11077485164857655296,high=1320970896291267344) is new. register callbacks
+04-28 10:47:13.768  1995  1995 I sensors-hal: create_sensor_config_request:48, device_position create_sensor_config_request
+04-28 10:47:13.768  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=device_position: convert sample_period=0 to batch_period=0
+04-28 10:47:13.768  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:13.768  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for device_position with SUID low=11077485164857655296 high=1320970896291267344
+04-28 10:47:13.768  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:13.769  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for device_position 
+04-28 10:47:13.769  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 0 ms to receive the response with 0
+04-28 10:47:13.769  3072  4911 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+04-28 10:47:13.769  3072  4911 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+04-28 10:47:13.772  3072  4911 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+04-28 10:47:13.772  3072  4911 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 1, serviceCount = 1, subCollectionCount = 0
+04-28 10:47:13.772  3072  4911 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SLOCATION_RUNNER(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : CH_LOC_TRIGGER(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : FREE_FALL_DETECTION(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : TEST_FLAT_MOTION(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER_CURRENT_INFO(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_BATCH(1)
+04-28 10:47:13.772  3072  4911 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER(1)
+04-28 10:47:13.772  3072  4911 W CAE     : registerCallback(ContextAwareService.java:209) - [regi 02] Mutex is unlocked for TEST_FLAT_MOTION
+04-28 10:47:13.772  3072  4911 E SemContext.CaeProvider: setAttribute() : attribute is null!
+04-28 10:47:13.772  3072  4911 D SemContextService: 	.registerCallback : 11, client= com.sec.android.sdhms
+04-28 10:47:13.772  3072  4911 D SemContextService: unlock : registerCallback
+04-28 10:47:13.773  3072  4287 E SensorService: BigData:Pakage) 5 already enabled. 
+04-28 10:47:13.846  1995  1995 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+04-28 10:47:13.848  1995  1995 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 0
+04-28 10:47:13.849  1995 31123 D SensorsFlicker: Als_common::sendCommand, send disable command
+04-28 10:47:13.857  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:13.857  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=200000000, max_latency=0 request completed
+04-28 10:47:13.858  3072  4287 E SensorService: BigData:Pakage) 5 already disabled. 
+04-28 10:47:13.859  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:13.859  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=ambient_light: convert sample_period=250000000 to batch_period=250000
+04-28 10:47:13.859  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:13.859  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for ambient_light with SUID low=3046173514946711665 high=5156882063447517846
+04-28 10:47:13.859  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:13.861  1995  4777 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for ambient_light 
+04-28 10:47:13.861  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:13.861  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=250000000, max_latency=0 request completed
+04-28 10:47:13.910  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:14.051  1995  4551 I sensors-hal: qsh_conn_event_cb:857, SCHED_FIFO(10) for qmi_cbk
+04-28 10:47:14.051  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:device_position  Wakeup, msg_id=1025, ts=29894067264886
+04-28 10:47:14.051  1995  4551 I sensors-hal: handle_sns_client_event:78, device_position_event: msgid:1025
+04-28 10:47:14.051  1995  4551 I sensors-hal: handle_sns_client_event:97, device_position_event: 1
+04-28 10:47:14.056  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :4], AP_WAKEUP
+04-28 10:47:14.056  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 4
+04-28 10:47:14.057  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 23, 1,
+04-28 10:47:14.057  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= TEST_FLAT_MOTION =================
+04-28 10:47:14.058  3072  4549 I CAE     : display(ContextProvider.java:391) - Action=[1]
+04-28 10:47:14.059  3072  4546 D SemContextService: Service.updateContext() : service = Device Position
+04-28 10:47:14.060  3072  4287 D SemContextService: lock : unregisterCallback
+04-28 10:47:14.061  3072  4287 D SemContextService: Service.removeListenerLocked() : listener = com.samsung.android.hardware.context.SemContextService$Listener@f082384, service = Device Position, used = 0
+04-28 10:47:14.061  3072  4287 W CAE     : unregisterCallback(ContextAwareService.java:230) - [unregi 01] Mutex is locked for TEST_FLAT_MOTION
+04-28 10:47:14.061  3072  4287 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:14.061  3072  4287 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c
+04-28 10:47:14.061  3072  4287 V CAE     : stop(ContextProvider.java:155)
+04-28 10:47:14.061  3072  4287 V CAE     : clear(TestFlatMotionRunner.java:126)
+04-28 10:47:14.062  3072  4287 V CAE     : disable(TestFlatMotionRunner.java:115)
+04-28 10:47:14.062  3072  4553 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+04-28 10:47:14.062  3072  4553 D SensorService: setSContextDataLocked 17b2
+04-28 10:47:14.063  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:14.063  1995  1995 I sensors-hal: sendContextData:290, sensor hal 4, (0xb2, 0x17, 0x0, 0x0)
+04-28 10:47:14.063  1995  1995 I sensors-hal: sendContextData:349, enable:178, handle:8, algo:26280192
+04-28 10:47:14.063  1995  1995 I sensors-hal: sendContextData:108, device_position 4
+04-28 10:47:14.063  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:14.063  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for device_position with SUID low=11077485164857655296 high=1320970896291267344
+04-28 10:47:14.063  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:14.064  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for device_position 
+04-28 10:47:14.065  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:14.065  3072  4287 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+04-28 10:47:14.065  3072  4287 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+04-28 10:47:14.068  3072  4287 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+04-28 10:47:14.069  3072  4287 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 0, serviceCount = 0, subCollectionCount = 0
+04-28 10:47:14.069  3072  4287 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SLOCATION_RUNNER(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : CH_LOC_TRIGGER(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : FREE_FALL_DETECTION(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER_CURRENT_INFO(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_BATCH(1)
+04-28 10:47:14.069  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER(1)
+04-28 10:47:14.069  3072  4287 W CAE     : unregisterCallback(ContextAwareService.java:251) - [unregi 02] Mutex is unlocked for TEST_FLAT_MOTION
+04-28 10:47:14.070  3072  4287 D SemContextService: 	.unregisterCallback : 11, client= com.sec.android.sdhms
+04-28 10:47:14.070  3072  4287 D SemContextService: unlock : unregisterCallback
+04-28 10:47:14.263  2452  2452 I CNSS    : /sys/wifi/max_chipset_log_size doesn't exist
+04-28 10:47:14.289  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140041, isSameBssidAndFreq true
+04-28 10:47:14.293  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:14.294  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:14.295  5210  5482 I HoneySpace.StatusIconTracker: invokeEvent() called with: event = Wifi(visible=true, resId=2131236023, activityId=2131236053)
+04-28 10:47:14.296  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -62 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:14.296  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -62 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:14.296  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: getHandoverThresholdMet: value is: false
+04-28 10:47:14.297  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:14.297  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -62.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -62.0 / 0 / 0 / 0 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864105721 0 || 2026-04-28 10:47:13  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:14.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362434
+04-28 10:47:14.301  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:14.301  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:14.302  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:14.302  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:14.302  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:14.302  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:14.302  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:14.308  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 0
+04-28 10:47:14.312  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:14.312  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:14.316  2102  4418 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+04-28 10:47:14.528  8426  8426 I SDHMS:LOAD: type: LoadsFreqs, value: 3:0:0:672000:672000:672000:751488:3148800:499200:231:231:231
+04-28 10:47:14.656  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 82(82),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16512,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:14.672  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:14.672  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:14.673  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:14.673  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:14.685  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-57, periodicAdvInt=0x0
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter: getWifiDisplayStatusLocked: result=WifiDisplayStatus{featureState=2, scanState=0, activeDisplayState=0, activeDisplay=null, displays=[], sessionInfo=WifiDisplaySessionInfo:
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter:     Client/Owner: Client
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter:     GroupId: 
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter:     Passphrase: 
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter:     SessionId: 0
+04-28 10:47:14.691  3072  4287 D WifiDisplayAdapter:     IP Address: }
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter: getWifiDisplayStatusLocked: result=WifiDisplayStatus{featureState=2, scanState=0, activeDisplayState=0, activeDisplay=null, displays=[], sessionInfo=WifiDisplaySessionInfo:
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     Client/Owner: Client
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     GroupId: 
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     Passphrase: 
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     SessionId: 0
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     IP Address: }
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter: getWifiDisplayStatusLocked: result=WifiDisplayStatus{featureState=2, scanState=0, activeDisplayState=0, activeDisplay=null, displays=[], sessionInfo=WifiDisplaySessionInfo:
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     Client/Owner: Client
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     GroupId: 
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     Passphrase: 
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     SessionId: 0
+04-28 10:47:14.692  3072  4287 D WifiDisplayAdapter:     IP Address: }
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter: getWifiDisplayStatusLocked: result=WifiDisplayStatus{featureState=2, scanState=0, activeDisplayState=0, activeDisplay=null, displays=[], sessionInfo=WifiDisplaySessionInfo:
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter:     Client/Owner: Client
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter:     GroupId: 
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter:     Passphrase: 
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter:     SessionId: 0
+04-28 10:47:14.693  3072  4287 D WifiDisplayAdapter:     IP Address: }
+04-28 10:47:14.693 10420 10437 I [+0300]oneconnect[1.8.45.24_01][BEACON_MANAGER_CONTROL_SERVICE]: TvOcfParser.onReceive - TV Popup Onboarding is skipped - ($)
+04-28 10:47:14.724  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:14.724  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:14.874  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:14.925  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:15.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362435
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:15.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:15.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:15.455  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556978813946259 ns; value = [82, 82, 33, 83, 57, 173, 0, 66, 16480, 0]
+04-28 10:47:15.521  1211  1211 D io_stats: !@   8,0 r 211121115 4226813000 w 53126472 1021851040 d 6838436 995008016 f 1576423 3506185 iot 33811760 0 th 0 0 0 pt 0 inp 0 0 864106.947
+04-28 10:47:15.776  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][143747] accel_sample [ 0.213,  0.459,  9.827] 1556978889468603
+04-28 10:47:15.940  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:16.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362436
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:16.302  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:16.302  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:16.955  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:16.978  3072  3254 I ActivityManager: Changes in 5009 5 to 10, 144 to 128
+04-28 10:47:16.981  2453  4285 I CameraService: onUidStateChanged: uid=5009, procState is changed. (5 -> 10)
+04-28 10:47:17.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362437
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:17.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:17.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:17.324  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140042, isSameBssidAndFreq true
+04-28 10:47:17.326  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:17.326  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -62.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -62.0 / 0 / 0 / 0 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864108750 0 || 2026-04-28 10:47:16  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:17.352  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:17.352  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:17.522  1211  1211 D io_stats: !@ Read_top(KB): .gms.persistent(17123) 4
+04-28 10:47:17.523  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:4(2797) 960 .gms.persistent(17123) 12
+04-28 10:47:17.983  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:18.015  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556981373946676 ns; value = [80, 80, 33, 83, 55, 173, 0, 66, 16384, 0]
+04-28 10:47:18.176  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 82(82),c:1,b:173,m:13,cl:0,l:77,s:82,l0:16384,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:18.176  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][143980] accel_sample [ 0.201,  0.467,  9.925] 1556980896429123
+04-28 10:47:18.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362438
+04-28 10:47:18.304  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:18.304  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:18.304  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:18.304  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:18.305  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:18.305  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:18.305  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:18.656  1995  4777 I sensors-hal: handle_sns_std_sensor_event:131, [SSC_LIGHT] A: 82(82),c:1,b:173,m:13,cl:0,l:77,s:82,l0:16384,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:93,po:195(N:0)
+04-28 10:47:18.716  3072  4287 E BatteryStatsService: Invalid uid for waking network packet: -1
+04-28 10:47:18.821 17123 17123 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.libs.gmscorelogger.service.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentDirectBootAwareApiService }
+04-28 10:47:19.006  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:19.301  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362439
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:19.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:19.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:19.523  1211  1211 D io_stats: !@   8,0 r 211121116 4226813256 w 53126472 1021851040 d 6838436 995008016 f 1576423 3506185 iot 33811772 0 th 0 0 0 pt 0 inp 0 0 864110.949
+04-28 10:47:19.616  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][144213] accel_sample [ 0.199,  0.474,  9.935] 1556982903389488
+04-28 10:47:19.936  3072  5288 W ParceledListSlice: Element #45 is 19036 bytes.
+04-28 10:47:19.940  3072  5288 W ParceledListSlice: Element #80 is 20440 bytes.
+04-28 10:47:19.944  3072  5288 W ParceledListSlice: Element #102 is 19012 bytes.
+04-28 10:47:19.961  3072  5288 W ParceledListSlice: Element #215 is 191100 bytes.
+04-28 10:47:19.961  3072  5288 W ParceledListSlice: Overly large reply size: 236620
+04-28 10:47:19.973  3072  5288 W ParceledListSlice: Element #244 is 23076 bytes.
+04-28 10:47:19.976  3072  5288 W ParceledListSlice: Element #269 is 16584 bytes.
+04-28 10:47:19.978  3072  5288 W ParceledListSlice: Element #276 is 25440 bytes.
+04-28 10:47:19.982  3072  5288 W ParceledListSlice: Element #301 is 23428 bytes.
+04-28 10:47:19.986  3072  5288 W ParceledListSlice: Element #344 is 20544 bytes.
+04-28 10:47:19.986  3072  5288 W ParceledListSlice: Overly large reply size: 82252
+04-28 10:47:19.988  3072  5288 W ParceledListSlice: Element #352 is 17296 bytes.
+04-28 10:47:19.990  3072  5288 W ParceledListSlice: Element #361 is 23104 bytes.
+04-28 10:47:19.996  3072  5288 W ParceledListSlice: Element #412 is 46176 bytes.
+04-28 10:47:20.002  3072  5288 W ParceledListSlice: Element #460 is 16400 bytes.
+04-28 10:47:20.002  3072  5288 W ParceledListSlice: Element #462 is 20072 bytes.
+04-28 10:47:20.004  3072  5288 W ParceledListSlice: Element #463 is 17952 bytes.
+04-28 10:47:20.006  3072  5288 W ParceledListSlice: Element #481 is 21992 bytes.
+04-28 10:47:20.008  3072  5288 W ParceledListSlice: Element #494 is 16876 bytes.
+04-28 10:47:20.012  3072  5288 W ParceledListSlice: Element #534 is 27880 bytes.
+04-28 10:47:20.014  3072  5288 W ParceledListSlice: Element #542 is 76488 bytes.
+04-28 10:47:20.014  3072  5288 W ParceledListSlice: Overly large reply size: 86716
+04-28 10:47:20.020  3072  5288 W ParceledListSlice: Element #577 is 21404 bytes.
+04-28 10:47:20.022  3072  5288 W ParceledListSlice: Element #590 is 19280 bytes.
+04-28 10:47:20.024  3072  5288 W ParceledListSlice: Element #600 is 25832 bytes.
+04-28 10:47:20.024  3072  5288 W ParceledListSlice: Element #602 is 19416 bytes.
+04-28 10:47:20.024  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:20.032  3072  5288 W ParceledListSlice: Element #653 is 30868 bytes.
+04-28 10:47:20.035  3072  5288 W ParceledListSlice: Element #679 is 27408 bytes.
+04-28 10:47:20.037  3072  5288 W ParceledListSlice: Element #693 is 25892 bytes.
+04-28 10:47:20.039  3072  5288 W ParceledListSlice: Element #707 is 25660 bytes.
+04-28 10:47:20.043  3072  5288 W ParceledListSlice: Element #736 is 17364 bytes.
+04-28 10:47:20.116  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:20.116  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:20.116  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:20.116  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:20.125  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-58, periodicAdvInt=0x0
+04-28 10:47:20.128 17852 17897 I BCMGR[11.2.04.4]: BeaconMainController] onReceive - [1 : ST packet!][2 : ST packet!][3 : ST packet!][4 : ST packet!][5 : ST packet!][6 : ST packet!][7 : ST packet!][8 : ST packet!][9 : ST packet!][10 : ST packet!]
+04-28 10:47:20.131 10420 10437 I [+0300]oneconnect[1.8.45.24_01][BEACON_MANAGER_CONTROL_SERVICE]: TvOcfParser.onReceive - TV Popup Onboarding is skipped - ($)
+04-28 10:47:20.137  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-57, periodicAdvInt=0x0
+04-28 10:47:20.176  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:20.176  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:20.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362440
+04-28 10:47:20.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:20.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:20.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:20.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:20.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:20.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:20.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:20.327  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:20.360  5020  5774 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+04-28 10:47:20.362  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140043, isSameBssidAndFreq true
+04-28 10:47:20.362  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:20.364  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:20.364  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -61 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:20.364  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -61 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:20.364  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: getHandoverThresholdMet: value is: false
+04-28 10:47:20.366  5338  5338 I EPDG -- SIM0 [SMARTCELLULAR]: onSignalStrengthsChanged: SignalStrength:{mCdma=Invalid,mGsm=Invalid,mWcdma=Invalid,mTdscdma=Invalid,mLte=CellSignalStrengthLte: rssi=-67 rsrp=-99 rsrq=-12 rssnr=4 cqiTableIndex=2147483647 cqi=2147483647 ta=2147483647 level=3 parametersUseForLevel=0,mNr=Invalid,SignalBarInfo{ lteLevel=3 },rat=14,primary=CellSignalStrengthLte}
+04-28 10:47:20.367  5338  7026 I EPDG -- SIM0 [SMARTCELLULAR]: lastLteRSRP is -99 currentLteRSRP is -99 lastLteRSRQ is -13 currentLteRSRQ is -12 lastLteSNR is 4 currentLteSNR is 4
+04-28 10:47:20.368  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:20.368  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -61.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -61.0 / 0 / 70 / 2 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864111788 0 || 2026-04-28 10:47:20  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:20.383  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:20.384  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:20.451  2040  2118 E BatteryDump: !@new_battery_dump : 4205,293,475,550,86,378,325,361,378,0,359,361,0,Charging,NO_CHARGING,Normal,Good,USB,1,Normal,0,0,9300,0x0,0x10000,0x0,0,0,0000,0000,00000000,0,0,0,0,491,4178,8574,987,0,
+04-28 10:47:20.454  2062  2062 I seh_thermal_service: getTemperaturesWithType SehTemperatureType: 3
+04-28 10:47:20.454  2040  2040 I sehhealth-service: updateLrpSysfs: write: 360
+04-28 10:47:20.576  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556983933935894 ns; value = [79, 79, 33, 83, 55, 173, 0, 66, 16384, 93]
+04-28 10:47:20.736  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 80(80),c:1,b:173,m:13,cl:0,l:77,s:79,l0:16384,l1:1056,s0:15500,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:20.893  1232 31112 I keystore2: system/security/keystore2/watchdog/src/lib.rs:377 - Watchdog thread idle -> terminating. Have a great day.
+04-28 10:47:20.991 31726 31726 I wpa_supplicant: Heartbeat 21046
+04-28 10:47:21.039  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:21.111  1995  4777 I sensors-hal: handle_sns_client_event:190, auto_rotation_debug_2 mode,255, type,1,0 acc,0.187,0.483,9.925, ar,0, ver,14, pedo,1,e,1,i,3
+04-28 10:47:21.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362441
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:21.302  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:21.302  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:21.524  1211  1211 D io_stats: !@   8,0 r 211121116 4226813256 w 53126484 1021851232 d 6838437 995008020 f 1576424 3506186 iot 33811800 0 th 0 0 0 pt 0 inp 0 0 864112.950
+04-28 10:47:21.525  1211  1211 D io_stats: !@ Read_top(KB): kworker/u16:7(16185) 256
+04-28 10:47:21.525  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:4(2797) 148 jbd2/sda9-8(1172) 20 vendor.samsung.(2040) 12
+04-28 10:47:21.527  3072  3252 E Watchdog: !@Sync: 28784 heap(MB): 233 / 241 FD: 1600 [2026-04-28 10:47:21.527]
+04-28 10:47:21.800  3072  4709 D WifiConnectivityMonitor.NetworkStatsAnalyzer: Backhaul result - RSSI:-61, CE:19, PE:19, TI:23, PTI:23, TW:0, PTW:0, Tx:0, Rx:1, TxS:0, RxS:0, RESULT:true, IC:0, ICT:5, WC:0, WCT:5, R:0, RC:0, IE:0, EC:0
+04-28 10:47:22.053  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:22.193  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:22.194  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:22.194  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:22.195  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:22.208  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-60, periodicAdvInt=0x0
+04-28 10:47:22.245  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:22.245  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:22.300  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362442
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:22.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:22.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:22.386  3072  4303 I ActivityManager: Changes in 10347 10 to 10, 128 to 0
+04-28 10:47:22.396  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:22.656  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][144446] accel_sample [ 0.194,  0.447,  9.933] 1556984910349644
+04-28 10:47:22.848 17123 30998 I NearbyMediums: No BLE Fast/GATT advertisements found in the latest cycle.
+04-28 10:47:22.849 17123 30998 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-28 10:47:23.069  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:23.136  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556986493947561 ns; value = [80, 80, 33, 83, 57, 173, 0, 66, 16448, 0]
+04-28 10:47:23.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362443
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:23.302  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:23.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:23.389  6705  7012 I ehlg    : (REDACTED) appOpsListener %s %s
+04-28 10:47:23.390  6705  7012 I ehlg    : (REDACTED) Ignoring irrelevant audio permission changes for package %s
+04-28 10:47:23.391  5630  5742 I RequestManager_FLP: onOpChanged, op=0 / packageName=com.sec.android.app.shealth
+04-28 10:47:23.396  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140044, isSameBssidAndFreq true
+04-28 10:47:23.398  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:23.399  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -61.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -61.0 / 0 / 0 / 0 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864114822 0 || 2026-04-28 10:47:23  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:23.420  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:23.420  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:23.526  1211  1211 D io_stats: !@   8,0 r 211121122 4226813280 w 53126486 1021851240 d 6838437 995008020 f 1576424 3506186 iot 33811816 0 th 0 0 0 pt 0 inp 0 0 864114.951
+04-28 10:47:23.573 17123 17123 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.clearcut.sampler.service.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentDirectBootAwareApiService }
+04-28 10:47:23.706  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][144679] accel_sample [ 0.189,  0.452,  9.928] 1556986917309592
+04-28 10:47:23.770  3072  4319 D ActivityManager: freezing 25175 com.samsung.android.globalpostprocmgr
+04-28 10:47:23.776  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 82(82),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16448,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:93,po:195(N:0)
+04-28 10:47:23.776  1995  4777 I sensors-hal: handle_sns_std_sensor_event:131, [SSC_LIGHT] A: 82(82),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16448,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:93,po:195(N:0)
+04-28 10:47:23.777  8426  9263 I SDHMS:x : SIOP:: AP:375 BAT:378 USB:325 CHG:361 PA:376 WIFI:374 CF:372 BLK:0 SUBBAT:0 LRPTHM:369 SKIN:359 SKINF:347 SKINB:359 LRP2:359 LRF2:347 LRB2:359 AP2:358 CHG2:357 WIFI2:359 RCV2:340 SPK2:324 FCAM:324 UPSPK:372 DNSPK:323 VAP02:376 VWIFI:378 AMB2:278 AVGCUR:380 AVGSYS:158 POWER:1594
+04-28 10:47:23.783  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:23.784  3072  3072 D SemWifiP2pGoPowerSave: GopsReceiver : received : com.samsung.intent.action.CHECK_SIOP_LEVEL
+04-28 10:47:23.784  3072  3072 I SemWifiP2pGoPowerSave: siop_level = -1
+04-28 10:47:23.785  3072  3255 D ActivityManager: sync unfroze 25175 com.samsung.android.globalpostprocmgr for 3
+04-28 10:47:23.788  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=ambient_light: convert sample_period=200000000 to batch_period=200000
+04-28 10:47:23.788  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:23.788  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for ambient_light with SUID low=3046173514946711665 high=5156882063447517846
+04-28 10:47:23.788  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:23.788 15217 12105 I [SC]CtbDeviceRepository: updateSiopLevel. siopLevel: -1
+04-28 10:47:23.788 15217 31129 I [SC][ConfigurationPolicyRepositoryImpl]: getConcurrency. concurrency: 4, siop level: -1
+04-28 10:47:23.789 15217 31129 I [SC][SyncStarter]: Device thermal status updated to overheated: false
+04-28 10:47:23.789 25175 25217 I a       : [#GPP#] onReceive completed :  0
+04-28 10:47:23.789 25175 25175 I c       : [#GPP#] EVENT_SIOP: -1 
+04-28 10:47:23.789 25175 25175 I o       : [#GPP#] Send sendSystemConditionChangeNotification 
+04-28 10:47:23.789  1995  4777 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for ambient_light 
+04-28 10:47:23.790  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:23.790  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=200000000, max_latency=0 request completed
+04-28 10:47:23.792  1995  1995 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+04-28 10:47:23.792  1995  1995 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 1
+04-28 10:47:23.793  1995 31130 D SensorsFlicker: Als_common::sendCommand, send enable command
+04-28 10:47:23.794  3072  5288 D SemContextService: lock : registerCallback
+04-28 10:47:23.794  3072  5288 W CAE     : registerCallback(ContextAwareService.java:188) - [regi 01] Mutex is locked for TEST_FLAT_MOTION
+04-28 10:47:23.794  3072  5288 W CAE     : registerCallback(ContextAwareService.java:195) - [regi 04]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:23.794  3072  5288 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:23.794  3072  5288 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c
+04-28 10:47:23.794  3072  5288 V CAE     : start(ContextProvider.java:128)
+04-28 10:47:23.795  3072  5288 V CAE     : clear(TestFlatMotionRunner.java:126)
+04-28 10:47:23.795  3072  5288 V CAE     : enable(TestFlatMotionRunner.java:102)
+04-28 10:47:23.795  3072  4553 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+04-28 10:47:23.796  3072  4553 D SensorService: setSContextDataLocked 17b1
+04-28 10:47:23.796  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:23.796  1995  1995 I sensors-hal: sendContextData:290, sensor hal 4, (0xb1, 0x17, 0x0, 0x0)
+04-28 10:47:23.796  1995  1995 I sensors-hal: sendContextData:349, enable:177, handle:8, algo:26279936
+04-28 10:47:23.796  1995  1995 I sensors-hal: is_restrict_mode:147, mode:normal
+04-28 10:47:23.796  1995  1995 I sensors-hal: sendContextData:108, device_position 4
+04-28 10:47:23.796  1995  1995 I sensors-hal: acquire_qsh_interface:139, acquire_qsh_interface with sensor_id 46 , conn_type 2 
+04-28 10:47:23.796  1995  1995 I sensors-hal: acquire_qsh_interface:149, returning _shared_instance[SHARED_SENSORHUBS].conn
+04-28 10:47:23.796  1995  1995 I sensors-hal: acquire_shared_instance:173, re-use existing connection for type 2 
+04-28 10:47:23.796  1995  1995 I sensors-hal: register_cb:304, suid(low=11077485164857655296,high=1320970896291267344) is new. register callbacks
+04-28 10:47:23.796  1995  1995 I sensors-hal: create_sensor_config_request:48, device_position create_sensor_config_request
+04-28 10:47:23.796  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=device_position: convert sample_period=0 to batch_period=0
+04-28 10:47:23.796  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:23.796  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for device_position with SUID low=11077485164857655296 high=1320970896291267344
+04-28 10:47:23.796  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:23.798  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for device_position 
+04-28 10:47:23.798  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:23.799  3072  5288 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+04-28 10:47:23.799  3072  5288 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+04-28 10:47:23.801  3072  5288 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+04-28 10:47:23.802  3072  5288 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 1, serviceCount = 1, subCollectionCount = 0
+04-28 10:47:23.802  3072  5288 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SLOCATION_RUNNER(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : CH_LOC_TRIGGER(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : FREE_FALL_DETECTION(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : TEST_FLAT_MOTION(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER_CURRENT_INFO(1)
+04-28 10:47:23.802  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+04-28 10:47:23.803  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+04-28 10:47:23.803  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_BATCH(1)
+04-28 10:47:23.803  3072  5288 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER(1)
+04-28 10:47:23.803  3072  5288 W CAE     : registerCallback(ContextAwareService.java:209) - [regi 02] Mutex is unlocked for TEST_FLAT_MOTION
+04-28 10:47:23.803  3072  5288 E SemContext.CaeProvider: setAttribute() : attribute is null!
+04-28 10:47:23.803  3072  5288 D SemContextService: 	.registerCallback : 11, client= com.sec.android.sdhms
+04-28 10:47:23.803  3072  5288 D SemContextService: unlock : registerCallback
+04-28 10:47:23.804  3072  5288 E SensorService: BigData:Pakage) 5 already enabled. 
+04-28 10:47:23.874  1995  1995 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+04-28 10:47:23.876  1995  1995 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 0
+04-28 10:47:23.877  1995 31131 D SensorsFlicker: Als_common::sendCommand, send disable command
+04-28 10:47:23.881  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:23.881  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:23.882  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:23.882  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:23.893  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-61, periodicAdvInt=0x0
+04-28 10:47:23.897  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-61, periodicAdvInt=0x0
+04-28 10:47:23.898 10420 10437 I [+0300]oneconnect[1.8.45.24_01][BEACON_MANAGER_CONTROL_SERVICE]: TvOcfParser.onReceive - TV Popup Onboarding is skipped - ($)
+04-28 10:47:23.934  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:23.934  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:23.938  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:23.938  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=200000000, max_latency=0 request completed
+04-28 10:47:23.940  3072  4287 E SensorService: BigData:Pakage) 5 already disabled. 
+04-28 10:47:23.940  1995  1995 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+04-28 10:47:23.940  1995  1995 I sensors-hal: send_sensor_config_request:645, dt=ambient_light: convert sample_period=250000000 to batch_period=250000
+04-28 10:47:23.940  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:23.940  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for ambient_light with SUID low=3046173514946711665 high=5156882063447517846
+04-28 10:47:23.940  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:23.942  1995  4777 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for ambient_light 
+04-28 10:47:23.942  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 2 ms to receive the response with 0
+04-28 10:47:23.942  1995  1995 I sensors-hal: batch:363, android.sensor.light/51, period=250000000, max_latency=0 request completed
+04-28 10:47:24.082  1995  4551 I sensors-hal: qsh_conn_event_cb:857, SCHED_FIFO(10) for qmi_cbk
+04-28 10:47:24.082  1995  4551 I sensors-hal: qsh_conn_event_cb:890, event[0] sensor:device_position  Wakeup, msg_id=1025, ts=29894259864632
+04-28 10:47:24.082  1995  4551 I sensors-hal: handle_sns_client_event:78, device_position_event: msgid:1025
+04-28 10:47:24.082  1995  4551 I sensors-hal: handle_sns_client_event:97, device_position_event: 1
+04-28 10:47:24.085  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:24.085  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:24.086  3072  4549 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :4], AP_WAKEUP
+04-28 10:47:24.086  3072  4549 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 4
+04-28 10:47:24.087  3072  4549 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 23, 1,
+04-28 10:47:24.087  3072  4549 D CAE     : display(ContextProvider.java:375) - ================= TEST_FLAT_MOTION =================
+04-28 10:47:24.088  3072  4549 I CAE     : display(ContextProvider.java:391) - Action=[1]
+04-28 10:47:24.088  3072  4546 D SemContextService: Service.updateContext() : service = Device Position
+04-28 10:47:24.090  3072  4287 D SemContextService: lock : unregisterCallback
+04-28 10:47:24.090  3072  4287 D SemContextService: Service.removeListenerLocked() : listener = com.samsung.android.hardware.context.SemContextService$Listener@dfb7949, service = Device Position, used = 0
+04-28 10:47:24.091  3072  4287 W CAE     : unregisterCallback(ContextAwareService.java:230) - [unregi 01] Mutex is locked for TEST_FLAT_MOTION
+04-28 10:47:24.091  3072  4287 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@7bb16a5
+04-28 10:47:24.091  3072  4287 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c
+04-28 10:47:24.091  3072  4287 V CAE     : stop(ContextProvider.java:155)
+04-28 10:47:24.092  3072  4287 V CAE     : clear(TestFlatMotionRunner.java:126)
+04-28 10:47:24.092  3072  4287 V CAE     : disable(TestFlatMotionRunner.java:115)
+04-28 10:47:24.092  3072  4553 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+04-28 10:47:24.092  3072  4553 D SensorService: setSContextDataLocked 17b2
+04-28 10:47:24.093  1995  1995 I sensors-hal: inject_sensor_data:407, handle 1502 send inject
+04-28 10:47:24.093  1995  1995 I sensors-hal: sendContextData:290, sensor hal 4, (0xb2, 0x17, 0x0, 0x0)
+04-28 10:47:24.093  1995  1995 I sensors-hal: sendContextData:349, enable:178, handle:8, algo:26280192
+04-28 10:47:24.093  1995  1995 I sensors-hal: sendContextData:108, device_position 4
+04-28 10:47:24.093  1995  1995 I sensors-hal: send_sync_sensor_request:508, send sync request
+04-28 10:47:24.093  1995  1995 I sensors-hal: send_sync_sensor_request:518, send_sync_sensor_request before send_request for device_position with SUID low=11077485164857655296 high=1320970896291267344
+04-28 10:47:24.094  1995  1995 I sensors-hal: send_sync_sensor_request:537, wait for notification of response
+04-28 10:47:24.094  1995  4551 I sensors-hal: qsh_conn_resp_cb:930, resp_value = 0 for device_position 
+04-28 10:47:24.095  1995  1995 I sensors-hal: send_sync_sensor_request:543, takes 1 ms to receive the response with 0
+04-28 10:47:24.096  3072  4287 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+04-28 10:47:24.096  3072  4287 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+04-28 10:47:24.099  3072  4287 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+04-28 10:47:24.099  3072  4287 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 0, serviceCount = 0, subCollectionCount = 0
+04-28 10:47:24.099  3072  4287 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SLOCATION_RUNNER(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : CH_LOC_TRIGGER(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : FREE_FALL_DETECTION(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER_CURRENT_INFO(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+04-28 10:47:24.100  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : ACTIVITY_TRACKER_BATCH(1)
+04-28 10:47:24.101  3072  4287 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@a4e0c9c, Service : PEDOMETER(1)
+04-28 10:47:24.101  3072  4287 W CAE     : unregisterCallback(ContextAwareService.java:251) - [unregi 02] Mutex is unlocked for TEST_FLAT_MOTION
+04-28 10:47:24.101  3072  4287 D SemContextService: 	.unregisterCallback : 11, client= com.sec.android.sdhms
+04-28 10:47:24.101  3072  4287 D SemContextService: unlock : unregisterCallback
+04-28 10:47:24.267  3072  4287 D CustomizedBinderCallsStatsInternal: reportCpuUsage() : 1%
+04-28 10:47:24.269  3072  3254 I BinderCallsStats: Collected cpu time : 0us, collected call count : 0 for 10139201 ms
+04-28 10:47:24.270  3072  4287 D ProcessCpuUsage: [0] 808, {556=60200, 672=170210, 787=6520, 902=21680, 1017=2800, 1132=2580, 1248=1780, 1344=5820, 1459=2040, 1574=2610, 1689=2210, 1804=13660, 2265=8450}
+04-28 10:47:24.270  3072  4287 D ProcessCpuUsage: [2] 829, {614=253280, 729=600, 844=1390, 960=600, 1075=460, 1190=17630, 1286=610, 1401=500, 1497=440, 1612=1910, 1708=430, 1824=500, 1920=390, 2035=340, 2131=940, 2246=210, 2323=4480, 2380=190, 2438=180, 2515=200, 2572=150, 2630=230, 2707=230, 2764=170, 2841=170, 2899=140, 2956=150, 3072=200, 3148=13690}
+04-28 10:47:24.270  3072  4287 D ProcessCpuUsage: [5] 604, {499=263220, 614=5090, 729=4380, 844=3260, 960=2640, 1075=2250, 1190=10280, 1612=270, 2323=4690, 2956=3950}
+04-28 10:47:24.270  3072  4287 D ProcessCpuUsage: [7] 802, {672=267050, 902=1040, 1248=19110, 2304=6150, 2630=1450, 3340=5180}
+04-28 10:47:24.278  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.279  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.279  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.279  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.280  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.280  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.280  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.281  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.281  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.281  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.281  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.282  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.samsung.android.app.routines(pid 29884) action:14 adj:925 type:1
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.283  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.284  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.285  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.285  3072  4650 D BackgroundInstallControlService: Package event received: 0
+04-28 10:47:24.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362444
+04-28 10:47:24.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:24.302  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:24.302  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:24.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:24.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:24.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:24.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:24.306  2452  2452 I CNSS    : /sys/wifi/max_chipset_log_size doesn't exist
+04-28 10:47:24.448  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.samsung.android.app.routines(pid 29884) ret:19038883840 adj:925
+04-28 10:47:24.451  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.samsung.android.provider.filterprovider(pid 29976) action:14 adj:925 type:1
+04-28 10:47:24.486  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.samsung.android.provider.filterprovider(pid 29976) ret:18569433088 adj:925
+04-28 10:47:24.489  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.android.vending:background(pid 29878) action:14 adj:925 type:1
+04-28 10:47:24.635  8426  8426 I SDHMS:LOAD: type: LoadsFreqs, value: 3:0:0:672000:672000:672000:685439:2035200:499200:231:231:231
+04-28 10:47:24.655  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.android.vending:background(pid 29878) ret:19377311744 adj:925
+04-28 10:47:24.658  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.android.keychain(pid 29851) action:14 adj:925 type:1
+04-28 10:47:24.691  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.android.keychain(pid 29851) ret:18533662720 adj:925
+04-28 10:47:24.693  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.samsung.android.sm.devicesecurity(pid 26851) action:14 adj:935 type:1
+04-28 10:47:24.717  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.samsung.android.sm.devicesecurity(pid 26851) ret:18642718720 adj:935
+04-28 10:47:24.719  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.android.systemui:edgelighting(pid 19953) action:14 adj:935 type:1
+04-28 10:47:24.763  3072  4287 E BatteryStatsService: Invalid uid for waking network packet: -1
+04-28 10:47:24.887  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.android.systemui:edgelighting(pid 19953) ret:19006451712 adj:935
+04-28 10:47:24.891  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.samsung.android.privateaccesstokens(pid 20290) action:14 adj:955 type:1
+04-28 10:47:24.904  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.samsung.android.privateaccesstokens(pid 20290) ret:18558062592 adj:955
+04-28 10:47:24.907  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.sec.android.daemonapp:weather_content_provider(pid 17226) action:14 adj:965 type:1
+04-28 10:47:24.922  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.sec.android.daemonapp:weather_content_provider(pid 17226) ret:19780648960 adj:965
+04-28 10:47:24.924  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap start for non-activity com.android.systemui:screenshot(pid 18416) action:14 adj:975 type:1
+04-28 10:47:24.944  3072 23793 D PerProcessNandswap$NandswapHandler: nandswap end for non-activity com.android.systemui:screenshot(pid 18416) ret:19040272384 adj:975
+04-28 10:47:25.101  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:25.218  3072  3094 I system_server: Background young concurrent mark compact GC freed 42MB AllocSpace bytes, 111(2220KB) LOS objects, 19% free, 195MB/241MB, paused 1.137ms,8.156ms total 116.870ms
+04-28 10:47:25.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362445
+04-28 10:47:25.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:25.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:25.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:25.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:25.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:25.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:25.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:25.480  5020  5774 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+04-28 10:47:25.486  5338  5338 I EPDG -- SIM0 [SMARTCELLULAR]: onSignalStrengthsChanged: SignalStrength:{mCdma=Invalid,mGsm=Invalid,mWcdma=Invalid,mTdscdma=Invalid,mLte=CellSignalStrengthLte: rssi=-65 rsrp=-99 rsrq=-12 rssnr=3 cqiTableIndex=2147483647 cqi=2147483647 ta=2147483647 level=3 parametersUseForLevel=0,mNr=Invalid,SignalBarInfo{ lteLevel=3 },rat=14,primary=CellSignalStrengthLte}
+04-28 10:47:25.488  5338  7026 I EPDG -- SIM0 [SMARTCELLULAR]: lastLteRSRP is -99 currentLteRSRP is -99 lastLteRSRQ is -12 currentLteRSRQ is -12 lastLteSNR is 4 currentLteSNR is 3
+04-28 10:47:25.527  1211  1211 D io_stats: !@   8,0 r 211121125 4226813292 w 53126499 1021851772 d 6838437 995008020 f 1576424 3506186 iot 33811824 0 th 0 0 0 pt 0 inp 0 0 864116.953
+04-28 10:47:25.528  1211  1211 D io_stats: !@ Read_top(KB): ewlogd(2238) 12 .gms.persistent(17123) 12 binder:2519_2(2519) 12
+04-28 10:47:25.528  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:0(31125) 532 sung.android.ce(7885) 8
+04-28 10:47:25.695  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556989053941259 ns; value = [82, 82, 33, 83, 57, 173, 0, 66, 16448, 93]
+04-28 10:47:25.858  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][144912] accel_sample [ 0.194,  0.459,  9.923] 1556988924269228
+04-28 10:47:25.941  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:25.941  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:25.941  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:25.942  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:25.953  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-57, periodicAdvInt=0x0
+04-28 10:47:25.993  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:25.993  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:26.117  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:26.144  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:26.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362446
+04-28 10:47:26.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:26.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:26.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:26.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:26.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:26.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:26.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:26.434  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140045, isSameBssidAndFreq true
+04-28 10:47:26.439  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:26.440  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -61.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -61.0 / 6 / 139 / 3 / 1 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864117861 0 || 2026-04-28 10:47:26  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:26.440  5210  5482 I HoneySpace.StatusIconTracker: invokeEvent() called with: event = Wifi(visible=true, resId=2131236023, activityId=2131236054)
+04-28 10:47:26.449  2102  2102 I SurfaceFlinger: SFWD update time=864117875301557
+04-28 10:47:26.451  2102  4418 I VSyncReactor: Current= 120, Period= 120, Distance= 0
+04-28 10:47:26.452  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:26.452  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:26.459  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+04-28 10:47:26.656  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 80(80),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16448,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:93,po:195(N:0)
+04-28 10:47:27.133  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:27.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362447
+04-28 10:47:27.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:27.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:27.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:27.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:27.304  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:27.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:27.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:27.529  1211  1211 D io_stats: !@   8,0 r 211121125 4226813292 w 53126507 1021851804 d 6838437 995008020 f 1576424 3506188 iot 33811840 0 th 0 0 0 pt 0 inp 0 0 864118.955
+04-28 10:47:27.541  3072  4287 D NetdEventListenerService: CSC Feature value: true
+04-28 10:47:27.541  3072  4287 D NetdEventListenerService: CSC Feature value: true
+04-28 10:47:27.617  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][145145] accel_sample [ 0.199,  0.467,  9.930] 1556990931228655
+04-28 10:47:27.618  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:27.618  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:27.619  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:27.619  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:27.629  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-62, periodicAdvInt=0x0
+04-28 10:47:27.635 10420 10437 I [+0300]oneconnect[1.8.45.24_01][BEACON_MANAGER_CONTROL_SERVICE]: TvOcfParser.onReceive - TV Popup Onboarding is skipped - ($)
+04-28 10:47:27.669  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:27.669  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:27.821  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:28.149  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:28.247  3072  4590 I MdnsReplySender: Sending {MdnsReplyInfo: /192.168.1.224:5353 to /224.0.0.251:5353, answers: 3, additionalAnswers: 1, knownAnswers: 0, sendDelayMs 101}
+04-28 10:47:28.255  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556991613947040 ns; value = [82, 82, 33, 83, 57, 173, 0, 66, 16544, 93]
+04-28 10:47:28.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362448
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:28.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:28.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:29.164  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:29.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362449
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:29.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:29.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:29.333  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:29.334  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:29.334  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:29.334  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:29.344  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-60, periodicAdvInt=0x0
+04-28 10:47:29.351  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-60, periodicAdvInt=0x0
+04-28 10:47:29.377  1995  4777 I sensors-hal: handle_sns_std_sensor_event:131, [SSC_LIGHT] A: 80(80),c:1,b:173,m:13,cl:0,l:78,s:79,l0:16512,l1:1056,s0:15500,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:29.385  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:29.385  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:29.473  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:29.474  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140046, isSameBssidAndFreq true
+04-28 10:47:29.475  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:29.476  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -62.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -62.0 / 1 / 128 / 2 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864120899 0 || 2026-04-28 10:47:29  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:29.477  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: isProfiling, hash=172521687, started=true
+04-28 10:47:29.478  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -62 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:29.478  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: Rssi : -62 highrange : -75 lowrange : -85 mIsRssiInHystersis : false
+04-28 10:47:29.478  5338  5338 I EPDG -- SIM0 [SMARTWIFI]: getHandoverThresholdMet: value is: false
+04-28 10:47:29.489  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:29.489  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:29.530  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:9(26252) 16
+04-28 10:47:29.536  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:29.696  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 82(82),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16512,l1:1056,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:29.696  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][145378] accel_sample [ 0.194,  0.457,  9.942] 1556992938187821
+04-28 10:47:29.937  3072  4287 W ParceledListSlice: Element #45 is 19036 bytes.
+04-28 10:47:29.940  3072  4287 W ParceledListSlice: Element #80 is 20440 bytes.
+04-28 10:47:29.943  3072  4287 W ParceledListSlice: Element #102 is 19012 bytes.
+04-28 10:47:29.958  3072  4287 W ParceledListSlice: Element #215 is 191100 bytes.
+04-28 10:47:29.959  3072  4287 W ParceledListSlice: Overly large reply size: 236620
+04-28 10:47:29.965  3072  4287 W ParceledListSlice: Element #244 is 23076 bytes.
+04-28 10:47:29.968  3072  4287 W ParceledListSlice: Element #269 is 16584 bytes.
+04-28 10:47:29.970  3072  4287 W ParceledListSlice: Element #276 is 25440 bytes.
+04-28 10:47:29.974  3072  4287 W ParceledListSlice: Element #301 is 23428 bytes.
+04-28 10:47:29.978  3072  4287 W ParceledListSlice: Element #344 is 20544 bytes.
+04-28 10:47:29.978  3072  4287 W ParceledListSlice: Overly large reply size: 82252
+04-28 10:47:29.980  3072  4287 W ParceledListSlice: Element #352 is 17296 bytes.
+04-28 10:47:29.981  3072  4287 W ParceledListSlice: Element #361 is 23104 bytes.
+04-28 10:47:29.985  3072  4287 W ParceledListSlice: Element #412 is 46176 bytes.
+04-28 10:47:29.989  3072  4287 W ParceledListSlice: Element #460 is 16400 bytes.
+04-28 10:47:29.989  3072  4287 W ParceledListSlice: Element #462 is 20072 bytes.
+04-28 10:47:29.990  3072  4287 W ParceledListSlice: Element #463 is 17952 bytes.
+04-28 10:47:29.991  3072  4287 W ParceledListSlice: Element #481 is 21992 bytes.
+04-28 10:47:29.992  3072  4287 W ParceledListSlice: Element #494 is 16876 bytes.
+04-28 10:47:29.995  3072  4287 W ParceledListSlice: Element #534 is 27880 bytes.
+04-28 10:47:29.996  3072  4287 W ParceledListSlice: Element #542 is 76488 bytes.
+04-28 10:47:29.996  3072  4287 W ParceledListSlice: Overly large reply size: 86716
+04-28 10:47:30.000  3072  4287 W ParceledListSlice: Element #577 is 21404 bytes.
+04-28 10:47:30.001  3072  4287 W ParceledListSlice: Element #590 is 19280 bytes.
+04-28 10:47:30.003  3072  4287 W ParceledListSlice: Element #600 is 25832 bytes.
+04-28 10:47:30.003  3072  4287 W ParceledListSlice: Element #602 is 19416 bytes.
+04-28 10:47:30.007  3072  4287 W ParceledListSlice: Element #653 is 30868 bytes.
+04-28 10:47:30.008  3072  4287 W ParceledListSlice: Element #679 is 27408 bytes.
+04-28 10:47:30.010  3072  4287 W ParceledListSlice: Element #693 is 25892 bytes.
+04-28 10:47:30.011  3072  4287 W ParceledListSlice: Element #707 is 25660 bytes.
+04-28 10:47:30.013  3072  4287 W ParceledListSlice: Element #736 is 17364 bytes.
+04-28 10:47:30.181  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:30.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362450
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:30.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:30.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:30.613  2062  2062 I seh_thermal_service: getTemperaturesWithType SehTemperatureType: 3
+04-28 10:47:30.614  2040  2040 I sehhealth-service: updateLrpSysfs: write: 359
+04-28 10:47:30.615  2040  2118 E BatteryDump: !@new_battery_dump : 4207,207,475,550,86,378,325,360,378,0,360,360,0,Charging,NO_CHARGING,Normal,Good,USB,1,Normal,0,0,9300,0x0,0x10000,0x0,0,0,0000,0000,00000000,0,0,0,0,491,4178,8576,987,0,
+04-28 10:47:30.811  3072  4287 E BatteryStatsService: Invalid uid for waking network packet: -1
+04-28 10:47:30.816  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556994173948707 ns; value = [82, 82, 33, 83, 57, 173, 0, 66, 16512, 93]
+04-28 10:47:30.993 31726 31726 I wpa_supplicant: Heartbeat 21047
+04-28 10:47:31.197  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:31.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362451
+04-28 10:47:31.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:31.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:31.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:31.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:31.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:31.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:31.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:31.531  1211  1211 D io_stats: !@   8,0 r 211121125 4226813292 w 53126515 1021852236 d 6838437 995008020 f 1576424 3506188 iot 33811852 0 th 0 0 0 pt 0 inp 0 0 864122.957
+04-28 10:47:31.616  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][145611] accel_sample [ 0.187,  0.471,  9.933] 1556994945146832
+04-28 10:47:31.804  3072  4709 D WifiConnectivityMonitor.NetworkStatsAnalyzer: Backhaul result - RSSI:-62, CE:19, PE:19, TI:23, PTI:23, TW:0, PTW:0, Tx:6, Rx:6, TxS:0, RxS:0, RESULT:true, IC:0, ICT:5, WC:0, WCT:5, R:0, RC:0, IE:0, EC:0
+04-28 10:47:31.878  1995  4777 I sensors-hal: handle_sns_client_event:190, auto_rotation_debug_2 mode,255, type,1,0 acc,0.206,0.459,9.949, ar,0, ver,14, pedo,1,e,1,i,3
+04-28 10:47:32.213  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:32.300  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362452
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:32.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:32.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:32.514  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140047, isSameBssidAndFreq true
+04-28 10:47:32.517  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:32.518  5210  5482 I HoneySpace.StatusIconTracker: invokeEvent() called with: event = Wifi(visible=true, resId=2131236023, activityId=2131236053)
+04-28 10:47:32.518  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -62.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -62.0 / 0 / 69 / 3 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864123940 0 || 2026-04-28 10:47:32  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:32.535  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 0
+04-28 10:47:32.539  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:32.539  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:32.542  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+04-28 10:47:32.852 17123 30998 I NearbyMediums: No BLE Fast/GATT advertisements found in the latest cycle.
+04-28 10:47:32.852 17123 30998 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-28 10:47:33.216  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 79(79),c:1,b:173,m:13,cl:0,l:78,s:79,l0:16448,l1:1056,s0:15500,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:33.229  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:33.300  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362453
+04-28 10:47:33.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:33.304  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:33.304  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:33.304  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:33.304  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:33.304  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:33.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:33.376  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556996733933342 ns; value = [80, 80, 33, 83, 55, 173, 0, 66, 16448, 0]
+04-28 10:47:33.532  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:0(31125) 424 vendor.samsung.(2040) 8
+04-28 10:47:33.786  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][145844] accel_sample [ 0.211,  0.486,  9.928] 1556996952105738
+04-28 10:47:33.801  8426  9263 I SDHMS:x : SIOP:: AP:374 BAT:378 USB:325 CHG:360 PA:376 WIFI:374 CF:372 BLK:0 SUBBAT:0 LRPTHM:369 SKIN:359 SKINF:347 SKINB:359 LRP2:359 LRF2:347 LRB2:359 AP2:358 CHG2:357 WIFI2:358 RCV2:340 SPK2:324 FCAM:324 UPSPK:372 DNSPK:323 VAP02:375 VWIFI:378 AMB2:278 AVGCUR:353 AVGSYS:186 POWER:1481
+04-28 10:47:33.816  3072  4319 D ActivityManager: freezing 25175 com.samsung.android.globalpostprocmgr
+04-28 10:47:33.856  1995  4777 I sensors-hal: handle_sns_std_sensor_event:131, [SSC_LIGHT] A: 80(80),c:1,b:173,m:13,cl:0,l:78,s:79,l0:16448,l1:1056,s0:15500,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:0,po:195(N:0)
+04-28 10:47:34.244  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:34.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362454
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:34.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:34.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:34.737  8426  8426 I SDHMS:LOAD: type: LoadsFreqs, value: 3:0:0:672000:672000:672000:661248:2956800:499200:231:231:231
+04-28 10:47:34.948  3072  4626 D UsbStatsMonitor: 0 0 0 0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 214748364802
+04-28 10:47:35.166  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 10:47:35.166  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 10:47:35.166  1983  6188 D vendor.qti.bluetooth@1.1-wake_lock: Acquire wakelock is acquired 
+04-28 10:47:35.167  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 10:47:35.178  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-60, periodicAdvInt=0x0
+04-28 10:47:35.184 10420 10437 I [+0300]oneconnect[1.8.45.24_01][BEACON_MANAGER_CONTROL_SERVICE]: TvOcfParser.onReceive - TV Popup Onboarding is skipped - ($)
+04-28 10:47:35.185  5059  6222 I ScanController: onScanResult to scannerId: 5- eventType=0x1b, addressType=0, address=XX:XX:XX:XX:B6:C3, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-60, periodicAdvInt=0x0
+04-28 10:47:35.186 17852 17897 I BCMGR[11.2.04.4]: BeaconMainController] onReceive - [1 : ST packet!][2 : ST packet!][3 : ST packet!][4 : ST packet!][5 : ST packet!][6 : ST packet!][7 : ST packet!][8 : ST packet!][9 : ST packet!][10 : ST packet!]
+04-28 10:47:35.219  1983  6188 I vendor.qti.bluetooth@1.1-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 10:47:35.220  1983  6188 D vendor.qti.bluetooth@1.1-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 10:47:35.260  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:35.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362455
+04-28 10:47:35.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:35.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:35.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:35.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:35.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:35.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:35.304  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:35.370  1983  5465 D vendor.qti.bluetooth@1.1-wake_lock: Release wakelock is released 
+04-28 10:47:35.532  2452  2452 I CNSS    : /sys/wifi/max_chipset_log_size doesn't exist
+04-28 10:47:35.533  1211  1211 D io_stats: !@   8,0 r 211121125 4226813292 w 53126517 1021852244 d 6838437 995008020 f 1576424 3506188 iot 33811856 0 th 0 0 0 pt 0 inp 0 0 864126.959
+04-28 10:47:35.549  3072  6600 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 140048, isSameBssidAndFreq true
+04-28 10:47:35.551  3072  4675 D InsDataManager: onOutageCountUpdate() - Outage Data: 0, LQ : N. Outage Triggered: false
+04-28 10:47:35.552  3072  4675 D SemInsManager: {"bssid": "6056a9715180","rssi": -62.0,"latency": 0.0,"outage_count": 0,"lq_callback_triggered": false,"outage_log": "Unreliable statistics: -62.0 / 0 / 0 / 0 / 0 || 6056a9715180: 0.000 / 0.000 / @ || N N / 0 0 / N 2.0 / N X 5 / 864126975 0 || 2026-04-28 10:47:35  / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0 / 0: 0 0 0 0 0 0""Magnetic Sensor Events size": "0""Pressure Sensor Events size": "0"}
+04-28 10:47:35.574  3072  4692 D SGM:GameManager: identifyGamePackage. com.petpal.app, mCurrentUserId: 0, callingMethodInfo: com.samsung.android.game.SemGameManager.isGamePackage(SemGameManager.java:106)
+04-28 10:47:35.574  3072  4692 D SGM:SemGameManager: isGamePackage(), pkgName=com.petpal.app, ret=false
+04-28 10:47:35.616  1995 20473 I sensors-hal: handle_sns_client_event:375, [0][146077] accel_sample [ 0.208,  0.447,  9.933] 1556998959064488
+04-28 10:47:35.719  5020  5774 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+04-28 10:47:35.725  5338  5338 I EPDG -- SIM0 [SMARTCELLULAR]: onSignalStrengthsChanged: SignalStrength:{mCdma=Invalid,mGsm=Invalid,mWcdma=Invalid,mTdscdma=Invalid,mLte=CellSignalStrengthLte: rssi=-65 rsrp=-99 rsrq=-12 rssnr=4 cqiTableIndex=2147483647 cqi=2147483647 ta=2147483647 level=3 parametersUseForLevel=0,mNr=Invalid,SignalBarInfo{ lteLevel=3 },rat=14,primary=CellSignalStrengthLte}
+04-28 10:47:35.726  5338  7026 I EPDG -- SIM0 [SMARTCELLULAR]: lastLteRSRP is -99 currentLteRSRP is -99 lastLteRSRQ is -12 currentLteRSRQ is -12 lastLteSNR is 3 currentLteSNR is 4
+04-28 10:47:35.776  1995 26313 I sensors-hal: handle_sns_std_sensor_event:409, [SSC_LIGHT] P: 82(82),c:1,b:173,m:13,cl:0,l:78,s:82,l0:16416,l1:1024,s0:16000,s1:0,acl:1,opr:0.32,f(r):70,u(bl):71,if:0,wi:3,si:93,po:195(N:0)
+04-28 10:47:35.936  1995 26340 I sensors-hal: handle_sns_std_sensor_event:90, light_cct: ts = 1556999293946832 ns; value = [79, 79, 33, 83, 55, 173, 0, 64, 16416, 0]
+04-28 10:47:36.276  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:36.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362456
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:36.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:36.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:36.733  3072  4287 E BatteryStatsService: Invalid uid for waking network packet: -1
+04-28 10:47:37.063 15176 15176 W SmApplication: onTrimMemory : 40
+04-28 10:47:37.063 15176 15176 I DC.AppIconCache: clear icon cache
+04-28 10:47:37.071 14357 14357 W SmApplication: onTrimMemory : 40
+04-28 10:47:37.071 14357 14357 I DC.AppIconCache: clear icon cache
+04-28 10:47:37.293  3072  4701 D SemWifiSwitchForIndividualAppsService: isSkipNetworkCondition - result:2
+04-28 10:47:37.299  2096  2148 E HeatmapThread: ECT Thread time in milliseconds: 1777362457
+04-28 10:47:37.302  2096  2148 D HeatmapThread: !@ batteryplugType : 2
+04-28 10:47:37.303  2096  2148 D HeatmapThread: !@ batteryLevel : 86  batteryTemperature : 378 
+04-28 10:47:37.303  2096  2148 D HeatmapThread: !@ Heatmap currtime: 29622707
+04-28 10:47:37.303  2096  2148 D HeatmapThread: !@ Heatmap prevtime: 29622680
+04-28 10:47:37.303  2096  2148 D HeatmapThread: !@ Heatmap plugstarttime: 29622695
+04-28 10:47:37.303  2096  2148 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29622508
+04-28 10:47:37.303  2096  2148 E HeatmapThread: !@ CAM New BSOH: 100
+04-28 10:47:37.535  1211  1211 D io_stats: !@   8,0 r 211121229 4226813736 w 53126517 1021852244 d 6838437 995008020 f 1576424 3506188 iot 33811872 0 th 0 0 0 pt 0 inp 0 0 864128.960
+04-28 10:47:37.535  1211  1211 D io_stats: !@ Read_top(KB): c.android.sdhms(8426) 444
+04-28 10:47:37.535  1211  1211 D io_stats: !@ Write_top(KB): kworker/u16:0(31125) 8
+04-28 10:47:37.768  3072 31137 D WifiConnectivityMonitor.DnsThread:  [|215] []
+04-28 10:47:37.770  3072  4709 D WifiConnectivityMonitor.NetworkStatsAnalyzer: DNS resultType : 0, responseTime : 215
+04-28 10:47:37.770  3072  4703 D OpenNetworkQos[4.00]: updateBssidLatestDnsResultType - result: 0
+04-28 10:47:37.771  3072  4703 D OpenNetworkQos[4.00]: updateBssidNoInternet: mBssidNoInternet = false
+04-28 10:47:37.771  3072  4703 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-28 10:47:37.771  3072  4703 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 26 30 26 
+04-28 10:47:37.771  3072  4703 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = wifi_wcm_qos_sharing_score_summary
+04-28 10:47:37.772  3072  4703 I WifiProfileShare: network QoS data was changed (internet), updateQoSData networkType: true, qosData: false
+04-28 10:47:37.772  3072  5648 V WifiProfileShare.Caster: update wips network, size: 0
+04-28 10:47:37.773  3072  5648 D WifiProfileShare: nearby scanning settings run
+04-28 10:47:37.773  3072  5648 D WifiProfileShare: network score provider settings enabled
+04-28 10:47:37.773  3072  5648 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 26 30 26 
+04-28 10:47:37.773  3072  5648 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-28 10:47:37.773  3072  5648 I WifiProfileShare.Caster: current network type: 0, score: [26, 30, 26]
+04-28 10:47:37.774  3072  5648 V WifiProfileShare.Cache: update network score 64:6e:60:**:**:70
+04-28 10:47:37.774  3072  5648 D WifiProfileShare.ScanMatcher: getMcfDataList size:2
+04-28 10:47:37.774  3072  5648 I WifiProfileShare.Caster: qos data was updated , before:type:QOS, pBssid:68:c9:14, qosData:7c after:type:QOS, pBssid:68:c9:14, qosData:7c
+04-28 10:47:37.776  3072  5648 I [MCFSDK_android_1.3.7026]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-28 10:47:37.776  3072  5648 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-28 10:47:37.776  3072  5648 D WifiProfileShare.McfCast: updateQoSData ignored, same contents
+04-28 10:47:37.776  3072  5648 D WifiProfileShare.MCF: success update QosData !
+04-28 10:47:37.777  3072  5648 I [MCFSDK_android_1.3.7026]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-28 10:47:37.777  3072  5648 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-28 10:47:37.777  3072  5648 D WifiProfileShare.McfCast: -ME--- updatePasswordDate pwdData size:2
+04-28 10:47:38.044 31141 31141 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+04-28 10:47:38.080  3109 26377 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~WWoDKT0A_yfTC2SZJ1toEg==/com.petpal.app-IUZlvMnzwZTUzQib1-qEKw==/oat/arm64/base.odex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.095  3109 26370 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~cSjTpvtUyvKRdysdeWthdg==/com.whatsapp-sUZdmI4T0LUsMECCoKputA==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.106  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~RIdVsikwRrdMaKjkkoSmfA==/eu.livesport.FlashScore_com-p6UruA7uAznkWXfu5k__CQ==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.112  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/user/0/eu.livesport.FlashScore_com/app_pccache/5/591C52BA23C4E0E4C6EB8A94DE92F532A215A628/oat/arm64/pcam.odex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.116  3109 26370 I artd    : GetBestInfo: odex next to the dex file (/data/user/0/eu.livesport.FlashScore_com/app_pccache/5/A4A3883B62E64477497A21E502C207B1868F77D8/oat/arm64/pcam.odex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.137  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~Lsovnhrt8lQbZzjILqZ1EA==/com.twitter.android-31fqHXhrd77r2UPSo-1SRQ==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.140  3109 26370 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.twitter.android/app_pccache/5/DAF7A800792838CAD4E7302B4F4B8E384482B7D1/oat/arm64/pcam.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.143  3109 25686 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.twitter.android/app_pccache/5/092940B270D6635C3081F004DD99A26CC95EADE3/oat/arm64/pcam.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.155  3109 25686 I artd    : GetBestInfo: odex in dalvik-cache (/data/dalvik-cache/arm64/system@priv-app@SamsungCamera@SamsungCamera.apk@classes.dex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.163  3072  5288 D InputDispatcher: Inject motion (31147/2000): action=0x0, time=864129588000000, f=0x0, d=0 dsdx=1.000000 dtdx=0.000000
+04-28 10:47:38.165  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~vovGpbnbehV-vRpGPhm_uQ==/com.openai.chatgpt-rF79HgJEhHen2duFJLOARQ==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.165  3072  4338 I InputDispatcher: Delivering touch to (4796): action: 0x4, f=0x0, d=0, '57bd3db', t=1 
+04-28 10:47:38.165  3072  4338 I InputDispatcher: Delivering touch to (30269): action: 0x0, f=0x0, d=0, 'bfe7b7a', t=1 
+04-28 10:47:38.165  3072  4338 D PowerManagerService: [api] userActivityFromNative : touch displayId=0 eventTime=864129588
+04-28 10:47:38.167  3072  3247 I GestureDetector: obtain mCurrentDownEvent. id: -965034431 caller: com.android.server.wm.SystemGesturesPointerEventListener.onPointerEvent:17 com.android.server.wm.PointerEventDispatcher.onInputEvent:51 android.view.InputEventReceiver.dispatchInputEvent:392 
+04-28 10:47:38.167  3072  4338 D PowerManagerService: UserActivityStateListenerState: 1
+04-28 10:47:38.167 30269 30269 I VRI[MainActivity]@365a8c9: ViewPostIme pointer 0
+04-28 10:47:38.167 30269 30269 I VRI[MainActivity]@365a8c9: call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@365a8c9
+04-28 10:47:38.168  3072  3247 I GestureDetector: obtain mCurrentDownEvent. id: -965034431 caller: com.android.server.wm.SystemPerformancePointerEventListener.onPointerEvent:13 com.android.server.wm.PointerEventDispatcher.onInputEvent:51 android.view.InputEventReceiver.dispatchInputEvent:392 
+04-28 10:47:38.168  3072  5288 D InputDispatcher: Inject motion (31147/2000): action=0x1, time=864129588000000, f=0x0, d=0 dsdx=1.000000 dtdx=0.000000
+04-28 10:47:38.168  8426  8426 I SemDvfsHyPerManager: acquire hyper - TATouchBoost/8426@30, type = -999
+04-28 10:47:38.168  8426  8426 I SemDvfsHyPerManager: acquire hyper - TA_TOUCH_SHARE/8426@31, type = -999
+04-28 10:47:38.168  3072  4338 I InputDispatcher: Delivering touch to (30269): action: 0x1, f=0x0, d=0, 'bfe7b7a', t=1 
+04-28 10:47:38.168 30269 30269 I VRI[MainActivity]@365a8c9: ViewPostIme pointer 1
+04-28 10:47:38.169  2000  2042 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 35756226  [8426 / 30]    HINT :      list : [TABoost / 1] [TIMEOUT / 1500] 
+04-28 10:47:38.170  3072  3247 I GestureDetector: obtain mCurrentMotionEventRaw. action: 1 id: -1028433914
+04-28 10:47:38.170  3072  3247 I GestureDetector: obtain mCurrentMotionEventRaw. action: 1 id: -1028433914
+04-28 10:47:38.172  2000  2042 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 35764684  [8426 / 31]    HINT : TA_TOUCH_SHARE    list : [TIMEOUT / 1500] 
+04-28 10:47:38.176  2102  2102 I SurfaceFlinger: [com.petpal.app/com.petpal.app.MainActivity$_30269#297755] setFrameRateCategory: HighHint
+04-28 10:47:38.177  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 0
+04-28 10:47:38.180  3109 26370 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~dXM87tq36KNToL4uSylEGw==/com.yahoo.mobile.client.android.mail-oBjjNqfesXe3ZogllxTyqw==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.183 30269 30295 W unknown:ReactNative: StatusBarModule: Ignored status bar change, current activity is edge-to-edge.
+04-28 10:47:38.183 30269 30295 W unknown:ReactNative: StatusBarModule: Ignored status bar change, current activity is edge-to-edge.
+04-28 10:47:38.184  3109 25686 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.yahoo.mobile.client.android.mail/app_pccache/5/591C52BA23C4E0E4C6EB8A94DE92F532A215A628/oat/arm64/pcam.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.185  2102  2787 I VSyncReactor: Current= 120, Period= 120, Distance= 120
+04-28 10:47:38.187  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/user/0/com.yahoo.mobile.client.android.mail/app_pccache/5/A4A3883B62E64477497A21E502C207B1868F77D8/oat/arm64/pcam.odex) is kOatUpToDate with filter 'verify' executable 'false'
+04-28 10:47:38.209  3109 26370 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~qLCrgGKK40c3TRXpbmtd_w==/com.instagram.android-4t64cYZp0foFbu9TtHZ8og==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-28 10:47:38.220  3109 25686 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~z1YGAY-RmXvkOa_0L-96Kg==/com.sec.android.gallery3d-PZXpw33079C2NoMltI99uw==/oat/arm64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'

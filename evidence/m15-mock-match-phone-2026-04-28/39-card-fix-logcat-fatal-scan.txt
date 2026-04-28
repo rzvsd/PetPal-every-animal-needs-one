@@ -1,0 +1,1 @@
+No app fatal exceptions or React JS fatal signatures found in captured logcat tail.

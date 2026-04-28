@@ -1,0 +1,5 @@
+﻿                  id                  |  status   | animal_name |  mode  |   housing_type    |          created_at          
+--------------------------------------+-----------+-------------+--------+-------------------+------------------------------
+ 9aee39b8-f1bc-41ff-8fb1-c0f3e942c732 | SUBMITTED | Bruno       | FOSTER | ApartmentNearPark | 2026-04-28 07:52:21.82123+00
+(1 row)
+

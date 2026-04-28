@@ -1,0 +1,1 @@
+﻿No matches for FATAL EXCEPTION, AndroidRuntime, ReferenceError, Unable to resolve, or RedBox in captured logcat tail.
