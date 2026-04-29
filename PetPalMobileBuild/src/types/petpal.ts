@@ -3,6 +3,7 @@ export type ListingMode = 'ADOPT' | 'FOSTER';
 export type ApplicationStatus = 'SUBMITTED' | 'IN_REVIEW' | 'ACCEPTED' | 'REJECTED';
 export type MatchMode = 'PLAY' | 'SOCIAL' | 'VERIFIED_MATE';
 export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type UserRole = 'OWNER' | 'FOSTER_VOLUNTEER' | 'RESCUER' | 'SHELTER_MEMBER';
 export type MatchAction = 'LIKE' | 'PASS' | 'SAVE';
 export type MatchStatus = 'PENDING' | 'MUTUAL' | 'BLOCKED' | 'ARCHIVED';
 export type FosterCaseStatus =
@@ -53,6 +54,7 @@ export type AnimalProfile = {
 export type MatchCandidate = {
   animal: AnimalProfile;
   mode: MatchMode;
+  hasLikedBack: boolean;
   compatibilityScore: number;
   compatibilityReasons: string[];
   ownerVerificationStatus: VerificationStatus;
@@ -98,6 +100,8 @@ export type FosterCase = {
   foodCovered: boolean;
   vetCovered: boolean;
   transportAvailable: boolean;
+  goodWithChildren: boolean | null;
+  goodWithOtherAnimals: boolean | null;
   medicalNeeds: string | null;
   homeFit: string;
   city: string;
@@ -106,6 +110,17 @@ export type FosterCase = {
   rescuerName: string;
   rescuerVerified: boolean;
   createdAt: string;
+};
+
+export type FosterApplicationDraft = {
+  housingType: string;
+  experience: string;
+  availability: string;
+  otherPets: string;
+  childrenInHome: string;
+  canTransport: boolean | null;
+  canHandleMedicalNeeds: boolean | null;
+  motivation: string;
 };
 
 export type FosterApplication = {
@@ -124,13 +139,55 @@ export type FosterApplication = {
   createdAt: string;
 };
 
+export type UserProfile = {
+  id: string;
+  displayName: string;
+  city: string;
+  coarseArea: string | null;
+  roles: UserRole[];
+  ownerVerificationStatus: VerificationStatus;
+  rescuerAccessStatus: VerificationStatus;
+};
+
+export type MatchPreferences = {
+  defaultAnimalId: string | null;
+  defaultMode: MatchMode;
+  species: Species[];
+  breeds: string[];
+  allowMixedBreeds: boolean;
+  verifiedOnly: boolean;
+  city: string | null;
+  coarseArea: string | null;
+};
+
+export type FosterPreferences = {
+  species: Species[];
+  sizeLabels: Array<'SMALL' | 'MEDIUM' | 'LARGE'>;
+  duration: FosterCase['duration'];
+  canTransport: boolean | null;
+  canHandleMedicalNeeds: boolean | null;
+  otherPets: string | null;
+  childrenInHome: string | null;
+};
+
 export type Conversation = {
   id: string;
   source: 'MATCH' | 'FOSTER';
   title: string;
+  subtitle: string;
   contextLabel: string;
   privacyLabel: string;
+  animalName: string;
+  relatedAnimalName?: string;
+  mode?: MatchMode;
+  fosterStatus?: 'ACCEPTED' | 'ACTIVE' | 'COMPLETED';
+  organizationName?: string;
+  organizationVerified?: boolean;
+  ownerVerified?: boolean;
+  city: string;
+  coarseArea: string | null;
   lastMessage: string;
+  lastMessageAt: string | null;
   messages: ChatMessage[];
   blocked?: boolean;
   reported?: boolean;
