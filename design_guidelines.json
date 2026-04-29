@@ -1,0 +1,105 @@
+{
+  "theme": "light",
+  "archetype": "1_organic_earthy",
+  "typography": {
+    "fonts": {
+      "heading": "Outfit, sans-serif",
+      "body": "DM Sans, sans-serif"
+    },
+    "scale": {
+      "h1": "text-4xl tracking-tight font-semibold",
+      "h2": "text-2xl tracking-tight font-medium",
+      "h3": "text-xl tracking-tight font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm",
+      "tiny": "text-xs tracking-wide uppercase"
+    }
+  },
+  "colors": {
+    "background": {
+      "main": "#F8F7F4",
+      "paper": "#FFFFFF",
+      "overlay": "rgba(248, 247, 244, 0.8)"
+    },
+    "primary": {
+      "sage": "#9BAE96",
+      "sageHover": "#8A9F85",
+      "deepGreen": "#2C402B"
+    },
+    "accent": {
+      "clay": "#C07E67",
+      "sky": "#A3BDC4",
+      "rose": "#CD7A7E"
+    },
+    "text": {
+      "primary": "#1F2924",
+      "secondary": "#57645C",
+      "inverse": "#FFFFFF"
+    },
+    "border": "#E4E2DC"
+  },
+  "layout": {
+    "container": "w-full max-w-md mx-auto h-[100dvh] bg-[#F8F7F4] relative overflow-hidden flex flex-col shadow-2xl",
+    "contentArea": "flex-1 overflow-y-auto pb-20 no-scrollbar relative",
+    "bottomNav": "absolute bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-t border-[#E4E2DC] flex justify-around items-center z-50",
+    "spacing": {
+      "section": "p-6",
+      "card": "p-4",
+      "gap": "gap-4"
+    },
+    "radius": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "pill": "rounded-full"
+    }
+  },
+  "components": {
+    "matchCard": "relative w-full aspect-[3/4] rounded-3xl overflow-hidden shadow-md bg-white border border-[#E4E2DC]",
+    "fosterCard": "flex flex-col bg-white rounded-2xl p-4 shadow-sm border border-[#E4E2DC]",
+    "bottomTab": "flex flex-col items-center justify-center w-16 h-full text-[#57645C] data-[active=true]:text-[#2C402B]",
+    "primaryButton": "w-full bg-[#9BAE96] text-white py-4 rounded-xl font-medium text-lg flex items-center justify-center hover:bg-[#8A9F85] transition-colors",
+    "secondaryButton": "w-full bg-[#F8F7F4] text-[#2C402B] py-4 rounded-xl font-medium text-lg flex items-center justify-center border border-[#E4E2DC]",
+    "clayButton": "w-full bg-[#C07E67] text-white py-4 rounded-xl font-medium text-lg flex items-center justify-center",
+    "input": "w-full bg-white border border-[#E4E2DC] rounded-xl px-4 py-3 text-[#1F2924] placeholder:text-[#57645C]/50 focus:outline-none focus:ring-2 focus:ring-[#9BAE96]"
+  },
+  "motion": {
+    "swipe": "transition-transform duration-300 ease-out",
+    "tabSwitch": "transition-all duration-200 ease-in-out",
+    "modalEnter": "animate-in slide-in-from-bottom-full duration-300",
+    "buttonTap": "active:scale-95 transition-transform"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "stroke-2"
+  },
+  "images": {
+    "dogs": [
+      { "url": "https://images.unsplash.com/photo-1642303009474-851f1dd5195f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHw0fHxkb2clMjBwb3J0cmFpdCUyMGxvb2tpbmclMjBhdCUyMGNhbWVyYXxlbnwwfHx8fDE3Nzc0OTQ4Njl8MA&ixlib=rb-4.1.0&q=85", "description": "Black dog on couch" },
+      { "url": "https://images.unsplash.com/photo-1642303009392-bede8f68a145?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxkb2clMjBwb3J0cmFpdCUyMGxvb2tpbmclMjBhdCUyMGNhbWVyYXxlbnwwfHx8fDE3Nzc0OTQ4Njl8MA&ixlib=rb-4.1.0&q=85", "description": "Dog sitting on couch" }
+    ],
+    "cats": [
+      { "url": "https://images.unsplash.com/photo-1702914954859-f037fc75b760?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwxfHxjdXRlJTIwY2F0JTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc3NDk0ODY5fDA&ixlib=rb-4.1.0&q=85", "description": "Cat with green eyes" },
+      { "url": "https://images.unsplash.com/photo-1623420797910-c7c3498d74fe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwY2F0JTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc3NDk0ODY5fDA&ixlib=rb-4.1.0&q=85", "description": "Cat sitting on bed" }
+    ],
+    "users": [
+      { "url": "https://images.unsplash.com/photo-1672462478040-a5920e2c23d8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc3NDk0ODY5fDA&ixlib=rb-4.1.0&q=85", "description": "Woman smiling" },
+      { "url": "https://images.unsplash.com/photo-1603775493298-e06a5f21e46c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc3NDk0ODY5fDA&ixlib=rb-4.1.0&q=85", "description": "Man smiling" }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Do NOT change the HTML document title or app icon. Keep the app icon exactly as is.",
+    "Build a mobile-responsive web prototype for PetPal mimicking a native mobile app. Implement inside a max-w-md centered container with h-[100dvh], hidden scrollbars for content area, and a fixed bottom navigation bar.",
+    "Implement EXACTLY 4 bottom tabs: 1) Matches (Potriviri) 2) Foster 3) Messages (Mesaje) 4) Profile (Profil).",
+    "For the Matches tab, use Framer Motion for Tinder-like swipeable match cards with large animal photos. Include action buttons below the card for alternative matching.",
+    "The Matches tab needs an Animal Selector Dropdown (e.g., Dog/Cat) and a Match Mode Selector (Play/Social/Verified Mate).",
+    "Implement a Filter Sheet (sliding up from bottom) for filtering matches.",
+    "Include a match success animation overlay when a user matches, and a 'Verified Mate Locked State'.",
+    "For the Foster tab, display Foster Case Cards (list view, NO swipe gestures). Include a Multi-Step Form for foster application, a Foster Manage Dashboard (role-gated simulation), and a Rescuer Demo Preview banner.",
+    "The Messages tab must show a context-aware inbox. Differentiate messages coming from Matches vs Foster. Implement a Conversation Thread with a Context Header and a Safety Menu (Report/Block).",
+    "The Profile tab acts as a user control room. Include a Verification Checklist, My Animals section, Preferences Split (Match vs Foster), and a Language Toggle (EN/RO).",
+    "Design with the organic color palette: warm cream backgrounds, deep green for trust, sage for primary actions, clay for foster urgency, soft sky for info, rose for warnings ONLY. No neons, no dating-app pinks.",
+    "Ensure all interactive elements and sections include role-based data-testid attributes for testing.",
+    "Implement empty states, locked states, and success states across the application where relevant.",
+    "Use mock data throughout the prototype. Do not build a backend."
+  ]
+}

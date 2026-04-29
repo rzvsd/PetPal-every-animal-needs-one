@@ -68,12 +68,12 @@ The first `db:test` immediately after one reset timed out connecting to Postgres
 Direct local API smoke covered:
 
 ```text
-APPLICATION_ID=0c31ea7f-ed2a-4c08-96e8-76a51466e7a0
-CONVERSATION_ID=12448f44-4edb-4413-94b1-82224d6c001e
+APPLICATION_ID=petpal-trustcare
+CONVERSATION_ID=petpal-trustcare
 CONVERSATION_COUNT=1
-MESSAGE_ID=67ef602c-3aad-40a6-9773-8829ce1aaebe
+MESSAGE_ID=petpal-trustcare
 MESSAGES_BEFORE_BLOCK=1
-REPORT_ID=09c739ff-dcb7-4d51-ad11-9d366a55de33
+REPORT_ID=petpal-trustcare
 BLOCK_CREATED=true
 BLOCKED_SEND_REJECTED=true
 BLOCKED_SEND_ERROR={"code":"P0001","message":"Messaging is blocked for this conversation"}

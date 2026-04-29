@@ -111,7 +111,7 @@ POST http://127.0.0.1:54321/rest/v1/rpc/submit_adoption_foster_application
 Result:
 
 ```text
-APPLICATION_ID=8ee6e2ea-6597-433b-8bb6-3cbfb5f3505d
+APPLICATION_ID=petpal-trustcare
 MY_APPLICATIONS_COUNT=1
 status=SUBMITTED
 animal_name=Luna
