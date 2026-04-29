@@ -1,78 +1,41 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ActiveTab, tabs } from '../app/navigation';
+import { MainTab, tabs } from '../app/navigation';
 import { colors, radii, spacing, typography } from '../design/tokens';
-
-const tabMarks: Record<ActiveTab, string> = {
-  discover: '●',
-  applications: '▣',
-  inbox: '○',
-  shelter: '▥',
-  profile: '◎',
-};
-
-const tabShortLabels: Record<ActiveTab, string> = {
-  discover: 'Find',
-  applications: 'Apply',
-  inbox: 'Chat',
-  shelter: 'Org',
-  profile: 'Me',
-};
 
 export function BottomTabs({
   activeTab,
   onTabPress,
 }: {
-  activeTab: ActiveTab;
-  onTabPress: (tab: ActiveTab) => void;
+  activeTab: MainTab;
+  onTabPress: (tab: MainTab) => void;
 }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.bar}>
         {tabs.map((tab) => (
-          <TabButton
-            active={activeTab === tab.id}
+          <Pressable
+            accessibilityLabel={tab.label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab.id }}
             key={tab.id}
-            label={tab.label}
-            mark={tabMarks[tab.id]}
-            shortLabel={tabShortLabels[tab.id]}
             onPress={() => onTabPress(tab.id)}
-          />
+            style={({ pressed }) => [
+              styles.tab,
+              activeTab === tab.id && styles.tabActive,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={[styles.mark, activeTab === tab.id && styles.markActive]} numberOfLines={1}>
+              {tab.mark}
+            </Text>
+            <Text style={[styles.label, activeTab === tab.id && styles.labelActive]} numberOfLines={1}>
+              {tab.shortLabel}
+            </Text>
+          </Pressable>
         ))}
       </View>
     </View>
-  );
-}
-
-function TabButton({
-  active,
-  label,
-  mark,
-  shortLabel,
-  onPress,
-}: {
-  active: boolean;
-  label: string;
-  mark: string;
-  shortLabel: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.tab, active && styles.tabActive, pressed && styles.pressed]}
-    >
-      <Text style={[styles.mark, active && styles.markActive]} numberOfLines={1}>
-        {mark}
-      </Text>
-      <Text style={[styles.shortLabel, active && styles.shortLabelActive]} numberOfLines={1}>
-        {shortLabel}
-      </Text>
-      <View style={[styles.rule, active && styles.ruleActive]} />
-    </Pressable>
   );
 }
 
@@ -86,54 +49,40 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
   },
   bar: {
-    backgroundColor: colors.surface,
-    borderColor: 'transparent',
-    borderRadius: radii.md,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.xxs,
-    minHeight: 72,
-    padding: 0,
+    minHeight: 68,
   },
   tab: {
     alignItems: 'center',
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     flex: 1,
-    gap: 2,
+    gap: 3,
     justifyContent: 'center',
-    minHeight: 64,
+    minHeight: 60,
     paddingHorizontal: spacing.xxs,
   },
   tabActive: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.sageMist,
   },
   mark: {
     color: colors.inkMuted,
-    fontSize: 25,
+    fontSize: typography.caption,
     fontWeight: '900',
-    lineHeight: 28,
+    lineHeight: 16,
   },
   markActive: {
     color: colors.forest,
   },
-  shortLabel: {
+  label: {
     color: colors.inkMuted,
     fontSize: typography.caption,
     fontWeight: '800',
     lineHeight: 16,
   },
-  shortLabelActive: {
+  labelActive: {
     color: colors.forest,
     fontWeight: '900',
-  },
-  rule: {
-    backgroundColor: 'transparent',
-    borderRadius: radii.sm,
-    height: 4,
-    width: 48,
-  },
-  ruleActive: {
-    backgroundColor: colors.butter,
   },
   pressed: {
     opacity: 0.72,

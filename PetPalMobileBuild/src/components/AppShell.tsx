@@ -25,7 +25,7 @@ export function AppShell({
             <Image source={appIcon} style={styles.logo} />
             <View style={styles.identityText}>
               <Text style={styles.brand}>PetPal</Text>
-              <Text style={styles.subtitle}>verified adoption and foster</Text>
+              <Text style={styles.subtitle}>safe animal matching and foster</Text>
             </View>
           </View>
           <View style={styles.livePill}>
@@ -118,3 +118,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+

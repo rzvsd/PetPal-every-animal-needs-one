@@ -1,6 +1,152 @@
 export type Species = 'DOG' | 'CAT';
 export type ListingMode = 'ADOPT' | 'FOSTER';
 export type ApplicationStatus = 'SUBMITTED' | 'IN_REVIEW' | 'ACCEPTED' | 'REJECTED';
+export type MatchMode = 'PLAY' | 'SOCIAL' | 'VERIFIED_MATE';
+export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type MatchAction = 'LIKE' | 'PASS' | 'SAVE';
+export type MatchStatus = 'PENDING' | 'MUTUAL' | 'BLOCKED' | 'ARCHIVED';
+export type FosterCaseStatus =
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'FOSTER_FOUND'
+  | 'ADOPTED'
+  | 'ARCHIVED';
+export type FosterApplicationStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'IN_REVIEW'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  | 'COMPLETED';
+
+export type AnimalProfile = {
+  id: string;
+  ownerId: string;
+  name: string;
+  species: Species;
+  breed: string | null;
+  isMixedBreed: boolean;
+  ageMonths: number | null;
+  sex: 'MALE' | 'FEMALE' | 'UNKNOWN';
+  sizeLabel: 'SMALL' | 'MEDIUM' | 'LARGE' | 'UNKNOWN';
+  weightKg: number | null;
+  sterilizedStatus: 'YES' | 'NO' | 'UNKNOWN';
+  vaccineStatus: 'UNKNOWN' | 'PARTIAL' | 'UP_TO_DATE';
+  healthDocumentStatus: VerificationStatus;
+  adminMateApprovalStatus: VerificationStatus;
+  temperamentTags: string[];
+  energyLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
+  goodWithDogs: boolean | null;
+  goodWithCats: boolean | null;
+  goodWithChildren: boolean | null;
+  city: string;
+  coarseArea: string | null;
+  photoUrls: string[];
+  activeMatchModes: MatchMode[];
+  profileCompleteness: number;
+  verificationStatus: VerificationStatus;
+};
+
+export type MatchCandidate = {
+  animal: AnimalProfile;
+  mode: MatchMode;
+  compatibilityScore: number;
+  compatibilityReasons: string[];
+  ownerVerificationStatus: VerificationStatus;
+  healthDocumentStatus: VerificationStatus;
+  distanceLabel: string;
+  exactLocationHidden: true;
+};
+
+export type MatchInteraction = {
+  id: string;
+  fromAnimalId: string;
+  toAnimalId: string;
+  mode: MatchMode;
+  action: MatchAction;
+  createdAt: string;
+};
+
+export type AnimalMatch = {
+  id: string;
+  animalAId: string;
+  animalBId: string;
+  ownerAId: string;
+  ownerBId: string;
+  mode: MatchMode;
+  status: MatchStatus;
+  createdAt: string;
+};
+
+export type FosterCase = {
+  id: string;
+  animalId: string;
+  organizationId: string | null;
+  rescuerId: string;
+  title: string;
+  animalName: string;
+  species: Species;
+  ageMonths: number | null;
+  sizeLabel: 'SMALL' | 'MEDIUM' | 'LARGE' | 'UNKNOWN';
+  description: string;
+  status: FosterCaseStatus;
+  urgency: 'LOW' | 'MEDIUM' | 'HIGH';
+  duration: 'FEW_DAYS' | 'ONE_TWO_WEEKS' | 'ONE_MONTH' | 'UNTIL_ADOPTION' | 'UNKNOWN';
+  foodCovered: boolean;
+  vetCovered: boolean;
+  transportAvailable: boolean;
+  medicalNeeds: string | null;
+  homeFit: string;
+  city: string;
+  coarseArea: string | null;
+  exactLocationPrivate: string | null;
+  rescuerName: string;
+  rescuerVerified: boolean;
+  createdAt: string;
+};
+
+export type FosterApplication = {
+  id: string;
+  fosterCaseId: string;
+  applicantId: string;
+  status: FosterApplicationStatus;
+  housingType: string;
+  availability: string;
+  experience: string;
+  otherPets: string | null;
+  childrenInHome: string | null;
+  canTransport: boolean | null;
+  canHandleMedicalNeeds: boolean | null;
+  motivation: string;
+  createdAt: string;
+};
+
+export type Conversation = {
+  id: string;
+  source: 'MATCH' | 'FOSTER';
+  title: string;
+  contextLabel: string;
+  privacyLabel: string;
+  lastMessage: string;
+  messages: ChatMessage[];
+  blocked?: boolean;
+  reported?: boolean;
+};
+
+export type ChatMessage = {
+  id?: string;
+  sender?: string;
+  body: string;
+  createdAt: string;
+  isMine: boolean;
+  messageId: string;
+  conversationId?: string;
+  senderId?: string;
+  senderDisplayName: string;
+};
 
 export type DiscoveryListing = {
   listingId: string;
@@ -43,14 +189,4 @@ export type ConversationSummary = {
   otherParticipants: string | null;
   lastMessageBody: string | null;
   lastMessageAt: string | null;
-};
-
-export type ChatMessage = {
-  messageId: string;
-  conversationId: string;
-  senderId: string;
-  senderDisplayName: string;
-  body: string;
-  createdAt: string;
-  isMine: boolean;
 };

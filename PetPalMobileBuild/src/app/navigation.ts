@@ -1,9 +1,8 @@
-export type ActiveTab = 'discover' | 'applications' | 'inbox' | 'shelter' | 'profile';
+export type MainTab = 'matches' | 'foster' | 'messages' | 'profile';
 
-export const tabs: { id: ActiveTab; label: string }[] = [
-  { id: 'discover', label: 'Discover' },
-  { id: 'applications', label: 'Applications' },
-  { id: 'inbox', label: 'Inbox' },
-  { id: 'shelter', label: 'Shelter' },
-  { id: 'profile', label: 'Profile' },
+export const tabs: { id: MainTab; label: string; shortLabel: string; mark: string }[] = [
+  { id: 'matches', label: 'Matches', shortLabel: 'Matches', mark: 'M' },
+  { id: 'foster', label: 'Foster', shortLabel: 'Foster', mark: 'F' },
+  { id: 'messages', label: 'Messages', shortLabel: 'Messages', mark: 'Msg' },
+  { id: 'profile', label: 'Profile', shortLabel: 'Profile', mark: 'Me' },
 ];
