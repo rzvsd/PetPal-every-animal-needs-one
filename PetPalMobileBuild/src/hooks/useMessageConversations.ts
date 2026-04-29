@@ -14,6 +14,7 @@ export function useMessageConversations() {
   }
 
   function createMatchConversation(selectedAnimalName: string, candidate: MatchCandidate) {
+    // TODO: In production, dedupe by myAnimalId + candidateAnimalId + mode instead of candidate only.
     const existing = conversations.find(
       (conversation) => conversation.source === 'MATCH' && conversation.candidateId === candidate.animal.id,
     );
@@ -25,6 +26,7 @@ export function useMessageConversations() {
   }
 
   function createFosterConversation(fosterCase: FosterCase, application?: FosterApplication) {
+    // TODO: In production, dedupe foster chats by fosterApplicationId, not only fosterCaseId.
     const existing = conversations.find(
       (conversation) => conversation.source === 'FOSTER' && conversation.fosterCaseId === fosterCase.id,
     );

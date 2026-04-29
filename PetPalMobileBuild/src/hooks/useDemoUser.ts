@@ -23,7 +23,7 @@ export function useDemoUser() {
   function chooseEntry(choice: Exclude<EntryChoice, null>) {
     setEntryChoice(choice);
     if (choice === 'rescuer') {
-      setRescuerAccessState('verified');
+      setRescuerAccessState('request_sent');
     }
   }
 
