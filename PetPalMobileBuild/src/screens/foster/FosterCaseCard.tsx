@@ -38,7 +38,7 @@ export function FosterCaseCard({
       <Text style={styles.muted}>{fosterCase.homeFit}</Text>
       <View style={styles.actions}>
         <Button label="View case" onPress={onView} tone="primary" style={styles.actionButton} />
-        <Button label="Save" onPress={onSave ?? (() => undefined)} tone="quiet" style={styles.actionButton} />
+        {onSave ? <Button label="Save" onPress={onSave} tone="quiet" style={styles.actionButton} /> : null}
       </View>
     </Band>
   );

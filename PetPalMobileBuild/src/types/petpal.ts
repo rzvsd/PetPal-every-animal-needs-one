@@ -4,6 +4,8 @@ export type ApplicationStatus = 'SUBMITTED' | 'IN_REVIEW' | 'ACCEPTED' | 'REJECT
 export type MatchMode = 'PLAY' | 'SOCIAL' | 'VERIFIED_MATE';
 export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type UserRole = 'OWNER' | 'FOSTER_VOLUNTEER' | 'RESCUER' | 'SHELTER_MEMBER';
+export type EntryChoice = 'animal' | 'foster' | 'rescuer' | null;
+export type RescuerAccessState = 'not_requested' | 'request_sent' | 'demo_preview' | 'verified';
 export type MatchAction = 'LIKE' | 'PASS' | 'SAVE';
 export type MatchStatus = 'PENDING' | 'MUTUAL' | 'BLOCKED' | 'ARCHIVED';
 export type FosterCaseStatus =
@@ -49,6 +51,13 @@ export type AnimalProfile = {
   activeMatchModes: MatchMode[];
   profileCompleteness: number;
   verificationStatus: VerificationStatus;
+};
+
+export type AnimalProfileDraft = {
+  name: string;
+  breed: string;
+  city: string;
+  coarseArea: string;
 };
 
 export type MatchCandidate = {
@@ -173,6 +182,9 @@ export type FosterPreferences = {
 export type Conversation = {
   id: string;
   source: 'MATCH' | 'FOSTER';
+  candidateId?: string;
+  fosterCaseId?: string;
+  fosterApplicationId?: string;
   title: string;
   subtitle: string;
   contextLabel: string;

@@ -1,0 +1,31 @@
+import { AnimalProfile } from '../types/petpal';
+
+export const demoAnimals: AnimalProfile[] = [
+  {
+    id: 'animal-max',
+    ownerId: 'user-demo',
+    name: 'Max',
+    species: 'DOG',
+    breed: 'Labrador',
+    isMixedBreed: false,
+    ageMonths: 36,
+    sex: 'MALE',
+    sizeLabel: 'LARGE',
+    weightKg: 29,
+    sterilizedStatus: 'NO',
+    vaccineStatus: 'UP_TO_DATE',
+    healthDocumentStatus: 'VERIFIED',
+    adminMateApprovalStatus: 'PENDING',
+    temperamentTags: ['calm', 'social', 'gentle'],
+    energyLevel: 'MEDIUM',
+    goodWithDogs: true,
+    goodWithCats: null,
+    goodWithChildren: true,
+    city: 'Bucharest',
+    coarseArea: 'Sector 3',
+    photoUrls: [],
+    activeMatchModes: ['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    profileCompleteness: 92,
+    verificationStatus: 'VERIFIED',
+  },
+];

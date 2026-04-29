@@ -1,7 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { SectionHeader } from '../../components/ui';
-import { spacing } from '../../design/tokens';
+import { Band, SectionHeader } from '../../components/ui';
+import { colors, spacing, typography } from '../../design/tokens';
 import { AnimalProfile, FosterPreferences, MatchPreferences, UserProfile } from '../../types/petpal';
 import { AppSettingsSection } from './AppSettingsSection';
 import { HelpLegalSection } from './HelpLegalSection';
@@ -21,8 +22,6 @@ export function ProfileScreen({
   onEditFosterPreferences,
   onEditMatchPreferences,
   onEditNotifications,
-  onEditProfile,
-  onManageVerification,
   onMatchSettings,
   userProfile,
 }: {
@@ -35,11 +34,19 @@ export function ProfileScreen({
   onEditFosterPreferences: () => void;
   onEditMatchPreferences: () => void;
   onEditNotifications: () => void;
-  onEditProfile: () => void;
-  onManageVerification: () => void;
   onMatchSettings: (animal: AnimalProfile) => void;
   userProfile: UserProfile;
 }) {
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function handleEditProfile() {
+    setNotice('Profile editing will open as a dedicated account screen in the full app.');
+  }
+
+  function handleManageVerification() {
+    setNotice('Verification management will show owner, animal, health document, and rescuer access steps.');
+  }
+
   return (
     <View style={styles.stack}>
       <SectionHeader
@@ -47,8 +54,8 @@ export function ProfileScreen({
         detail="Manage your animals, verification, preferences, and safety."
       />
       <UserSummaryCard
-        onEditProfile={onEditProfile}
-        onManageVerification={onManageVerification}
+        onEditProfile={handleEditProfile}
+        onManageVerification={handleManageVerification}
         userProfile={userProfile}
       />
       <MyAnimalsSection
@@ -60,7 +67,7 @@ export function ProfileScreen({
       <VerificationSection
         animals={animals}
         eligibility={eligibility}
-        onManageVerification={onManageVerification}
+        onManageVerification={handleManageVerification}
         userProfile={userProfile}
       />
       <PreferencesSection
@@ -72,10 +79,15 @@ export function ProfileScreen({
         onEditNotifications={onEditNotifications}
       />
       <SafetySection
-        onBlockedUsers={() => undefined}
-        onPrivacySettings={() => undefined}
-        onReportHistory={() => undefined}
+        onBlockedUsers={() => setNotice('Blocked users will open as a dedicated safety screen in the full app.')}
+        onPrivacySettings={() => setNotice('Privacy settings will manage profile visibility and contact permissions.')}
+        onReportHistory={() => setNotice('Report history will show submitted safety reports and review status.')}
       />
+      {notice ? (
+        <Band tone="sky">
+          <Text style={styles.notice}>{notice}</Text>
+        </Band>
+      ) : null}
       <AppSettingsSection />
       <HelpLegalSection />
     </View>
@@ -83,6 +95,12 @@ export function ProfileScreen({
 }
 
 const styles = StyleSheet.create({
+  notice: {
+    color: colors.ink,
+    fontSize: typography.body,
+    fontWeight: '700',
+    lineHeight: 23,
+  },
   stack: {
     gap: spacing.md,
   },

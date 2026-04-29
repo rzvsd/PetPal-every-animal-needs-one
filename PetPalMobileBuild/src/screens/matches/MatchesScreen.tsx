@@ -53,6 +53,7 @@ export function MatchesScreen({
   onSetMatchMode,
   onSetSpeciesFilter,
   onSetVerifiedOnly,
+  onSeeVerifiedMateRequirements,
   onOpenDetail,
   onAction,
 }: {
@@ -71,6 +72,7 @@ export function MatchesScreen({
   onSetMatchMode: (mode: MatchMode) => void;
   onSetSpeciesFilter: (species: Species | 'ALL') => void;
   onSetVerifiedOnly: (value: boolean) => void;
+  onSeeVerifiedMateRequirements: () => void;
   onOpenDetail: (candidate: MatchCandidate) => void;
   onAction: (candidate: MatchCandidate, action: 'like' | 'pass' | 'save') => void;
 }) {
@@ -164,7 +166,7 @@ export function MatchesScreen({
       </Band>
 
       <Band>
-        <Text style={styles.label}>What are you looking for {selectedAnimal.name}?</Text>
+        <Text style={styles.label}>What are you looking for, {selectedAnimal.name}?</Text>
         <View style={styles.wrapRow}>
           <Chip label="Play" onPress={() => onSetMatchMode('PLAY')} selected={matchMode === 'PLAY'} />
           <Chip label="Social" onPress={() => onSetMatchMode('SOCIAL')} selected={matchMode === 'SOCIAL'} />
@@ -217,7 +219,7 @@ export function MatchesScreen({
       ) : null}
 
       {verifiedMateLocked ? (
-        <VerifiedMateLocked eligibility={eligibility} />
+        <VerifiedMateLocked eligibility={eligibility} onSeeMissing={onSeeVerifiedMateRequirements} />
       ) : activeCandidate ? (
         <AnimalMatchCard
           candidate={activeCandidate}
@@ -494,7 +496,13 @@ function FilterGroup({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-function VerifiedMateLocked({ eligibility }: { eligibility: { label: string; done: boolean }[] }) {
+function VerifiedMateLocked({
+  eligibility,
+  onSeeMissing,
+}: {
+  eligibility: { label: string; done: boolean }[];
+  onSeeMissing: () => void;
+}) {
   return (
     <Band tone="clay">
       <SectionHeader
@@ -507,7 +515,7 @@ function VerifiedMateLocked({ eligibility }: { eligibility: { label: string; don
           {item.done ? 'Done:' : 'Missing:'} {item.label}
         </Text>
       ))}
-      <Button label="See what is missing" onPress={() => undefined} tone="secondary" />
+      <Button label="See what is missing" onPress={onSeeMissing} tone="secondary" />
     </Band>
   );
 }

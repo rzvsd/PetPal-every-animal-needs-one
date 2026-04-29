@@ -2,18 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Band, Button, Chip, InfoRow, SectionHeader, TextField } from '../../components/ui';
 import { colors, spacing, typography } from '../../design/tokens';
+import { isFosterApplicationReady } from '../../domain/fosterFactory';
 import { FosterApplicationDraft, FosterCase } from '../../types/petpal';
-
-export const emptyFosterApplicationDraft: FosterApplicationDraft = {
-  housingType: '',
-  experience: '',
-  availability: '',
-  otherPets: '',
-  childrenInHome: '',
-  canTransport: null,
-  canHandleMedicalNeeds: null,
-  motivation: '',
-};
 
 const steps = ['Home', 'Experience', 'Availability', 'Household', 'Review'];
 
@@ -227,19 +217,6 @@ function BooleanChoice({
         <Chip label="No" onPress={() => onChange(false)} selected={value === false} />
       </View>
     </View>
-  );
-}
-
-export function isFosterApplicationReady(draft: FosterApplicationDraft) {
-  return (
-    draft.housingType.trim().length >= 3 &&
-    draft.experience.trim().length >= 3 &&
-    draft.availability.trim().length >= 3 &&
-    draft.otherPets.trim().length >= 2 &&
-    draft.childrenInHome.trim().length >= 2 &&
-    draft.canTransport !== null &&
-    draft.canHandleMedicalNeeds !== null &&
-    draft.motivation.trim().length >= 3
   );
 }
 

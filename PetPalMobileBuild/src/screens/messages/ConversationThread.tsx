@@ -98,7 +98,6 @@ function ContextHeader({
             style={styles.actionButton}
           />
         )}
-        <Button label="Safety menu" onPress={() => undefined} tone="quiet" style={styles.actionButton} />
       </View>
     </Band>
   );

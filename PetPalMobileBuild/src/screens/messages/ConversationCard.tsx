@@ -18,7 +18,6 @@ export function ConversationCard({
           <Text style={styles.cardName}>{conversation.title}</Text>
           <Text style={styles.meta}>{conversation.subtitle}</Text>
         </View>
-        <StatusBadge label={conversation.source === 'MATCH' ? 'Match' : 'Foster'} tone={conversation.source === 'MATCH' ? 'sage' : 'clay'} />
       </View>
       <View style={styles.badges}>
         <StatusBadge label={conversation.source === 'MATCH' ? 'Match' : 'Foster'} tone={conversation.source === 'MATCH' ? 'sage' : 'clay'} />

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Band, Button, InfoRow, SectionHeader } from '../../components/ui';
@@ -26,6 +27,24 @@ export function FosterCaseDetail({
   onReport?: () => void;
   onSave?: () => void;
 }) {
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function handleSave() {
+    if (onSave) {
+      onSave();
+      return;
+    }
+    setNotice('Saved foster cases will appear in a dedicated list in the full app.');
+  }
+
+  function handleReport() {
+    if (onReport) {
+      onReport();
+      return;
+    }
+    setNotice('Reports will open a protected safety form in the full app.');
+  }
+
   return (
     <View style={styles.stack}>
       <Button label="Back" onPress={onBack} tone="quiet" />
@@ -54,9 +73,14 @@ export function FosterCaseDetail({
       </Band>
       <View style={styles.actions}>
         <Button label="Apply to foster" onPress={onApply} tone="primary" style={styles.actionButton} />
-        <Button label="Save" onPress={onSave ?? (() => undefined)} tone="secondary" style={styles.actionButton} />
-        <Button label="Report" onPress={onReport ?? (() => undefined)} tone="danger" style={styles.actionButton} />
+        <Button label="Save" onPress={handleSave} tone="secondary" style={styles.actionButton} />
+        <Button label="Report" onPress={handleReport} tone="danger" style={styles.actionButton} />
       </View>
+      {notice ? (
+        <Band tone="sky">
+          <Text style={styles.bodyText}>{notice}</Text>
+        </Band>
+      ) : null}
     </View>
   );
 }
