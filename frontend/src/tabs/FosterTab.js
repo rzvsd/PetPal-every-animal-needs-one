@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
 import { formatDuration } from '../data/mockData';
 import {
   Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
@@ -10,6 +11,62 @@ import {
   AlertTriangle, Bookmark, ChevronRight, Dog, Cat, Filter, FileText,
   Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye
 } from 'lucide-react';
+
+const ROMANIAN_COUNTIES = [
+  'Alba',
+  'Arad',
+  'Arges',
+  'Bacau',
+  'Bihor',
+  'Bistrita-Nasaud',
+  'Botosani',
+  'Braila',
+  'Brasov',
+  'Bucuresti',
+  'Buzau',
+  'Calarasi',
+  'Caras-Severin',
+  'Cluj',
+  'Constanta',
+  'Covasna',
+  'Dambovita',
+  'Dolj',
+  'Galati',
+  'Giurgiu',
+  'Gorj',
+  'Harghita',
+  'Hunedoara',
+  'Ialomita',
+  'Iasi',
+  'Ilfov',
+  'Maramures',
+  'Mehedinti',
+  'Mures',
+  'Neamt',
+  'Olt',
+  'Prahova',
+  'Salaj',
+  'Satu Mare',
+  'Sibiu',
+  'Suceava',
+  'Teleorman',
+  'Timis',
+  'Tulcea',
+  'Valcea',
+  'Vaslui',
+  'Vrancea',
+];
+
+function getCaseCounty(fcase) {
+  const city = (fcase.city || '').toLowerCase();
+  const area = (fcase.coarseArea || '').toLowerCase();
+
+  if (city.includes('bucharest') || city.includes('bucuresti') || area.includes('sector')) return 'Bucuresti';
+  if (city.includes('cluj')) return 'Cluj';
+  if (city.includes('timisoara')) return 'Timis';
+  if (city.includes('ilfov')) return 'Ilfov';
+  return fcase.county || null;
+}
 
 function getSizeLabel(size, t) {
   if (size === 'SMALL') return t('common.small');
@@ -487,6 +544,38 @@ function FilterPill({ active, children, onClick }) {
   );
 }
 
+function FilterSelect({ label, value, onChange, options, emptyLabel }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
+      <select
+        value={value || ''}
+        onChange={(event) => onChange(event.target.value || null)}
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+      >
+        <option value="">{emptyLabel}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function FilterInput({ label, value, onChange, placeholder }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
+      <input
+        value={value || ''}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors placeholder:text-[#57645C]/50 focus:border-[#9BAE96] focus:bg-white"
+      />
+    </label>
+  );
+}
+
 function RescuerAccessCard({ state, loading, error, onRequestAccess, onDemoPreview, t }) {
   if (state === 'request_sent' || state === 'rejected') {
     return (
@@ -536,17 +625,11 @@ export default function FosterTab() {
   const [accessLoading, setAccessLoading] = useState(false);
   const [accessError, setAccessError] = useState('');
   const [fosterFilters, setFosterFilters] = useState({
+    county: null,
+    citySearch: '',
     size: null,
-    duration: null,
     ageRange: null,
-    area: null,
-    goodWithChildren: false,
-    goodWithOtherAnimals: false,
-    medicalNeeds: null,
-    transportAvailable: false,
-    foodCovered: false,
-    vetCovered: false,
-    verifiedRescuerOnly: false,
+    breed: null,
   });
   const canManageFoster = rescuerAccessState === 'verified' || rescuerAccessState === 'demo_preview';
   const visibleSection = !canManageFoster && section === 'manage' ? 'find' : section;
@@ -568,47 +651,39 @@ export default function FosterTab() {
     setFosterFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
   };
 
-  const toggleBooleanFilter = (key) => {
-    setFosterFilters(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const resetFilters = () => {
     setSpeciesFilter(null);
     setUrgencyFilter(false);
     setFosterFilters({
+      county: null,
+      citySearch: '',
       size: null,
-      duration: null,
       ageRange: null,
-      area: null,
-      goodWithChildren: false,
-      goodWithOtherAnimals: false,
-      medicalNeeds: null,
-      transportAvailable: false,
-      foodCovered: false,
-      vetCovered: false,
-      verifiedRescuerOnly: false,
+      breed: null,
     });
   };
 
   const advancedFilterActive = Object.values(fosterFilters).some(value => Boolean(value));
+  const fosterBreedOptions = speciesFilter === 'CAT'
+    ? CAT_BREEDS
+    : speciesFilter === 'DOG'
+      ? DOG_BREEDS
+      : Array.from(new Set([...DOG_BREEDS, ...CAT_BREEDS])).sort((a, b) => a.localeCompare(b));
 
   const filteredCases = fosterCases.filter(c => {
     if (speciesFilter && c.species !== speciesFilter) return false;
     if (urgencyFilter && c.urgency !== 'HIGH') return false;
     if (fosterFilters.size && c.sizeLabel !== fosterFilters.size) return false;
-    if (fosterFilters.duration && c.duration !== fosterFilters.duration) return false;
-    if (fosterFilters.area && c.city !== fosterFilters.area && c.coarseArea !== fosterFilters.area) return false;
+    if (fosterFilters.county && getCaseCounty(c) !== fosterFilters.county) return false;
+    if (fosterFilters.breed && c.breed !== fosterFilters.breed) return false;
+    if (fosterFilters.citySearch.trim()) {
+      const search = fosterFilters.citySearch.trim().toLowerCase();
+      const searchableLocation = `${c.city || ''} ${c.coarseArea || ''}`.toLowerCase();
+      if (!searchableLocation.includes(search)) return false;
+    }
     if (fosterFilters.ageRange === 'YOUNG' && c.ageMonths > 24) return false;
     if (fosterFilters.ageRange === 'ADULT' && (c.ageMonths < 24 || c.ageMonths > 84)) return false;
     if (fosterFilters.ageRange === 'SENIOR' && c.ageMonths < 84) return false;
-    if (fosterFilters.goodWithChildren && c.goodWithChildren !== true) return false;
-    if (fosterFilters.goodWithOtherAnimals && c.goodWithOtherAnimals !== true) return false;
-    if (fosterFilters.medicalNeeds === 'YES' && !c.medicalNeeds) return false;
-    if (fosterFilters.medicalNeeds === 'NO' && c.medicalNeeds) return false;
-    if (fosterFilters.transportAvailable && !c.transportAvailable) return false;
-    if (fosterFilters.foodCovered && !c.foodCovered) return false;
-    if (fosterFilters.vetCovered && !c.vetCovered) return false;
-    if (fosterFilters.verifiedRescuerOnly && !c.rescuerVerified) return false;
     return c.status === 'ACTIVE';
   });
 
@@ -687,10 +762,6 @@ export default function FosterTab() {
               <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => setSpeciesFilter(speciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
               <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => setSpeciesFilter(speciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
               <Chip label={t('foster.urgent')} active={urgencyFilter} onClick={() => setUrgencyFilter(!urgencyFilter)} icon={AlertTriangle} />
-              <Chip label={t('foster.duration')} active={Boolean(fosterFilters.duration)} onClick={() => setShowFilters(true)} icon={Clock} />
-              <Chip label={t('matches.size')} active={Boolean(fosterFilters.size)} onClick={() => setShowFilters(true)} icon={Dog} />
-              <Chip label={t('matches.area')} active={Boolean(fosterFilters.area)} onClick={() => setShowFilters(true)} icon={MapPin} />
-              <Chip label={t('foster.covered')} active={fosterFilters.foodCovered || fosterFilters.vetCovered || fosterFilters.transportAvailable} onClick={() => setShowFilters(true)} icon={CheckCircle2} />
               <Chip label={t('matches.filters')} active={advancedFilterActive} onClick={() => setShowFilters(true)} icon={Filter} />
             </div>
 
@@ -783,13 +854,20 @@ export default function FosterTab() {
       </div>
 
       <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('matches.filters')}>
-        <FilterGroup title={t('matches.size')}>
-          {['SMALL', 'MEDIUM', 'LARGE'].map(size => (
-            <FilterPill key={size} active={fosterFilters.size === size} onClick={() => setChoiceFilter('size', size)}>
-              {getSizeLabel(size, t)}
-            </FilterPill>
-          ))}
-        </FilterGroup>
+        <FilterSelect
+          label={t('foster.county')}
+          value={fosterFilters.county}
+          onChange={(value) => setChoiceFilter('county', value)}
+          options={ROMANIAN_COUNTIES}
+          emptyLabel={t('foster.anyCounty')}
+        />
+
+        <FilterInput
+          label={t('foster.city')}
+          value={fosterFilters.citySearch}
+          onChange={(value) => setFosterFilters(prev => ({ ...prev, citySearch: value }))}
+          placeholder={t('foster.cityPlaceholder')}
+        />
 
         <FilterGroup title={t('matches.age')}>
           {[
@@ -803,62 +881,21 @@ export default function FosterTab() {
           ))}
         </FilterGroup>
 
-        <FilterGroup title={t('foster.duration')}>
-          {[
-            ['FEW_DAYS', t('foster.fewDays')],
-            ['ONE_TWO_WEEKS', t('foster.oneTwoWeeks')],
-            ['ONE_MONTH', t('foster.oneMonth')],
-            ['UNTIL_ADOPTION', t('foster.untilAdoption')],
-          ].map(([value, label]) => (
-            <FilterPill key={value} active={fosterFilters.duration === value} onClick={() => setChoiceFilter('duration', value)}>
-              {label}
+        <FilterGroup title={t('matches.size')}>
+          {['SMALL', 'MEDIUM', 'LARGE'].map(size => (
+            <FilterPill key={size} active={fosterFilters.size === size} onClick={() => setChoiceFilter('size', size)}>
+              {getSizeLabel(size, t)}
             </FilterPill>
           ))}
         </FilterGroup>
 
-        <FilterGroup title={t('foster.area')}>
-          {['Bucharest', 'Cluj-Napoca', 'Sector 1', 'Sector 4', 'Centru'].map(area => (
-            <FilterPill key={area} active={fosterFilters.area === area} onClick={() => setChoiceFilter('area', area)}>
-              {area}
-            </FilterPill>
-          ))}
-        </FilterGroup>
-
-        <FilterGroup title={t('foster.homeFit')}>
-          <FilterPill active={fosterFilters.goodWithChildren} onClick={() => toggleBooleanFilter('goodWithChildren')}>
-            {t('foster.goodWithChildren')}
-          </FilterPill>
-          <FilterPill active={fosterFilters.goodWithOtherAnimals} onClick={() => toggleBooleanFilter('goodWithOtherAnimals')}>
-            {t('foster.goodWithAnimals')}
-          </FilterPill>
-        </FilterGroup>
-
-        <FilterGroup title={t('foster.medicalNeeds')}>
-          <FilterPill active={fosterFilters.medicalNeeds === 'YES'} onClick={() => setChoiceFilter('medicalNeeds', 'YES')}>
-            {t('foster.hasMedicalNeeds')}
-          </FilterPill>
-          <FilterPill active={fosterFilters.medicalNeeds === 'NO'} onClick={() => setChoiceFilter('medicalNeeds', 'NO')}>
-            {t('foster.noMedicalNeeds')}
-          </FilterPill>
-        </FilterGroup>
-
-        <FilterGroup title={t('foster.covered')}>
-          <FilterPill active={fosterFilters.foodCovered} onClick={() => toggleBooleanFilter('foodCovered')}>
-            {t('foster.foodCovered')}
-          </FilterPill>
-          <FilterPill active={fosterFilters.vetCovered} onClick={() => toggleBooleanFilter('vetCovered')}>
-            {t('foster.vetCovered')}
-          </FilterPill>
-          <FilterPill active={fosterFilters.transportAvailable} onClick={() => toggleBooleanFilter('transportAvailable')}>
-            {t('foster.transportAvailable')}
-          </FilterPill>
-        </FilterGroup>
-
-        <FilterGroup title={t('foster.safety')}>
-          <FilterPill active={fosterFilters.verifiedRescuerOnly} onClick={() => toggleBooleanFilter('verifiedRescuerOnly')}>
-            {t('foster.verifiedRescuerOnly')}
-          </FilterPill>
-        </FilterGroup>
+        <FilterSelect
+          label={t('matches.breed')}
+          value={fosterFilters.breed}
+          onChange={(value) => setChoiceFilter('breed', value)}
+          options={fosterBreedOptions}
+          emptyLabel={t('matches.anyBreed')}
+        />
 
         <div className="flex gap-3 pt-2">
           <SecondaryButton onClick={resetFilters}>{t('foster.reset')}</SecondaryButton>

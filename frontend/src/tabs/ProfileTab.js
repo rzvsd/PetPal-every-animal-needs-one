@@ -407,6 +407,84 @@ function PreferenceDetailScreen({ title, description, rows, notice, t, onBack })
   );
 }
 
+function ToggleRow({ label, description, enabled, onToggle, t }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full items-center justify-between gap-4 border-b border-[#E4E2DC]/50 py-3 first:pt-0 last:border-0 last:pb-0"
+      aria-pressed={enabled}
+    >
+      <div className="text-left">
+        <span className="block text-sm font-semibold text-[#1F2924]">{label}</span>
+        {description && <span className="mt-0.5 block text-xs leading-relaxed text-[#57645C]">{description}</span>}
+      </div>
+      <span className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors ${enabled ? 'bg-[#2C402B]' : 'bg-[#D8D4CC]'}`}>
+        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+      </span>
+      <span className="sr-only">{enabled ? t('profile.enabled') : t('profile.disabled')}</span>
+    </button>
+  );
+}
+
+function NotificationPreferenceScreen({ prefs, onToggle, t, onBack }) {
+  const rows = [
+    ['push', t('profile.pushNotifications'), t('profile.pushNotificationsDesc')],
+    ['matches', t('profile.matchUpdates'), t('profile.matchUpdatesDesc')],
+    ['foster', t('profile.fosterUpdates'), t('profile.fosterUpdatesDesc')],
+    ['safety', t('profile.safetyUpdates'), t('profile.safetyUpdatesDesc')],
+  ];
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <ScreenHeader title={t('profile.notifications')} onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4">
+          <p className="text-sm leading-relaxed text-[#57645C]">{t('profile.notificationPreferencesDesc')}</p>
+        </div>
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          {rows.map(([key, label, description]) => (
+            <ToggleRow
+              key={key}
+              label={label}
+              description={description}
+              enabled={Boolean(prefs[key])}
+              onToggle={() => onToggle(key)}
+              t={t}
+            />
+          ))}
+        </div>
+        <NoticeBanner message={t('profile.notificationPreferencesNotice')} />
+        <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
+function InfoDetailScreen({ title, intro, bullets, note, primaryLabel, onPrimary, t, onBack }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <ScreenHeader title={title} onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          <p className="text-sm leading-relaxed text-[#57645C]">{intro}</p>
+          <div className="mt-4 space-y-2.5">
+            {bullets.map((item) => (
+              <div key={item} className="flex items-start gap-2.5 text-sm leading-relaxed text-[#1F2924]">
+                <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#9BAE96]" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {note && <PrivacyNote text={note} />}
+        {primaryLabel && <PrimaryButton onClick={onPrimary}>{primaryLabel}</PrimaryButton>}
+        <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileTab() {
   const { t, lang, toggleLang, user, updateUserProfile, myAnimals, saveAnimalProfile, deleteAnimalProfile, authConfigured, signOut } = useApp();
   const [activeSection, setActiveSection] = useState(null);
@@ -414,7 +492,52 @@ export default function ProfileTab() {
   const [profileDraft, setProfileDraft] = useState(null);
   const [animalDraft, setAnimalDraft] = useState(null);
   const [deleteDraft, setDeleteDraft] = useState(null);
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    push: true,
+    matches: true,
+    foster: true,
+    safety: true,
+  });
+  const [activeHelpTopic, setActiveHelpTopic] = useState(null);
   const showNotice = (message) => setNotice(message);
+  const toggleNotificationPref = (key) => {
+    setNotificationPrefs((current) => ({ ...current, [key]: !current[key] }));
+  };
+  const openHelpTopic = (topic) => {
+    setNotice('');
+    setActiveHelpTopic(topic);
+  };
+  const closeHelpTopic = () => setActiveHelpTopic(null);
+  const exportProfileData = () => {
+    const exportPayload = {
+      exportedAt: new Date().toISOString(),
+      language: lang,
+      account: {
+        id: user.id,
+        displayName: user.displayName,
+        city: user.city,
+        coarseArea: user.coarseArea,
+        roles: user.roles,
+        ownerVerificationStatus: user.ownerVerificationStatus,
+        rescuerAccessStatus: user.rescuerAccessStatus,
+      },
+      animals: myAnimals,
+      notificationPreferences: notificationPrefs,
+      privacy: {
+        exactLocationPublic: false,
+      },
+    };
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `petpal-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showNotice(t('profile.dataExportReady'));
+  };
   const openProfileEditor = () => {
     setNotice('');
     setProfileDraft({
@@ -521,6 +644,85 @@ export default function ProfileTab() {
       showNotice(error.message || t('profile.animalDeleteFailed'));
     }
   };
+  const helpTopics = {
+    matching: {
+      title: t('profile.howMatchingWorks'),
+      intro: t('profile.matchingHelpIntro'),
+      bullets: [
+        t('profile.matchingHelpBullet1'),
+        t('profile.matchingHelpBullet2'),
+        t('profile.matchingHelpBullet3'),
+        t('profile.matchingHelpBullet4'),
+      ],
+      note: t('profile.matchingHelpNote'),
+    },
+    foster: {
+      title: t('profile.howFosterWorks'),
+      intro: t('profile.fosterHelpIntro'),
+      bullets: [
+        t('profile.fosterHelpBullet1'),
+        t('profile.fosterHelpBullet2'),
+        t('profile.fosterHelpBullet3'),
+        t('profile.fosterHelpBullet4'),
+      ],
+      note: t('profile.fosterHelpNote'),
+    },
+    safety: {
+      title: t('profile.safetyRules'),
+      intro: t('profile.safetyRulesIntro'),
+      bullets: [
+        t('profile.safetyRulesBullet1'),
+        t('profile.safetyRulesBullet2'),
+        t('profile.safetyRulesBullet3'),
+        t('profile.safetyRulesBullet4'),
+      ],
+      note: t('profile.safetyRulesNote'),
+    },
+    terms: {
+      title: t('profile.terms'),
+      intro: t('profile.termsIntro'),
+      bullets: [
+        t('profile.termsBullet1'),
+        t('profile.termsBullet2'),
+        t('profile.termsBullet3'),
+        t('profile.termsBullet4'),
+      ],
+      note: t('profile.termsNote'),
+    },
+    privacy: {
+      title: t('profile.privacyPolicy'),
+      intro: t('profile.privacyPolicyIntro'),
+      bullets: [
+        t('profile.privacyPolicyBullet1'),
+        t('profile.privacyPolicyBullet2'),
+        t('profile.privacyPolicyBullet3'),
+        t('profile.privacyPolicyBullet4'),
+      ],
+      note: t('profile.privacyPolicyNote'),
+    },
+    welfare: {
+      title: t('profile.animalWelfare'),
+      intro: t('profile.animalWelfareIntro'),
+      bullets: [
+        t('profile.animalWelfareBullet1'),
+        t('profile.animalWelfareBullet2'),
+        t('profile.animalWelfareBullet3'),
+        t('profile.animalWelfareBullet4'),
+      ],
+      note: t('profile.animalWelfareNote'),
+    },
+  };
+  const termsSafetyContent = {
+    title: t('profile.termsAndSafety'),
+    intro: t('profile.termsSafetyIntro'),
+    bullets: [
+      t('profile.termsSafetyBullet1'),
+      t('profile.termsSafetyBullet2'),
+      t('profile.termsSafetyBullet3'),
+      t('profile.termsSafetyBullet4'),
+    ],
+    note: t('profile.termsSafetyNote'),
+  };
   const renderEditModals = () => (
     <>
       <ProfileEditModal
@@ -626,19 +828,65 @@ export default function ProfileTab() {
     );
   }
 
+  if (activeSection === 'dataExport') {
+    return (
+      <InfoDetailScreen
+        title={t('profile.dataExport')}
+        intro={t('profile.dataExportIntro')}
+        bullets={[
+          t('profile.dataExportBullet1'),
+          t('profile.dataExportBullet2'),
+          t('profile.dataExportBullet3'),
+        ]}
+        note={t('profile.dataExportNote')}
+        primaryLabel={t('profile.downloadDataExport')}
+        onPrimary={exportProfileData}
+        t={t}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
+  if (activeSection === 'termsSafety') {
+    return (
+      <InfoDetailScreen
+        title={termsSafetyContent.title}
+        intro={termsSafetyContent.intro}
+        bullets={termsSafetyContent.bullets}
+        note={termsSafetyContent.note}
+        t={t}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
   if (activeSection === 'help') {
+    if (activeHelpTopic && helpTopics[activeHelpTopic]) {
+      const topic = helpTopics[activeHelpTopic];
+      return (
+        <InfoDetailScreen
+          title={topic.title}
+          intro={topic.intro}
+          bullets={topic.bullets}
+          note={topic.note}
+          t={t}
+          onBack={closeHelpTopic}
+        />
+      );
+    }
+
     return (
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.help')} onBack={() => setActiveSection(null)} />
         <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
           <NoticeBanner message={notice} />
           <div className="space-y-0">
-            <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => showNotice(t('profile.matchingHelpNotice'))} />
-            <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => showNotice(t('profile.fosterHelpNotice'))} />
-            <SectionItem icon={Shield} label={t('profile.safetyRules')} onClick={() => showNotice(t('profile.safetyRulesNotice'))} />
-            <SectionItem icon={FileText} label={t('profile.terms')} onClick={() => showNotice(t('profile.termsNotice'))} />
-            <SectionItem icon={Lock} label={t('profile.privacyPolicy')} onClick={() => showNotice(t('profile.privacyPolicyNotice'))} />
-            <SectionItem icon={Dog} label={t('profile.animalWelfare')} onClick={() => showNotice(t('profile.animalWelfareNotice'))} />
+            <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => openHelpTopic('matching')} />
+            <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => openHelpTopic('foster')} />
+            <SectionItem icon={Shield} label={t('profile.safetyRules')} onClick={() => openHelpTopic('safety')} />
+            <SectionItem icon={FileText} label={t('profile.terms')} onClick={() => openHelpTopic('terms')} />
+            <SectionItem icon={Lock} label={t('profile.privacyPolicy')} onClick={() => openHelpTopic('privacy')} />
+            <SectionItem icon={Dog} label={t('profile.animalWelfare')} onClick={() => openHelpTopic('welfare')} />
           </div>
         </div>
         {renderEditModals()}
@@ -690,16 +938,9 @@ export default function ProfileTab() {
 
   if (activeSection === 'notificationPreferences') {
     return (
-      <PreferenceDetailScreen
-        title={t('profile.notifications')}
-        description={t('profile.notificationPreferencesDesc')}
-        rows={[
-          [t('profile.pushNotifications'), t('profile.enabled')],
-          [t('profile.matchUpdates'), t('profile.enabled')],
-          [t('profile.fosterUpdates'), t('profile.enabled')],
-          [t('profile.safetyUpdates'), t('profile.enabled')],
-        ]}
-        notice={t('profile.notificationPreferencesNotice')}
+      <NotificationPreferenceScreen
+        prefs={notificationPrefs}
+        onToggle={toggleNotificationPref}
         t={t}
         onBack={() => setActiveSection(null)}
       />
@@ -824,8 +1065,8 @@ export default function ProfileTab() {
               <span className="text-sm font-medium text-[#1F2924] flex-1">{t('profile.language')}</span>
               <Badge variant="sage">{lang === 'en' ? t('profile.languageEnglish') : t('profile.languageRomanian')}</Badge>
             </button>
-            <SectionItem icon={Settings} label={t('profile.notifications')} onClick={() => showNotice(t('profile.notificationSettingsNotice'))} />
-            <SectionItem icon={FileText} label={t('profile.dataExport')} onClick={() => showNotice(t('profile.dataExportNotice'))} />
+            <SectionItem icon={Settings} label={t('profile.notifications')} onClick={() => setActiveSection('notificationPreferences')} />
+            <SectionItem icon={FileText} label={t('profile.dataExport')} onClick={() => setActiveSection('dataExport')} />
             {authConfigured && (
               <SectionItem icon={LogOut} label={t('profile.signOut')} onClick={signOut} />
             )}
@@ -836,7 +1077,7 @@ export default function ProfileTab() {
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.help')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             <SectionItem icon={HelpCircle} label={t('profile.help')} onClick={() => setActiveSection('help')} />
-            <SectionItem icon={FileText} label={t('profile.termsAndSafety')} onClick={() => showNotice(t('profile.termsSafetyNotice'))} />
+            <SectionItem icon={FileText} label={t('profile.termsAndSafety')} onClick={() => setActiveSection('termsSafety')} />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
 import {
   Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
   PrivacyNote, VerificationBadge, AnimalSelector, CompatibilityScore,
@@ -10,58 +11,6 @@ import {
   Heart, X, Bookmark, BookmarkCheck, Info, ShieldCheck, MapPin,
   Lock, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat
 } from 'lucide-react';
-
-const DOG_BREEDS = [
-  'Mixed',
-  'Labrador',
-  'Golden Retriever',
-  'German Shepherd',
-  'French Bulldog',
-  'Bulldog',
-  'Poodle',
-  'Beagle',
-  'Rottweiler',
-  'Dachshund',
-  'Border Collie',
-  'Australian Shepherd',
-  'Cocker Spaniel',
-  'Boxer',
-  'Cane Corso',
-  'Husky',
-  'Shih Tzu',
-  'Bichon Frise',
-  'Yorkshire Terrier',
-  'Chihuahua',
-  'Doberman',
-  'Akita',
-  'Samoyed',
-  'Maltese',
-  'Romanian Mioritic Shepherd',
-  'Romanian Carpathian Shepherd',
-  'Romanian Raven Shepherd',
-];
-
-const CAT_BREEDS = [
-  'Mixed',
-  'European Shorthair',
-  'British Shorthair',
-  'Maine Coon',
-  'Siamese',
-  'Ragdoll',
-  'Persian',
-  'Bengal',
-  'Sphynx',
-  'Scottish Fold',
-  'Russian Blue',
-  'Norwegian Forest Cat',
-  'Abyssinian',
-  'Birman',
-  'Oriental Shorthair',
-  'Turkish Angora',
-  'Turkish Van',
-  'Devon Rex',
-  'Cornish Rex',
-];
 
 function getSexLabel(sex, t) {
   if (sex === 'MALE') return t('common.male');
@@ -490,6 +439,11 @@ export default function MatchesTab() {
     { key: 'SOCIAL', label: t('matches.social'), icon: Users },
     { key: 'VERIFIED_MATE', label: t('matches.verifiedMate'), icon: ShieldCheck },
   ];
+  const modeHint = {
+    PLAY: t('matches.playHint'),
+    SOCIAL: t('matches.socialHint'),
+    VERIFIED_MATE: t('matches.verifiedMateHint'),
+  }[matchMode];
 
   const filteredCandidates = candidates.filter(c => {
     if (speciesFilter && c.animal.species !== speciesFilter) return false;
@@ -581,13 +535,30 @@ export default function MatchesTab() {
               </button>
             ))}
           </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-[#57645C]">{modeHint}</p>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => updateSpeciesFilter('DOG')} icon={Dog} />
-          <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => updateSpeciesFilter('CAT')} icon={Cat} />
-          <Chip label={t('matches.verified')} active={matchFilters.verifiedOnly} onClick={() => toggleMatchFilter('verifiedOnly')} icon={ShieldCheck} />
-          <Chip label={t('matches.filters')} active={showFilters} onClick={() => setShowFilters(true)} icon={Filter} />
+        <div className="space-y-2 rounded-2xl border border-[#E4E2DC]/70 bg-white/55 p-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('matches.showMe')}</label>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+              <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => updateSpeciesFilter('DOG')} icon={Dog} />
+              <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => updateSpeciesFilter('CAT')} icon={Cat} />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('matches.safety')}</label>
+            <Chip label={t('matches.verifiedOwnersOnly')} active={matchFilters.verifiedOnly} onClick={() => toggleMatchFilter('verifiedOnly')} icon={ShieldCheck} />
+          </div>
+          <button
+            type="button"
+            data-testid="matches-more-filters"
+            onClick={() => setShowFilters(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-4 py-2.5 text-sm font-semibold text-[#2C402B] transition-colors hover:bg-[#EFEDE8] active:scale-[0.98]"
+          >
+            <Filter size={15} />
+            {t('matches.moreFilters')}
+          </button>
         </div>
       </div>
 
