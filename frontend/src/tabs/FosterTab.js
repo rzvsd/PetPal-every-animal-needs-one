@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { formatAge, formatDuration, formatUrgency } from '../data/mockData';
+import { formatAge, formatDuration } from '../data/mockData';
 import {
-  Badge, Chip, PrimaryButton, SecondaryButton, ClayButton, ScreenHeader, EmptyState,
-  PrivacyNote, VerificationBadge, UrgencyBadge, CoverageChips, FilterSheet, DemoBanner, Modal
+  Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
+  PrivacyNote, UrgencyBadge, CoverageChips, FilterSheet, DemoBanner
 } from '../components/SharedComponents';
 import {
-  Heart, Search, Clock, MapPin, ShieldCheck, CheckCircle2, XCircle,
+  Clock, MapPin, ShieldCheck, CheckCircle2, XCircle,
   AlertTriangle, Bookmark, ChevronRight, Dog, Cat, Filter, FileText,
-  Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye, ChevronLeft
+  Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye
 } from 'lucide-react';
 
 function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
@@ -176,8 +176,45 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
     housingType: '', experience: '', availability: '', otherPets: '',
     childrenInHome: '', canTransport: null, canHandleMedicalNeeds: null, motivation: '',
   });
+  const [error, setError] = useState('');
 
-  const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const update = (key, val) => {
+    setForm(prev => ({ ...prev, [key]: val }));
+    setError('');
+  };
+
+  const isStepValid = () => {
+    if (step === 0) return !!form.housingType;
+    if (step === 1) return form.experience.trim().length >= 20;
+    if (step === 2) return !!form.availability && form.canTransport !== null && form.canHandleMedicalNeeds !== null;
+    if (step === 3) return form.otherPets.trim().length > 0 && form.childrenInHome.trim().length > 0 && form.motivation.trim().length >= 20;
+    return true;
+  };
+
+  const validationMessage = () => {
+    if (step === 0) return 'Select your housing type before continuing.';
+    if (step === 1) return 'Add at least 20 characters about your animal experience.';
+    if (step === 2) return 'Select availability, transport, and medical-needs ability.';
+    if (step === 3) return 'Complete other pets, children at home, and a motivation of at least 20 characters.';
+    return 'Complete the required fields.';
+  };
+
+  const goNext = () => {
+    if (!isStepValid()) {
+      setError(validationMessage());
+      return;
+    }
+    setStep(s => s + 1);
+    setError('');
+  };
+
+  const submit = () => {
+    if (!isStepValid()) {
+      setError(validationMessage());
+      return;
+    }
+    onSubmit(form);
+  };
 
   const inputClass = "w-full bg-white border border-[#E4E2DC] rounded-xl px-4 py-3 text-[#1F2924] text-sm placeholder:text-[#57645C]/50 focus:outline-none focus:ring-2 focus:ring-[#9BAE96] transition-all";
   const labelClass = "text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-1.5 block";
@@ -319,10 +356,11 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
+        {error && <p className="mb-2 text-xs font-medium text-[#8B4C2F] bg-[#F5DDD0] border border-[#E8C3AF] rounded-xl px-3 py-2">{error}</p>}
         {step < 4 ? (
-          <PrimaryButton onClick={() => setStep(s => s + 1)}>{t('foster.next')}</PrimaryButton>
+          <PrimaryButton onClick={goNext} disabled={!isStepValid()}>{t('foster.next')}</PrimaryButton>
         ) : (
-          <PrimaryButton onClick={() => onSubmit(form)} icon={FileText}>{t('foster.submit')}</PrimaryButton>
+          <PrimaryButton onClick={submit} icon={FileText}>{t('foster.submit')}</PrimaryButton>
         )}
       </div>
     </div>
@@ -393,6 +431,56 @@ function ManageDashboard({ t, isDemoMode }) {
   );
 }
 
+function FilterGroup({ title, children }) {
+  return (
+    <div>
+      <h4 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{title}</h4>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function FilterPill({ active, children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
+        active
+          ? 'bg-[#2C402B] text-white border-[#2C402B]'
+          : 'bg-[#F8F7F4] text-[#57645C] border-[#E4E2DC] hover:bg-[#EFEDE8]'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RescuerAccessCard({ state, onRequestAccess, onDemoPreview, t }) {
+  if (state === 'request_sent') {
+    return (
+      <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
+        <div className="w-14 h-14 rounded-2xl bg-[#D8EAF0] flex items-center justify-center mx-auto">
+          <Clock size={26} className="text-[#3A7080]" />
+        </div>
+        <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.requestSent')}</h3>
+        <p className="text-sm text-[#57645C]">{t('foster.requestSentDesc')}</p>
+        <SecondaryButton onClick={onDemoPreview} icon={Eye}>{t('foster.demoPreview')}</SecondaryButton>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
+      <div className="w-14 h-14 rounded-2xl bg-[#E3ECE4] flex items-center justify-center mx-auto">
+        <ShieldCheck size={26} className="text-[#2C402B]" />
+      </div>
+      <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.rescuerAccess')}</h3>
+      <p className="text-sm text-[#57645C]">{t('foster.rescuerAccessDesc')}</p>
+      <PrimaryButton onClick={onRequestAccess}>{t('foster.requestAccess')}</PrimaryButton>
+    </div>
+  );
+}
+
 export default function FosterTab() {
   const { t, lang, fosterCases, fosterApplications, submitFosterApplication, rescuerAccessState, setRescuerAccessState } = useApp();
 
@@ -402,17 +490,75 @@ export default function FosterTab() {
   const [applicationSuccess, setApplicationSuccess] = useState(false);
   const [speciesFilter, setSpeciesFilter] = useState(null);
   const [urgencyFilter, setUrgencyFilter] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [fosterFilters, setFosterFilters] = useState({
+    size: null,
+    duration: null,
+    ageRange: null,
+    area: null,
+    goodWithChildren: false,
+    goodWithOtherAnimals: false,
+    medicalNeeds: null,
+    transportAvailable: false,
+    foodCovered: false,
+    vetCovered: false,
+    verifiedRescuerOnly: false,
+  });
+  const canManageFoster = rescuerAccessState === 'verified' || rescuerAccessState === 'demo_preview';
+  const visibleSection = !canManageFoster && section === 'manage' ? 'find' : section;
+
+  const setChoiceFilter = (key, value) => {
+    setFosterFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
+  };
+
+  const toggleBooleanFilter = (key) => {
+    setFosterFilters(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const resetFilters = () => {
+    setSpeciesFilter(null);
+    setUrgencyFilter(false);
+    setFosterFilters({
+      size: null,
+      duration: null,
+      ageRange: null,
+      area: null,
+      goodWithChildren: false,
+      goodWithOtherAnimals: false,
+      medicalNeeds: null,
+      transportAvailable: false,
+      foodCovered: false,
+      vetCovered: false,
+      verifiedRescuerOnly: false,
+    });
+  };
+
+  const advancedFilterActive = Object.values(fosterFilters).some(value => Boolean(value));
 
   const filteredCases = fosterCases.filter(c => {
     if (speciesFilter && c.species !== speciesFilter) return false;
     if (urgencyFilter && c.urgency !== 'HIGH') return false;
+    if (fosterFilters.size && c.sizeLabel !== fosterFilters.size) return false;
+    if (fosterFilters.duration && c.duration !== fosterFilters.duration) return false;
+    if (fosterFilters.area && c.city !== fosterFilters.area && c.coarseArea !== fosterFilters.area) return false;
+    if (fosterFilters.ageRange === 'YOUNG' && c.ageMonths > 24) return false;
+    if (fosterFilters.ageRange === 'ADULT' && (c.ageMonths < 24 || c.ageMonths > 84)) return false;
+    if (fosterFilters.ageRange === 'SENIOR' && c.ageMonths < 84) return false;
+    if (fosterFilters.goodWithChildren && c.goodWithChildren !== true) return false;
+    if (fosterFilters.goodWithOtherAnimals && c.goodWithOtherAnimals !== true) return false;
+    if (fosterFilters.medicalNeeds === 'YES' && !c.medicalNeeds) return false;
+    if (fosterFilters.medicalNeeds === 'NO' && c.medicalNeeds) return false;
+    if (fosterFilters.transportAvailable && !c.transportAvailable) return false;
+    if (fosterFilters.foodCovered && !c.foodCovered) return false;
+    if (fosterFilters.vetCovered && !c.vetCovered) return false;
+    if (fosterFilters.verifiedRescuerOnly && !c.rescuerVerified) return false;
     return c.status === 'ACTIVE';
   });
 
   const sections = [
     { key: 'find', label: t('foster.find') },
     { key: 'requests', label: t('foster.myRequests') },
-    { key: 'manage', label: t('foster.manage') },
+    ...(canManageFoster ? [{ key: 'manage', label: t('foster.manage') }] : []),
   ];
 
   if (viewCase && !applyCase) {
@@ -457,7 +603,7 @@ export default function FosterTab() {
               data-testid={`foster-section-${s.key}`}
               onClick={() => setSection(s.key)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                section === s.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
+                visibleSection === s.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
               }`}
             >
               {s.label}
@@ -467,7 +613,7 @@ export default function FosterTab() {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
-        {section === 'find' && (
+        {visibleSection === 'find' && (
           <div className="px-5 pt-3 space-y-3">
             <p className="text-sm text-[#57645C]">{t('foster.animalsNeedHelp')}</p>
 
@@ -475,7 +621,11 @@ export default function FosterTab() {
               <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => setSpeciesFilter(speciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
               <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => setSpeciesFilter(speciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
               <Chip label={t('foster.urgent')} active={urgencyFilter} onClick={() => setUrgencyFilter(!urgencyFilter)} icon={AlertTriangle} />
-              <Chip label={t('matches.filters')} active={false} onClick={() => {}} icon={Filter} />
+              <Chip label={t('foster.duration')} active={Boolean(fosterFilters.duration)} onClick={() => setShowFilters(true)} icon={Clock} />
+              <Chip label={t('matches.size')} active={Boolean(fosterFilters.size)} onClick={() => setShowFilters(true)} icon={Dog} />
+              <Chip label={t('matches.area')} active={Boolean(fosterFilters.area)} onClick={() => setShowFilters(true)} icon={MapPin} />
+              <Chip label={t('foster.covered')} active={fosterFilters.foodCovered || fosterFilters.vetCovered || fosterFilters.transportAvailable} onClick={() => setShowFilters(true)} icon={CheckCircle2} />
+              <Chip label={t('matches.filters')} active={advancedFilterActive} onClick={() => setShowFilters(true)} icon={Filter} />
             </div>
 
             <div className="space-y-3">
@@ -490,10 +640,22 @@ export default function FosterTab() {
                 />
               ))}
             </div>
+
+            {!canManageFoster && (
+              <RescuerAccessCard
+                state={rescuerAccessState}
+                onRequestAccess={() => setRescuerAccessState('request_sent')}
+                onDemoPreview={() => {
+                  setRescuerAccessState('demo_preview');
+                  setSection('manage');
+                }}
+                t={t}
+              />
+            )}
           </div>
         )}
 
-        {section === 'requests' && (
+        {visibleSection === 'requests' && (
           <div className="px-5 pt-3 space-y-3">
             {applicationSuccess && (
               <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
@@ -512,39 +674,109 @@ export default function FosterTab() {
                 <ApplicationCard key={app.id} app={app} t={t} />
               ))
             )}
+
+            {!canManageFoster && (
+              <RescuerAccessCard
+                state={rescuerAccessState}
+                onRequestAccess={() => setRescuerAccessState('request_sent')}
+                onDemoPreview={() => {
+                  setRescuerAccessState('demo_preview');
+                  setSection('manage');
+                }}
+                t={t}
+              />
+            )}
           </div>
         )}
 
-        {section === 'manage' && (
-          <>
-            {rescuerAccessState === 'not_requested' ? (
-              <div className="px-5 pt-6 space-y-4">
-                <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#E3ECE4] flex items-center justify-center mx-auto">
-                    <ShieldCheck size={26} className="text-[#2C402B]" />
-                  </div>
-                  <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.rescuerAccess')}</h3>
-                  <p className="text-sm text-[#57645C]">{t('foster.rescuerAccessDesc')}</p>
-                  <PrimaryButton onClick={() => setRescuerAccessState('request_sent')}>{t('foster.requestAccess')}</PrimaryButton>
-                </div>
-              </div>
-            ) : rescuerAccessState === 'request_sent' ? (
-              <div className="px-5 pt-6 space-y-4">
-                <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#D8EAF0] flex items-center justify-center mx-auto">
-                    <Clock size={26} className="text-[#3A7080]" />
-                  </div>
-                  <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.requestSent')}</h3>
-                  <p className="text-sm text-[#57645C]">{t('foster.requestSentDesc')}</p>
-                  <SecondaryButton onClick={() => setRescuerAccessState('demo_preview')} icon={Eye}>{t('foster.demoPreview')}</SecondaryButton>
-                </div>
-              </div>
-            ) : (
-              <ManageDashboard t={t} isDemoMode={rescuerAccessState === 'demo_preview'} />
-            )}
-          </>
+        {visibleSection === 'manage' && canManageFoster && (
+          <ManageDashboard t={t} isDemoMode={rescuerAccessState === 'demo_preview'} />
         )}
       </div>
+
+      <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('matches.filters')}>
+        <FilterGroup title="Size">
+          {['SMALL', 'MEDIUM', 'LARGE'].map(size => (
+            <FilterPill key={size} active={fosterFilters.size === size} onClick={() => setChoiceFilter('size', size)}>
+              {size.charAt(0) + size.slice(1).toLowerCase()}
+            </FilterPill>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title="Age">
+          {[
+            ['YOUNG', 'Young'],
+            ['ADULT', 'Adult'],
+            ['SENIOR', 'Senior'],
+          ].map(([value, label]) => (
+            <FilterPill key={value} active={fosterFilters.ageRange === value} onClick={() => setChoiceFilter('ageRange', value)}>
+              {label}
+            </FilterPill>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title={t('foster.duration')}>
+          {[
+            ['FEW_DAYS', 'Few days'],
+            ['ONE_TWO_WEEKS', '1-2 weeks'],
+            ['ONE_MONTH', '1 month'],
+            ['UNTIL_ADOPTION', 'Until adoption'],
+          ].map(([value, label]) => (
+            <FilterPill key={value} active={fosterFilters.duration === value} onClick={() => setChoiceFilter('duration', value)}>
+              {label}
+            </FilterPill>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title="Area">
+          {['Bucharest', 'Cluj-Napoca', 'Sector 1', 'Sector 4', 'Centru'].map(area => (
+            <FilterPill key={area} active={fosterFilters.area === area} onClick={() => setChoiceFilter('area', area)}>
+              {area}
+            </FilterPill>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title="Home fit">
+          <FilterPill active={fosterFilters.goodWithChildren} onClick={() => toggleBooleanFilter('goodWithChildren')}>
+            {t('foster.goodWithChildren')}
+          </FilterPill>
+          <FilterPill active={fosterFilters.goodWithOtherAnimals} onClick={() => toggleBooleanFilter('goodWithOtherAnimals')}>
+            {t('foster.goodWithAnimals')}
+          </FilterPill>
+        </FilterGroup>
+
+        <FilterGroup title={t('foster.medicalNeeds')}>
+          <FilterPill active={fosterFilters.medicalNeeds === 'YES'} onClick={() => setChoiceFilter('medicalNeeds', 'YES')}>
+            Has medical needs
+          </FilterPill>
+          <FilterPill active={fosterFilters.medicalNeeds === 'NO'} onClick={() => setChoiceFilter('medicalNeeds', 'NO')}>
+            No medical needs
+          </FilterPill>
+        </FilterGroup>
+
+        <FilterGroup title={t('foster.covered')}>
+          <FilterPill active={fosterFilters.foodCovered} onClick={() => toggleBooleanFilter('foodCovered')}>
+            {t('foster.foodCovered')}
+          </FilterPill>
+          <FilterPill active={fosterFilters.vetCovered} onClick={() => toggleBooleanFilter('vetCovered')}>
+            {t('foster.vetCovered')}
+          </FilterPill>
+          <FilterPill active={fosterFilters.transportAvailable} onClick={() => toggleBooleanFilter('transportAvailable')}>
+            {t('foster.transportAvailable')}
+          </FilterPill>
+        </FilterGroup>
+
+        <FilterGroup title="Safety">
+          <FilterPill active={fosterFilters.verifiedRescuerOnly} onClick={() => toggleBooleanFilter('verifiedRescuerOnly')}>
+            Verified rescuer only
+          </FilterPill>
+        </FilterGroup>
+
+        <div className="flex gap-3 pt-2">
+          <SecondaryButton onClick={resetFilters}>Reset</SecondaryButton>
+          <PrimaryButton onClick={() => setShowFilters(false)}>Save</PrimaryButton>
+        </div>
+      </FilterSheet>
     </div>
   );
 }

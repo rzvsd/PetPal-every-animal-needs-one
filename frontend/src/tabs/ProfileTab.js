@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { formatAge } from '../data/mockData';
 import {
-  Badge, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
+  Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
   VerificationBadge
 } from '../components/SharedComponents';
 import {
-  User, Dog, Cat, Shield, ShieldCheck, MapPin, Lock, CheckCircle2, XCircle,
-  Clock, ChevronRight, Edit3, Plus, Settings, Bell, Globe, HelpCircle,
-  FileText, Trash2, Eye, EyeOff, Heart, Home, Star, AlertTriangle, Languages
+  User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2, XCircle,
+  Clock, ChevronRight, Edit3, Plus, Settings, Bell, HelpCircle,
+  FileText, Trash2, EyeOff, Heart, Home, AlertTriangle, Languages
 } from 'lucide-react';
 
-function AnimalCard({ animal, t }) {
+function AnimalCard({ animal, t, onAction = () => {} }) {
   const completenessColor = animal.profileCompleteness >= 90 ? 'text-[#2C402B]' : animal.profileCompleteness >= 70 ? 'text-[#9BAE96]' : 'text-[#C07E67]';
   const modeLabels = {
     PLAY: t('matches.play'),
@@ -36,7 +35,7 @@ function AnimalCard({ animal, t }) {
             <div>
               <h3 className="text-base font-semibold text-[#1F2924] font-heading">{animal.name}</h3>
               <p className="text-xs text-[#57645C]">
-                {animal.breed} · {animal.sex === 'MALE' ? t('common.male') : t('common.female')} · {formatAge(animal.ageMonths)}
+                {getSpeciesLabel(animal.species, t)} - {animal.breed} - {animal.sex === 'MALE' ? t('common.male') : t('common.female')} - {formatProfileAge(animal.ageMonths, t)}
               </p>
             </div>
             <VerificationBadge status={animal.verificationStatus} label="" />
@@ -52,10 +51,16 @@ function AnimalCard({ animal, t }) {
             ))}
           </div>
           <div className="flex gap-2 pt-1">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors">
+            <button
+              onClick={() => onAction(`${animal.name}: ${t('profile.editAnimalNotice')}`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+            >
               <Edit3 size={12} />{t('profile.editAnimal')}
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors">
+            <button
+              onClick={() => onAction(`${animal.name}: ${t('profile.matchSettingsNotice')}`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+            >
               <Settings size={12} />{t('profile.matchSettings')}
             </button>
           </div>
@@ -80,6 +85,51 @@ function SectionItem({ icon: Icon, label, badge, danger, onClick }) {
       <ChevronRight size={16} className="text-[#57645C]" />
     </button>
   );
+}
+
+function NoticeBanner({ message }) {
+  if (!message) return null;
+
+  return (
+    <div data-testid="profile-prototype-notice" className="flex items-start gap-2.5 rounded-2xl border border-[#E8C3AF] bg-[#F5DDD0] px-4 py-3 text-sm text-[#8B4C2F]">
+      <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+      <span>{message}</span>
+    </div>
+  );
+}
+
+function getSpeciesLabel(species, t) {
+  if (species === 'DOG') return t('common.dog');
+  if (species === 'CAT') return t('common.cat');
+  return t('common.unknown');
+}
+
+function formatProfileAge(months, t) {
+  if (!months) return t('common.unknown');
+  if (months < 12) {
+    return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  const yearLabel = years === 1 ? t('common.year') : t('common.years');
+
+  if (remainingMonths > 0) {
+    return `${years} ${yearLabel} ${remainingMonths} ${remainingMonths === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  return `${years} ${yearLabel}`;
+}
+
+function getRoleLabel(role, t) {
+  const roleLabels = {
+    OWNER: t('profile.roleOwner'),
+    FOSTER_VOLUNTEER: t('profile.roleFosterVolunteer'),
+    RESCUER: t('profile.roleRescuer'),
+    SHELTER_MEMBER: t('profile.roleShelterMember'),
+  };
+
+  return roleLabels[role] || role;
 }
 
 function VerificationSection({ user, animals, t }) {
@@ -137,6 +187,8 @@ function VerificationSection({ user, animals, t }) {
 export default function ProfileTab() {
   const { t, lang, toggleLang, user, myAnimals } = useApp();
   const [activeSection, setActiveSection] = useState(null);
+  const [notice, setNotice] = useState('');
+  const showNotice = (message) => setNotice(message);
 
   if (activeSection === 'verification') {
     return (
@@ -156,12 +208,16 @@ export default function ProfileTab() {
           title={t('profile.myAnimals')}
           onBack={() => setActiveSection(null)}
           right={
-            <button className="p-2 rounded-lg hover:bg-[#F0EDE8] transition-colors">
+            <button
+              onClick={() => showNotice(t('profile.addAnimalNotice'))}
+              className="p-2 rounded-lg hover:bg-[#F0EDE8] transition-colors"
+            >
               <Plus size={20} className="text-[#2C402B]" />
             </button>
           }
         />
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-3">
+          <NoticeBanner message={notice} />
           {myAnimals.length === 0 ? (
             <EmptyState
               icon={Dog}
@@ -170,9 +226,9 @@ export default function ProfileTab() {
               action={t('profile.addAnimal')}
             />
           ) : (
-            myAnimals.map(a => <AnimalCard key={a.id} animal={a} t={t} />)
+            myAnimals.map(a => <AnimalCard key={a.id} animal={a} t={t} onAction={showNotice} />)
           )}
-          <SecondaryButton icon={Plus} onClick={() => {}}>{t('profile.addAnimal')}</SecondaryButton>
+          <SecondaryButton icon={Plus} onClick={() => showNotice(t('profile.addAnimalNotice'))}>{t('profile.addAnimal')}</SecondaryButton>
         </div>
       </div>
     );
@@ -183,14 +239,15 @@ export default function ProfileTab() {
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.privacy')} onBack={() => setActiveSection(null)} />
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-3">
+          <NoticeBanner message={notice} />
           <PrivacyNote text={t('profile.locationNote')} />
-          <SectionItem icon={EyeOff} label={t('profile.blockedUsers')} badge="0" onClick={() => {}} />
-          <SectionItem icon={AlertTriangle} label="Report history" badge="0" onClick={() => {}} />
+          <SectionItem icon={EyeOff} label={t('profile.blockedUsers')} badge="0" onClick={() => showNotice(t('profile.blockedUsersEmpty'))} />
+          <SectionItem icon={AlertTriangle} label={t('profile.reportHistory')} badge="0" onClick={() => showNotice(t('profile.reportHistoryEmpty'))} />
           <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-3">
-            <h3 className="text-sm font-semibold text-[#1F2924]">Location visibility</h3>
+            <h3 className="text-sm font-semibold text-[#1F2924]">{t('profile.locationVisibility')}</h3>
             <div className="flex items-center gap-2 text-sm text-[#57645C]">
               <Lock size={14} className="text-[#3A7080]" />
-              <span>City and area only. Exact location is never shared.</span>
+              <span>{t('profile.locationVisibilityDesc')}</span>
             </div>
           </div>
         </div>
@@ -203,13 +260,14 @@ export default function ProfileTab() {
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.help')} onBack={() => setActiveSection(null)} />
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
+          <NoticeBanner message={notice} />
           <div className="space-y-0">
-            <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => {}} />
-            <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => {}} />
-            <SectionItem icon={Shield} label={t('profile.safetyRules')} onClick={() => {}} />
-            <SectionItem icon={FileText} label={t('profile.terms')} onClick={() => {}} />
-            <SectionItem icon={Lock} label={t('profile.privacyPolicy')} onClick={() => {}} />
-            <SectionItem icon={Dog} label={t('profile.animalWelfare')} onClick={() => {}} />
+            <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => showNotice(t('profile.matchingHelpNotice'))} />
+            <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => showNotice(t('profile.fosterHelpNotice'))} />
+            <SectionItem icon={Shield} label={t('profile.safetyRules')} onClick={() => showNotice(t('profile.safetyRulesNotice'))} />
+            <SectionItem icon={FileText} label={t('profile.terms')} onClick={() => showNotice(t('profile.termsNotice'))} />
+            <SectionItem icon={Lock} label={t('profile.privacyPolicy')} onClick={() => showNotice(t('profile.privacyPolicyNotice'))} />
+            <SectionItem icon={Dog} label={t('profile.animalWelfare')} onClick={() => showNotice(t('profile.animalWelfareNotice'))} />
           </div>
         </div>
       </div>
@@ -223,6 +281,8 @@ export default function ProfileTab() {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-20 space-y-5">
+        <NoticeBanner message={notice} />
+
         <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
@@ -236,13 +296,16 @@ export default function ProfileTab() {
               </div>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {user.roles.map(r => (
-                  <Badge key={r} variant="sage">{r.replace('_', ' ')}</Badge>
+                  <Badge key={r} variant="sage">{getRoleLabel(r, t)}</Badge>
                 ))}
-                <VerificationBadge status={user.ownerVerificationStatus} label="Owner" />
+                <VerificationBadge status={user.ownerVerificationStatus} label={t('profile.owner')} />
               </div>
             </div>
           </div>
-          <button className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-sm font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors">
+          <button
+            onClick={() => showNotice(t('profile.editProfileNotice'))}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-sm font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+          >
             <Edit3 size={14} />{t('profile.editProfile')}
           </button>
         </div>
@@ -250,7 +313,7 @@ export default function ProfileTab() {
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('profile.myAnimals')}</h3>
-            <button className="text-xs font-medium text-[#9BAE96]" onClick={() => setActiveSection('animals')}>View all</button>
+            <button className="text-xs font-medium text-[#9BAE96]" onClick={() => setActiveSection('animals')}>{t('profile.viewAll')}</button>
           </div>
           {myAnimals.length === 0 ? (
             <EmptyState
@@ -261,7 +324,7 @@ export default function ProfileTab() {
             />
           ) : (
             <div className="space-y-2">
-              {myAnimals.slice(0, 2).map(a => <AnimalCard key={a.id} animal={a} t={t} />)}
+              {myAnimals.slice(0, 2).map(a => <AnimalCard key={a.id} animal={a} t={t} onAction={showNotice} />)}
             </div>
           )}
         </div>
@@ -278,19 +341,19 @@ export default function ProfileTab() {
               <ChevronRight size={16} className="text-[#57645C]" />
             </div>
             <div className="flex gap-2">
-              <VerificationBadge status={user.ownerVerificationStatus} label="Owner" />
-              <VerificationBadge status={myAnimals[0]?.healthDocumentStatus || 'UNVERIFIED'} label="Health" />
-              <VerificationBadge status={myAnimals[0]?.adminMateApprovalStatus || 'UNVERIFIED'} label="Mate" />
+              <VerificationBadge status={user.ownerVerificationStatus} label={t('profile.owner')} />
+              <VerificationBadge status={myAnimals[0]?.healthDocumentStatus || 'UNVERIFIED'} label={t('profile.health')} />
+              <VerificationBadge status={myAnimals[0]?.adminMateApprovalStatus || 'UNVERIFIED'} label={t('profile.mate')} />
             </div>
           </button>
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">Preferences</h3>
+          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.preferences')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-            <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => {}} />
-            <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => {}} />
-            <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => {}} />
+            <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => showNotice(t('profile.matchPreferencesNotice'))} />
+            <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => showNotice(t('profile.fosterPreferencesNotice'))} />
+            <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => showNotice(t('profile.notificationPreferencesNotice'))} />
           </div>
         </div>
 
@@ -298,13 +361,13 @@ export default function ProfileTab() {
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.privacy')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             <SectionItem icon={Shield} label={t('profile.privacy')} onClick={() => setActiveSection('safety')} />
-            <SectionItem icon={EyeOff} label={t('profile.blockedUsers')} badge="0" onClick={() => {}} />
+            <SectionItem icon={EyeOff} label={t('profile.blockedUsers')} badge="0" onClick={() => showNotice(t('profile.blockedUsersEmpty'))} />
           </div>
           <PrivacyNote text={t('profile.locationNote')} />
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">App</h3>
+          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.app')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             <div
               className="w-full flex items-center gap-3.5 py-3.5 px-4 border-b border-[#E4E2DC]/50 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
@@ -314,10 +377,10 @@ export default function ProfileTab() {
                 <Languages size={17} className="text-[#2C402B]" />
               </div>
               <span className="text-sm font-medium text-[#1F2924] flex-1">{t('profile.language')}</span>
-              <Badge variant="sage">{lang === 'en' ? 'English' : 'Romana'}</Badge>
+              <Badge variant="sage">{lang === 'en' ? t('profile.languageEnglish') : t('profile.languageRomanian')}</Badge>
             </div>
-            <SectionItem icon={Settings} label={t('profile.notifications')} onClick={() => {}} />
-            <SectionItem icon={FileText} label={t('profile.dataExport')} onClick={() => {}} />
+            <SectionItem icon={Settings} label={t('profile.notifications')} onClick={() => showNotice(t('profile.notificationSettingsNotice'))} />
+            <SectionItem icon={FileText} label={t('profile.dataExport')} onClick={() => showNotice(t('profile.dataExportNotice'))} />
           </div>
         </div>
 
@@ -325,12 +388,12 @@ export default function ProfileTab() {
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.help')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             <SectionItem icon={HelpCircle} label={t('profile.help')} onClick={() => setActiveSection('help')} />
-            <SectionItem icon={FileText} label={t('profile.termsAndSafety')} onClick={() => {}} />
+            <SectionItem icon={FileText} label={t('profile.termsAndSafety')} onClick={() => showNotice(t('profile.termsSafetyNotice'))} />
           </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-          <SectionItem icon={Trash2} label={t('profile.deleteAccount')} danger onClick={() => {}} />
+          <SectionItem icon={Trash2} label={t('profile.deleteAccount')} danger onClick={() => showNotice(t('profile.deleteAccountNotice'))} />
         </div>
 
         <div className="text-center py-4">

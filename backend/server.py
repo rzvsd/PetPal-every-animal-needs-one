@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="PetPal API")
+app = FastAPI(title="PetPal Prototype Stub API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,4 +13,8 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "app": "PetPal"}
+    return {
+        "status": "ok",
+        "app": "PetPal",
+        "note": "Prototype health stub only. Production data lives in Supabase.",
+    }

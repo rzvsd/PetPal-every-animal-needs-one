@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Heart, X, ChevronDown, ChevronLeft, Bookmark, Info, Shield, ShieldCheck, MapPin, Lock, CheckCircle2, XCircle, Clock, AlertTriangle, Star, Filter, Dog, Cat } from 'lucide-react';
+import { X, ChevronDown, ChevronLeft, Info, Lock, CheckCircle2, XCircle, Clock, AlertTriangle, Dog, Cat } from 'lucide-react';
 
 export function Badge({ children, variant = 'default', className = '' }) {
   const variants = {
@@ -122,20 +122,24 @@ export function VerificationBadge({ status, label }) {
 }
 
 export function UrgencyBadge({ urgency }) {
-  if (urgency === 'HIGH') return <Badge variant="clay"><AlertTriangle size={12} />Urgent</Badge>;
-  if (urgency === 'MEDIUM') return <Badge variant="warning"><Clock size={12} />Medium</Badge>;
-  return <Badge variant="default">Low</Badge>;
+  const { t } = useApp();
+
+  if (urgency === 'HIGH') return <Badge variant="clay"><AlertTriangle size={12} />{t('foster.urgent')}</Badge>;
+  if (urgency === 'MEDIUM') return <Badge variant="warning"><Clock size={12} />{t('common.medium')}</Badge>;
+  return <Badge variant="default">{t('common.low')}</Badge>;
 }
 
 export function CoverageChips({ food, vet, transport }) {
+  const { t } = useApp();
+
   return (
     <div className="flex flex-wrap gap-1.5">
-      {food && <Badge variant="sage"><CheckCircle2 size={11} />Food</Badge>}
-      {vet && <Badge variant="sage"><CheckCircle2 size={11} />Vet</Badge>}
-      {transport && <Badge variant="sage"><CheckCircle2 size={11} />Transport</Badge>}
-      {!food && <Badge variant="default"><XCircle size={11} />Food</Badge>}
-      {!vet && <Badge variant="default"><XCircle size={11} />Vet</Badge>}
-      {!transport && <Badge variant="default"><XCircle size={11} />Transport</Badge>}
+      {food && <Badge variant="sage"><CheckCircle2 size={11} />{t('foster.foodCovered')}</Badge>}
+      {vet && <Badge variant="sage"><CheckCircle2 size={11} />{t('foster.vetCovered')}</Badge>}
+      {transport && <Badge variant="sage"><CheckCircle2 size={11} />{t('foster.transportAvailable')}</Badge>}
+      {!food && <Badge variant="default"><XCircle size={11} />{t('foster.foodCovered')}</Badge>}
+      {!vet && <Badge variant="default"><XCircle size={11} />{t('foster.vetCovered')}</Badge>}
+      {!transport && <Badge variant="default"><XCircle size={11} />{t('foster.transportAvailable')}</Badge>}
     </div>
   );
 }
@@ -181,6 +185,8 @@ export function DemoBanner({ text }) {
 }
 
 export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) {
+  const { t } = useApp();
+
   if (!open) return null;
   return (
     <div className="absolute bottom-0 left-0 right-0 z-40 animate-slideUp">
@@ -189,18 +195,18 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
         <div className="p-4 space-y-1">
           <button data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
             <Info size={18} className="text-[#57645C]" />
-            <span className="text-sm font-medium text-[#1F2924]">View context</span>
+            <span className="text-sm font-medium text-[#1F2924]">{t('messages.viewContext')}</span>
           </button>
           <button data-testid="safety-report" onClick={onReport} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
             <AlertTriangle size={18} className="text-[#CD7A7E]" />
-            <span className="text-sm font-medium text-[#CD7A7E]">Report</span>
+            <span className="text-sm font-medium text-[#CD7A7E]">{t('matches.report')}</span>
           </button>
           <button data-testid="safety-block" onClick={onBlock} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
             <XCircle size={18} className="text-[#CD7A7E]" />
-            <span className="text-sm font-medium text-[#CD7A7E]">Block</span>
+            <span className="text-sm font-medium text-[#CD7A7E]">{t('messages.block')}</span>
           </button>
           <button data-testid="safety-close" onClick={onClose} className="w-full p-3 rounded-xl text-sm font-medium text-[#57645C] hover:bg-[#F8F7F4] transition-colors mt-1">
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
       </div>
@@ -209,6 +215,7 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
 }
 
 export function AnimalSelector({ animals, selectedId, onSelect }) {
+  const { t } = useApp();
   const [open, setOpen] = useState(false);
   const selected = animals.find(a => a.id === selectedId);
 
@@ -226,7 +233,7 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
             {selected?.species === 'CAT' ? <Cat size={16} className="text-[#9BAE96]" /> : <Dog size={16} className="text-[#9BAE96]" />}
           </div>
         )}
-        <span className="font-semibold text-[#1F2924] text-sm">{selected?.name || 'Select animal'}</span>
+        <span className="font-semibold text-[#1F2924] text-sm">{selected?.name || t('common.selectAnimal')}</span>
         <span className="text-xs text-[#57645C]">{selected?.breed}</span>
         <ChevronDown size={16} className={`ml-auto text-[#57645C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -248,7 +255,7 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
               )}
               <div className="text-left">
                 <div className="text-sm font-semibold text-[#1F2924]">{a.name}</div>
-                <div className="text-xs text-[#57645C]">{a.breed} · {a.sex === 'MALE' ? 'Male' : 'Female'}</div>
+                <div className="text-xs text-[#57645C]">{a.breed} - {a.sex === 'MALE' ? t('common.male') : t('common.female')}</div>
               </div>
               {a.id === selectedId && <CheckCircle2 size={16} className="ml-auto text-[#9BAE96]" />}
             </button>

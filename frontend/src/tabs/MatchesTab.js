@@ -1,20 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { formatAge } from '../data/mockData';
 import {
   Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
   PrivacyNote, VerificationBadge, AnimalSelector, CompatibilityScore,
-  FilterSheet, Modal, UrgencyBadge
+  FilterSheet, Modal
 } from '../components/SharedComponents';
 import {
-  Heart, X, Bookmark, BookmarkCheck, Info, Shield, ShieldCheck, MapPin,
-  Lock, CheckCircle2, XCircle, Clock, Star, Filter, Play, Users, Sparkles,
-  ChevronRight, Dog, Cat, AlertTriangle
+  Heart, X, Bookmark, BookmarkCheck, Info, ShieldCheck, MapPin,
+  Lock, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat
 } from 'lucide-react';
 
 function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t }) {
-  const { animal, mode, compatibilityScore, compatibilityReasons, ownerVerificationStatus, distanceLabel } = candidate;
+  const { animal, mode, compatibilityScore, ownerVerificationStatus, distanceLabel } = candidate;
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const likeOpacity = useTransform(x, [0, 100], [0, 1]);
@@ -127,7 +126,7 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
 }
 
 function MatchDetail({ candidate, onClose, onLike, onPass, t }) {
-  const { animal, compatibilityScore, compatibilityReasons, mode, ownerVerificationStatus, healthDocumentStatus, distanceLabel } = candidate;
+  const { animal, compatibilityScore, compatibilityReasons, mode, healthDocumentStatus, distanceLabel } = candidate;
   const modeLabel = mode === 'PLAY' ? t('matches.play') : mode === 'SOCIAL' ? t('matches.social') : t('matches.verifiedMate');
 
   return (
@@ -263,6 +262,9 @@ function VerifiedMateLockedState({ animal, t }) {
             </div>
           ))}
         </div>
+        <p className="mt-4 text-[11px] leading-relaxed text-[#8A948E]">
+          Demo rule: age eligibility currently uses 12+ months until vet, species, breed, and legal rules are connected.
+        </p>
       </div>
     </div>
   );
@@ -272,13 +274,33 @@ export default function MatchesTab() {
   const {
     t, myAnimals, selectedAnimalId, setSelectedAnimalId, selectedAnimal,
     matchMode, setMatchMode, candidates, currentCardIndex,
-    matchSuccess, setMatchSuccess, savedAnimals,
+    setCurrentCardIndex, matchSuccess, setMatchSuccess, savedAnimals,
     handleLike, handlePass, handleSave, setActiveTab, navigate
   } = useApp();
 
   const [showFilters, setShowFilters] = useState(false);
   const [showDetail, setShowDetail] = useState(null);
   const [speciesFilter, setSpeciesFilter] = useState(null);
+  const [matchFilters, setMatchFilters] = useState({
+    verifiedOnly: false,
+    breed: null,
+    sex: null,
+    size: null,
+    area: null,
+  });
+
+  const updateSpeciesFilter = (species) => {
+    setSpeciesFilter(current => current === species ? null : species);
+    setCurrentCardIndex(0);
+  };
+
+  const toggleMatchFilter = (key, value = true) => {
+    setMatchFilters(current => ({
+      ...current,
+      [key]: current[key] === value ? (key === 'verifiedOnly' ? false : null) : value,
+    }));
+    setCurrentCardIndex(0);
+  };
 
   const modes = [
     { key: 'PLAY', label: t('matches.play'), icon: Play },
@@ -288,6 +310,11 @@ export default function MatchesTab() {
 
   const filteredCandidates = candidates.filter(c => {
     if (speciesFilter && c.animal.species !== speciesFilter) return false;
+    if (matchFilters.verifiedOnly && c.ownerVerificationStatus !== 'VERIFIED') return false;
+    if (matchFilters.breed && c.animal.breed !== matchFilters.breed) return false;
+    if (matchFilters.sex && c.animal.sex !== matchFilters.sex) return false;
+    if (matchFilters.size && c.animal.sizeLabel !== matchFilters.size) return false;
+    if (matchFilters.area && c.animal.city !== matchFilters.area && c.animal.coarseArea !== matchFilters.area) return false;
     return true;
   });
 
@@ -360,9 +387,9 @@ export default function MatchesTab() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => setSpeciesFilter(speciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
-          <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => setSpeciesFilter(speciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
-          <Chip label={t('matches.verified')} active={false} onClick={() => {}} icon={ShieldCheck} />
+          <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => updateSpeciesFilter('DOG')} icon={Dog} />
+          <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => updateSpeciesFilter('CAT')} icon={Cat} />
+          <Chip label={t('matches.verified')} active={matchFilters.verifiedOnly} onClick={() => toggleMatchFilter('verifiedOnly')} icon={ShieldCheck} />
           <Chip label={t('matches.filters')} active={showFilters} onClick={() => setShowFilters(true)} icon={Filter} />
         </div>
       </div>
@@ -405,22 +432,26 @@ export default function MatchesTab() {
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.breed')}</label>
             <div className="flex flex-wrap gap-2">
               {['Labrador', 'Golden Retriever', 'German Shepherd', 'Mixed'].map(b => (
-                <Chip key={b} label={b} active={false} onClick={() => {}} />
+                <Chip key={b} label={b} active={matchFilters.breed === b} onClick={() => toggleMatchFilter('breed', b)} />
               ))}
             </div>
           </div>
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.sex')}</label>
             <div className="flex gap-2">
-              <Chip label="Male" active={false} onClick={() => {}} />
-              <Chip label="Female" active={false} onClick={() => {}} />
+              <Chip label="Male" active={matchFilters.sex === 'MALE'} onClick={() => toggleMatchFilter('sex', 'MALE')} />
+              <Chip label="Female" active={matchFilters.sex === 'FEMALE'} onClick={() => toggleMatchFilter('sex', 'FEMALE')} />
             </div>
           </div>
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.size')}</label>
             <div className="flex gap-2">
-              {['Small', 'Medium', 'Large'].map(s => (
-                <Chip key={s} label={s} active={false} onClick={() => {}} />
+              {[
+                ['SMALL', 'Small'],
+                ['MEDIUM', 'Medium'],
+                ['LARGE', 'Large'],
+              ].map(([value, label]) => (
+                <Chip key={value} label={label} active={matchFilters.size === value} onClick={() => toggleMatchFilter('size', value)} />
               ))}
             </div>
           </div>
@@ -428,7 +459,7 @@ export default function MatchesTab() {
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.area')}</label>
             <div className="flex flex-wrap gap-2">
               {['Bucharest', 'Ilfov', 'Cluj-Napoca', 'Timisoara'].map(a => (
-                <Chip key={a} label={a} active={false} onClick={() => {}} />
+                <Chip key={a} label={a} active={matchFilters.area === a} onClick={() => toggleMatchFilter('area', a)} />
               ))}
             </div>
           </div>
