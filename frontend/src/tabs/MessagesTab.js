@@ -355,7 +355,7 @@ function getTimeAgo(dateStr, t) {
 export default function MessagesTab() {
   const { t, conversations } = useApp();
   const [filter, setFilter] = useState('all');
-  const [activeConv, setActiveConv] = useState(null);
+  const [activeConvId, setActiveConvId] = useState(null);
 
   const filters = [
     { key: 'all', label: t('messages.all') },
@@ -371,9 +371,10 @@ export default function MessagesTab() {
 
   const matchConvs = filtered.filter(c => c.source === 'MATCH');
   const fosterConvs = filtered.filter(c => c.source === 'FOSTER');
+  const activeConv = conversations.find(c => c.id === activeConvId);
 
   if (activeConv) {
-    return <ConversationThread conv={activeConv} onBack={() => setActiveConv(null)} t={t} />;
+    return <ConversationThread conv={activeConv} onBack={() => setActiveConvId(null)} t={t} />;
   }
 
   return (
@@ -412,7 +413,7 @@ export default function MessagesTab() {
                 <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('messages.matchesFilter')}</h3>
                 <div className="space-y-2">
                   {matchConvs.map(c => (
-                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConv(c)} t={t} />
+                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
                   ))}
                 </div>
               </div>
@@ -422,7 +423,7 @@ export default function MessagesTab() {
                 <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('messages.fosterFilter')}</h3>
                 <div className="space-y-2">
                   {fosterConvs.map(c => (
-                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConv(c)} t={t} />
+                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
                   ))}
                 </div>
               </div>
@@ -431,7 +432,7 @@ export default function MessagesTab() {
         ) : (
           <div className="space-y-2">
             {filtered.map(c => (
-              <ConversationCard key={c.id} conv={c} onClick={() => setActiveConv(c)} t={t} />
+              <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
             ))}
           </div>
         )}

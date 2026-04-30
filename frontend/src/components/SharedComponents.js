@@ -26,14 +26,14 @@ export function Chip({ label, active, onClick, icon: Icon }) {
       data-testid={`chip-${label?.toLowerCase().replace(/\s/g, '-')}`}
       onClick={onClick}
       aria-pressed={Boolean(active)}
-      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+      className={`inline-flex flex-shrink-0 items-center justify-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium leading-none whitespace-nowrap transition-all duration-200 ${
         active
           ? 'bg-[#2C402B] text-white shadow-sm'
           : 'bg-white text-[#57645C] border border-[#E4E2DC] hover:border-[#9BAE96] hover:text-[#2C402B]'
       }`}
     >
-      {Icon && <Icon size={14} />}
-      {label}
+      {Icon && <Icon size={14} className="flex-shrink-0" />}
+      <span className="whitespace-nowrap">{label}</span>
     </button>
   );
 }
@@ -160,7 +160,7 @@ export function FilterSheet({ open, onClose, title, children }) {
 
   if (!open) return null;
   return (
-    <div data-testid="filter-sheet" className="absolute inset-0 z-40 flex flex-col justify-end">
+    <div data-testid="filter-sheet" className="absolute inset-0 z-[70] flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-t-3xl max-h-[75vh] flex flex-col animate-slideUp" role="dialog" aria-modal="true" aria-label={title}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E2DC]">

@@ -11,6 +11,58 @@ import {
   Lock, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat
 } from 'lucide-react';
 
+const DOG_BREEDS = [
+  'Mixed',
+  'Labrador',
+  'Golden Retriever',
+  'German Shepherd',
+  'French Bulldog',
+  'Bulldog',
+  'Poodle',
+  'Beagle',
+  'Rottweiler',
+  'Dachshund',
+  'Border Collie',
+  'Australian Shepherd',
+  'Cocker Spaniel',
+  'Boxer',
+  'Cane Corso',
+  'Husky',
+  'Shih Tzu',
+  'Bichon Frise',
+  'Yorkshire Terrier',
+  'Chihuahua',
+  'Doberman',
+  'Akita',
+  'Samoyed',
+  'Maltese',
+  'Romanian Mioritic Shepherd',
+  'Romanian Carpathian Shepherd',
+  'Romanian Raven Shepherd',
+];
+
+const CAT_BREEDS = [
+  'Mixed',
+  'European Shorthair',
+  'British Shorthair',
+  'Maine Coon',
+  'Siamese',
+  'Ragdoll',
+  'Persian',
+  'Bengal',
+  'Sphynx',
+  'Scottish Fold',
+  'Russian Blue',
+  'Norwegian Forest Cat',
+  'Abyssinian',
+  'Birman',
+  'Oriental Shorthair',
+  'Turkish Angora',
+  'Turkish Van',
+  'Devon Rex',
+  'Cornish Rex',
+];
+
 function getSexLabel(sex, t) {
   if (sex === 'MALE') return t('common.male');
   if (sex === 'FEMALE') return t('common.female');
@@ -425,6 +477,14 @@ export default function MatchesTab() {
     setCurrentCardIndex(0);
   };
 
+  const setMatchFilter = (key, value) => {
+    setMatchFilters(current => ({
+      ...current,
+      [key]: value || null,
+    }));
+    setCurrentCardIndex(0);
+  };
+
   const modes = [
     { key: 'PLAY', label: t('matches.play'), icon: Play },
     { key: 'SOCIAL', label: t('matches.social'), icon: Users },
@@ -444,6 +504,11 @@ export default function MatchesTab() {
   const currentCandidate = filteredCandidates[currentCardIndex];
   const isVerifiedMateLocked = matchMode === 'VERIFIED_MATE' &&
     (selectedAnimal?.adminMateApprovalStatus !== 'VERIFIED' || selectedAnimal?.healthDocumentStatus !== 'VERIFIED');
+  const breedOptions = speciesFilter === 'CAT'
+    ? CAT_BREEDS
+    : speciesFilter === 'DOG'
+      ? DOG_BREEDS
+      : Array.from(new Set([...DOG_BREEDS, ...CAT_BREEDS])).sort((a, b) => a.localeCompare(b));
 
   if (myAnimals.length === 0) {
     return (
@@ -481,7 +546,7 @@ export default function MatchesTab() {
   }
 
   return (
-    <div data-testid="matches-tab" className="flex-1 flex flex-col relative">
+    <div data-testid="matches-tab" className="min-h-0 flex-1 flex flex-col relative">
       <div className="px-5 pt-4 pb-2 bg-[#F8F7F4] space-y-3">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('matches.title')}</h1>
@@ -526,30 +591,34 @@ export default function MatchesTab() {
         </div>
       </div>
 
-      <div className="flex-1 relative mt-2 mb-2">
-        {isVerifiedMateLocked ? (
-          <VerifiedMateLockedState animal={selectedAnimal} t={t} />
-        ) : !currentCandidate ? (
-          <EmptyState
-            icon={Heart}
-            title={t('matches.noMoreCards')}
-            description={t('matches.noMoreDesc')}
-          />
-        ) : (
-          <AnimatePresence mode="wait">
-            <MatchCard
-              key={currentCandidate.animal.id}
-              candidate={currentCandidate}
-              onLike={() => handleLike(currentCandidate)}
-              onPass={handlePass}
-              onSave={() => handleSave(currentCandidate)}
-              onDetails={() => setShowDetail(currentCandidate)}
-              onCompatibilityPress={() => setCompatibilityBreakdown(currentCandidate)}
-              isSaved={savedAnimals.includes(currentCandidate.animal.id)}
-              t={t}
-            />
-          </AnimatePresence>
-        )}
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar pb-24">
+        <div className="relative mt-2 mb-6 min-h-[440px] h-[calc(100dvh-360px)] max-h-[560px]">
+          {isVerifiedMateLocked ? (
+            <VerifiedMateLockedState animal={selectedAnimal} t={t} />
+          ) : !currentCandidate ? (
+            <div className="flex h-full items-center justify-center px-5">
+              <EmptyState
+                icon={Heart}
+                title={t('matches.noMoreCards')}
+                description={t('matches.noMoreDesc')}
+              />
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <MatchCard
+                key={currentCandidate.animal.id}
+                candidate={currentCandidate}
+                onLike={() => handleLike(currentCandidate)}
+                onPass={handlePass}
+                onSave={() => handleSave(currentCandidate)}
+                onDetails={() => setShowDetail(currentCandidate)}
+                onCompatibilityPress={() => setCompatibilityBreakdown(currentCandidate)}
+                isSaved={savedAnimals.includes(currentCandidate.animal.id)}
+                t={t}
+              />
+            </AnimatePresence>
+          )}
+        </div>
       </div>
 
       <MatchSuccessModal
@@ -569,11 +638,16 @@ export default function MatchesTab() {
         <div className="space-y-4">
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.breed')}</label>
-            <div className="flex flex-wrap gap-2">
-              {['Labrador', 'Golden Retriever', 'German Shepherd', 'Mixed'].map(b => (
-                <Chip key={b} label={b} active={matchFilters.breed === b} onClick={() => toggleMatchFilter('breed', b)} />
+            <select
+              value={matchFilters.breed || ''}
+              onChange={(event) => setMatchFilter('breed', event.target.value)}
+              className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+            >
+              <option value="">{t('matches.anyBreed')}</option>
+              {breedOptions.map(breed => (
+                <option key={breed} value={breed}>{breed}</option>
               ))}
-            </div>
+            </select>
           </div>
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.sex')}</label>

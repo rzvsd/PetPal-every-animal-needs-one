@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import { AppProvider, useApp } from './context/AppContext';
 import MatchesTab from './tabs/MatchesTab';
 import FosterTab from './tabs/FosterTab';
@@ -66,7 +68,59 @@ function BottomTabs() {
 }
 
 function AppContent() {
-  const { activeTab, authLoading, authRequired, t } = useApp();
+  const { activeTab, setActiveTab, authLoading, authRequired, t } = useApp();
+  const backStateRef = useRef({ activeTab, authLoading, authRequired });
+
+  useEffect(() => {
+    backStateRef.current = { activeTab, authLoading, authRequired };
+  }, [activeTab, authLoading, authRequired]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.history?.pushState) return undefined;
+
+    const pushBackGuard = () => {
+      window.history.pushState({ petpalBackGuard: true }, '', window.location.href);
+    };
+
+    pushBackGuard();
+
+    const handleBack = () => {
+      pushBackGuard();
+      const current = backStateRef.current;
+
+      if (current.authLoading || current.authRequired) return;
+      if (current.activeTab !== 'matches') {
+        setActiveTab('matches');
+      }
+    };
+
+    window.addEventListener('popstate', handleBack);
+
+    return () => {
+      window.removeEventListener('popstate', handleBack);
+    };
+  }, [setActiveTab]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+
+    let listener;
+
+    CapacitorApp.addListener('backButton', () => {
+      const current = backStateRef.current;
+
+      if (current.authLoading || current.authRequired) return;
+      if (current.activeTab !== 'matches') {
+        setActiveTab('matches');
+      }
+    }).then((handle) => {
+      listener = handle;
+    });
+
+    return () => {
+      listener?.remove();
+    };
+  }, [setActiveTab]);
 
   return (
     <div className="petpal-container">

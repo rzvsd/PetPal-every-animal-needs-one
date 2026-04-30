@@ -384,6 +384,29 @@ function VerificationSection({ user, animals, t }) {
   );
 }
 
+function PreferenceDetailScreen({ title, description, rows, notice, t, onBack }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <ScreenHeader title={title} onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4">
+          <p className="text-sm leading-relaxed text-[#57645C]">{description}</p>
+        </div>
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-start justify-between gap-4 border-b border-[#E4E2DC]/50 py-3 first:pt-0 last:border-0 last:pb-0">
+              <span className="text-sm text-[#57645C]">{label}</span>
+              <span className="max-w-[55%] text-right text-sm font-semibold text-[#1F2924]">{value}</span>
+            </div>
+          ))}
+        </div>
+        <NoticeBanner message={notice} />
+        <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileTab() {
   const { t, lang, toggleLang, user, updateUserProfile, myAnimals, saveAnimalProfile, deleteAnimalProfile, authConfigured, signOut } = useApp();
   const [activeSection, setActiveSection] = useState(null);
@@ -623,6 +646,66 @@ export default function ProfileTab() {
     );
   }
 
+  if (activeSection === 'matchPreferences') {
+    const defaultAnimal = myAnimals[0]?.name || t('common.unknown');
+    return (
+      <PreferenceDetailScreen
+        title={t('profile.matchPreferences')}
+        description={t('profile.matchPreferencesDesc')}
+        rows={[
+          [t('profile.defaultAnimal'), defaultAnimal],
+          [t('profile.defaultMode'), t('matches.play')],
+          [t('profile.species'), `${t('matches.dogs')}, ${t('matches.cats')}`],
+          [t('profile.preferredArea'), `${user.city}${user.coarseArea ? ` / ${user.coarseArea}` : ''}`],
+          [t('profile.verifiedOnly'), t('common.yes')],
+          [t('profile.mixedBreeds'), t('common.yes')],
+        ]}
+        notice={t('profile.matchPreferencesNotice')}
+        t={t}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
+  if (activeSection === 'fosterPreferences') {
+    return (
+      <PreferenceDetailScreen
+        title={t('profile.fosterPreferences')}
+        description={t('profile.fosterPreferencesDesc')}
+        rows={[
+          [t('profile.canFoster'), `${t('matches.dogs')}, ${t('matches.cats')}`],
+          [t('profile.preferredSize'), `${t('common.small')} / ${t('common.medium')}`],
+          [t('profile.availableDuration'), t('foster.oneTwoWeeks')],
+          [t('foster.canTransport'), t('common.yes')],
+          [t('foster.canHandleMedical'), t('common.no')],
+          [t('foster.otherPets'), t('profile.demoOtherPets')],
+          [t('foster.childrenInHome'), t('common.no')],
+        ]}
+        notice={t('profile.fosterPreferencesNotice')}
+        t={t}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
+  if (activeSection === 'notificationPreferences') {
+    return (
+      <PreferenceDetailScreen
+        title={t('profile.notifications')}
+        description={t('profile.notificationPreferencesDesc')}
+        rows={[
+          [t('profile.pushNotifications'), t('profile.enabled')],
+          [t('profile.matchUpdates'), t('profile.enabled')],
+          [t('profile.fosterUpdates'), t('profile.enabled')],
+          [t('profile.safetyUpdates'), t('profile.enabled')],
+        ]}
+        notice={t('profile.notificationPreferencesNotice')}
+        t={t}
+        onBack={() => setActiveSection(null)}
+      />
+    );
+  }
+
   return (
     <div data-testid="profile-tab" className="min-h-0 flex-1 flex flex-col">
       <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
@@ -712,9 +795,9 @@ export default function ProfileTab() {
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.preferences')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-            <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => showNotice(t('profile.matchPreferencesNotice'))} />
-            <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => showNotice(t('profile.fosterPreferencesNotice'))} />
-            <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => showNotice(t('profile.notificationPreferencesNotice'))} />
+            <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => setActiveSection('matchPreferences')} />
+            <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => setActiveSection('fosterPreferences')} />
+            <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => setActiveSection('notificationPreferences')} />
           </div>
         </div>
 

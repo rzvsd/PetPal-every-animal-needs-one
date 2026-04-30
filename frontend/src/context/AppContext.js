@@ -44,6 +44,7 @@ export function AppProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
   const [authError, setAuthError] = useState('');
   const [authNotice, setAuthNotice] = useState('');
+  const [localDemoSession, setLocalDemoSession] = useState(false);
   const [pushStatus, setPushStatus] = useState({ status: 'idle', message: null });
   const [rescuerAccessState, setRescuerAccessState] = useState('not_requested');
   const [activeScreen, setActiveScreen] = useState(null);
@@ -105,6 +106,7 @@ export function AppProvider({ children }) {
     }
 
     if (data.session) {
+      setLocalDemoSession(false);
       setMyAnimals(data.myAnimals || []);
       setSelectedAnimalId((current) => {
         if (current && (data.myAnimals || []).some((animal) => animal.id === current)) return current;
@@ -157,6 +159,7 @@ export function AppProvider({ children }) {
     const { data: authListener } = isSupabaseConfigured
       ? supabase.auth.onAuthStateChange((_event, session) => {
           setAuthSession(session);
+          if (session) setLocalDemoSession(false);
           if (!session) {
             setFosterApplications([]);
             setConversations((current) => current.filter((conversation) => conversation.source === 'MATCH'));
@@ -475,6 +478,7 @@ export function AppProvider({ children }) {
     try {
       await signInWithDemoSupabase();
       await refreshSupabaseData();
+      setLocalDemoSession(false);
       setActiveTab('matches');
     } catch (error) {
       setAuthError(error.message || t('auth.demoSignInError'));
@@ -491,6 +495,7 @@ export function AppProvider({ children }) {
     try {
       await signOutOfSupabase();
       setAuthSession(null);
+      setLocalDemoSession(false);
       setFosterApplications([]);
       setConversations((current) => current.filter((conversation) => conversation.source === 'MATCH'));
       setBackendStatus({ loading: false, message: null });
@@ -499,6 +504,15 @@ export function AppProvider({ children }) {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const continueLocalDemo = () => {
+    setAuthError('');
+    setAuthNotice('');
+    setLocalDemoSession(true);
+    setDataSource('mock');
+    setBackendStatus({ loading: false, message: null });
+    setActiveTab('matches');
   };
 
   const updateUserProfile = async (patch) => {
@@ -595,7 +609,7 @@ export function AppProvider({ children }) {
     });
   };
 
-  const authRequired = isSupabaseConfigured && dataSource === 'supabase' && !authSession;
+  const authRequired = !authSession && !localDemoSession;
 
   return (
     <AppContext.Provider value={{
@@ -620,6 +634,7 @@ export function AppProvider({ children }) {
       signIn,
       signUp,
       signInDemo,
+      continueLocalDemo,
       signOut,
       demoSupabaseLoginAvailable,
       rescuerAccessState, setRescuerAccessState, requestRescuerAccess,

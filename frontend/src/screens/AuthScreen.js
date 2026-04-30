@@ -28,6 +28,8 @@ export default function AuthScreen() {
     signIn,
     signUp,
     signInDemo,
+    continueLocalDemo,
+    authConfigured,
     demoSupabaseLoginAvailable,
   } = useApp();
   const [mode, setMode] = useState('login');
@@ -96,7 +98,7 @@ export default function AuthScreen() {
           </div>
           <Badge variant="sage">
             <ShieldCheck size={12} />
-            {t('auth.supabaseConnected')}
+            {authConfigured ? t('auth.supabaseConnected') : t('auth.localDemoMode')}
           </Badge>
         </div>
 
@@ -188,6 +190,9 @@ export default function AuthScreen() {
                 {t('auth.useDemoAccount')}
               </SecondaryButton>
             )}
+            <SecondaryButton onClick={continueLocalDemo} disabled={authLoading}>
+              {t('auth.continueLocalDemo')}
+            </SecondaryButton>
           </div>
         </div>
       </div>
