@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { translations } from '../i18n/translations';
-import { demoAnimals, demoMatchCandidates, demoFosterCases, demoConversations, demoFosterApplications, demoUser } from '../data/mockData';
+import { demoAnimals, demoMatchCandidates, demoFosterCases, demoFosterHomeProfiles, demoFosterInvites, demoConversations, demoFosterApplications, demoUser } from '../data/mockData';
 import {
   getSupabaseSession,
   loadSupabaseAppData,
@@ -36,6 +36,8 @@ export function AppProvider({ children }) {
   const [matchSuccess, setMatchSuccess] = useState(null);
   const [savedAnimals, setSavedAnimals] = useState([]);
   const [fosterCases, setFosterCases] = useState(demoFosterCases);
+  const [fosterHomeProfiles] = useState(demoFosterHomeProfiles);
+  const [fosterInvites, setFosterInvites] = useState(demoFosterInvites);
   const [fosterApplications, setFosterApplications] = useState(demoFosterApplications);
   const [conversations, setConversations] = useState(demoConversations);
   const [dataSource, setDataSource] = useState('mock');
@@ -350,6 +352,77 @@ export function AppProvider({ children }) {
     return newConv;
   };
 
+  const sendFosterInvite = ({ fosterCaseId, fosterHomeProfileId, message = '' }) => {
+    const invite = {
+      id: `invite-${Date.now()}`,
+      fosterCaseId,
+      fosterHomeProfileId,
+      sentByUserId: user.id,
+      status: 'SENT',
+      message,
+      createdAt: new Date().toISOString(),
+    };
+
+    setFosterInvites((current) => [invite, ...current]);
+    return invite;
+  };
+
+  const openFosterInviteConversation = (invite) => {
+    const fosterCase = fosterCases.find((item) => item.id === invite.fosterCaseId);
+    const fosterHome = fosterHomeProfiles.find((item) => item.id === invite.fosterHomeProfileId);
+    const existing = conversations.find((conversation) =>
+      conversation.source === 'FOSTER' &&
+      (conversation.fosterInviteId === invite.id || conversation.id === `conv-foster-invite-${invite.id}`)
+    );
+
+    if (existing) {
+      setActiveTab('messages');
+      return existing;
+    }
+
+    if (invite.status !== 'ACCEPTED') {
+      setBackendStatus({
+        loading: false,
+        message: t('foster.inviteChatLocked'),
+      });
+      setActiveTab('foster');
+      return null;
+    }
+
+    const newConv = {
+      id: `conv-foster-invite-${invite.id}`,
+      source: 'FOSTER',
+      fosterCaseId: invite.fosterCaseId,
+      fosterInviteId: invite.id,
+      title: fosterCase?.animalName || t('messages.foster'),
+      subtitle: t('foster.inviteAccepted'),
+      contextLabel: t('foster.inviteChatContext'),
+      privacyLabel: t('matches.locationPrivate'),
+      animalName: fosterCase?.animalName || t('messages.foster'),
+      fosterStatus: 'ACCEPTED',
+      organizationName: fosterHome?.displayName || t('foster.fosterHome'),
+      organizationVerified: fosterHome?.verifiedStatus === 'VERIFIED',
+      city: fosterHome?.city || fosterCase?.city || user.city,
+      coarseArea: fosterHome?.coarseArea || fosterCase?.coarseArea || user.coarseArea,
+      lastMessage: t('foster.inviteAcceptedMessage'),
+      lastMessageAt: new Date().toISOString(),
+      unread: 0,
+      messages: [
+        {
+          messageId: `m-${Date.now()}`,
+          senderDisplayName: fosterHome?.displayName || t('foster.fosterHome'),
+          body: t('foster.inviteAcceptedMessage'),
+          createdAt: new Date().toISOString(),
+          isMine: false,
+        },
+      ],
+    };
+
+    setConversations((current) => [newConv, ...current]);
+    setActiveTab('messages');
+    return newConv;
+  };
+
   const sendMessage = (convId, body) => {
     if (dataSource === 'supabase') {
       sendSupabaseConversationMessage(convId, body).catch((error) => {
@@ -511,6 +584,10 @@ export function AppProvider({ children }) {
     setAuthNotice('');
     setLocalDemoSession(true);
     setDataSource('mock');
+    setFosterCases(demoFosterCases);
+    setFosterApplications(demoFosterApplications);
+    setFosterInvites(demoFosterInvites);
+    setConversations(demoConversations);
     setBackendStatus({ loading: false, message: null });
     setActiveTab('matches');
   };
@@ -621,7 +698,8 @@ export function AppProvider({ children }) {
       candidates, setCandidates, currentCardIndex, setCurrentCardIndex,
       matchSuccess, setMatchSuccess,
       savedAnimals, handleLike, handlePass, handleSave,
-      fosterCases, fosterApplications, submitFosterApplication, openFosterConversation,
+      fosterCases, fosterHomeProfiles, fosterInvites, sendFosterInvite, openFosterInviteConversation,
+      fosterApplications, submitFosterApplication, openFosterConversation,
       conversations, sendMessage, reportConversation, blockConversation,
       dataSource, backendStatus,
       pushStatus,

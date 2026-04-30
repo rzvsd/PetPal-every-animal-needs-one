@@ -9,7 +9,7 @@ import {
 import {
   Clock, MapPin, ShieldCheck, CheckCircle2, XCircle,
   AlertTriangle, Bookmark, ChevronRight, Dog, Cat, Filter, FileText,
-  Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye
+  Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye, Star, Send
 } from 'lucide-react';
 
 const ROMANIAN_COUNTIES = [
@@ -450,6 +450,85 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
   );
 }
 
+function InviteFlow({ profile, fosterCases, onClose, onSubmit, t }) {
+  const activeCases = fosterCases.filter((item) => item.status === 'ACTIVE');
+  const [selectedCaseId, setSelectedCaseId] = useState(activeCases[0]?.id || '');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const selectedCase = activeCases.find((item) => item.id === selectedCaseId);
+
+  const submit = () => {
+    if (!selectedCaseId) {
+      setError(t('foster.selectCaseForInvite'));
+      return;
+    }
+
+    onSubmit({
+      fosterCaseId: selectedCaseId,
+      fosterHomeProfileId: profile.id,
+      message,
+    });
+  };
+
+  return (
+    <div data-testid="foster-invite-flow" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
+      <ScreenHeader title={t('foster.inviteToFoster')} onBack={onClose} />
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-32 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 space-y-1">
+          <p className="text-sm font-semibold text-[#1F2924]">{profile.displayName}</p>
+          <p className="text-sm text-[#57645C]">{t('foster.inviteIntro')}</p>
+          <PrivacyNote text={t('foster.noDirectChat')} />
+        </div>
+
+        <label className="block space-y-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('foster.chooseAnimalCase')}</span>
+          <select
+            value={selectedCaseId}
+            onChange={(event) => {
+              setSelectedCaseId(event.target.value);
+              setError('');
+            }}
+            className="w-full rounded-xl border border-[#E4E2DC] bg-white px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96]"
+          >
+            {activeCases.map((item) => (
+              <option key={item.id} value={item.id}>{item.animalName} - {item.city}{item.coarseArea ? ` / ${item.coarseArea}` : ''}</option>
+            ))}
+          </select>
+        </label>
+
+        {selectedCase && (
+          <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 space-y-2">
+            <div className="flex items-center gap-3">
+              <img src={selectedCase.photoUrl} alt={selectedCase.animalName} className="h-14 w-14 rounded-xl object-cover" />
+              <div>
+                <p className="text-sm font-semibold text-[#1F2924]">{selectedCase.animalName}</p>
+                <p className="text-xs text-[#57645C]">{formatFosterAge(selectedCase.ageMonths, t)} - {getSizeLabel(selectedCase.sizeLabel, t)}</p>
+              </div>
+            </div>
+            <CoverageChips food={selectedCase.foodCovered} vet={selectedCase.vetCovered} transport={selectedCase.transportAvailable} />
+          </div>
+        )}
+
+        <label className="block space-y-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('foster.inviteMessage')}</span>
+          <textarea
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder={t('foster.inviteMessagePlaceholder')}
+            className="min-h-[110px] w-full resize-none rounded-xl border border-[#E4E2DC] bg-white px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors placeholder:text-[#57645C]/50 focus:border-[#9BAE96]"
+          />
+        </label>
+
+        {error && <p className="text-xs font-medium text-[#8B4C2F] bg-[#F5DDD0] border border-[#E8C3AF] rounded-xl px-3 py-2">{error}</p>}
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
+        <PrimaryButton onClick={submit} icon={Send}>{t('foster.sendInvite')}</PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
 function ApplicationCard({ app, t, onOpenMessages }) {
   const statusMap = {
     DRAFT: { label: t('common.draft'), variant: 'default' },
@@ -478,20 +557,342 @@ function ApplicationCard({ app, t, onOpenMessages }) {
   );
 }
 
-function ManageDashboard({ t, isDemoMode, fosterCases, applications }) {
+function getFosterHomeCounty(profile) {
+  const city = (profile.city || '').toLowerCase();
+  const area = (profile.coarseArea || '').toLowerCase();
+
+  if (city.includes('bucharest') || city.includes('bucuresti') || area.includes('sector')) return 'Bucuresti';
+  if (city.includes('cluj')) return 'Cluj';
+  if (city.includes('timisoara')) return 'Timis';
+  if (city.includes('ilfov')) return 'Ilfov';
+  return profile.county || null;
+}
+
+function getAvailabilityLabel(status, t) {
+  if (status === 'AVAILABLE') return t('foster.available');
+  if (status === 'LIMITED') return t('foster.limited');
+  if (status === 'UNAVAILABLE') return t('foster.unavailable');
+  return t('common.unknown');
+}
+
+function FosterHomeCard({ profile, onView, onInvite, onSave, t, lang }) {
+  const species = profile.acceptsSpecies.map((item) => item === 'DOG' ? t('common.dog') : t('common.cat')).join(', ');
+  const sizes = profile.acceptsSizes.map((size) => getSizeLabel(size, t)).join(', ');
+
+  return (
+    <div data-testid={`foster-home-card-${profile.id}`} className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden shadow-sm">
+      <div className="flex">
+        <img
+          src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=300&h=300&fit=crop'}
+          alt={profile.displayName}
+          className="w-28 h-full object-cover flex-shrink-0"
+        />
+        <div className="flex-1 p-3.5 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="text-base font-semibold text-[#1F2924] font-heading">{profile.displayName}</h3>
+              <p className="text-xs text-[#57645C]">{species} - {sizes}</p>
+            </div>
+            {profile.verifiedStatus === 'VERIFIED' && <Badge variant="success">{t('foster.verifiedHome')}</Badge>}
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
+            <MapPin size={12} className="text-[#9BAE96]" />
+            <span>{profile.city}{profile.coarseArea ? ` / ${profile.coarseArea}` : ''}</span>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant={profile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(profile.availabilityStatus, t)}</Badge>
+            <Badge variant="sky"><Clock size={11} />{formatDuration(profile.preferredDuration, lang)}</Badge>
+            {profile.canHandleMedicalNeeds && <Badge variant="sage">{t('foster.medicalCare')}</Badge>}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-[#57645C]">
+            <Star size={12} className="text-[#C07E67]" />
+            <span>{profile.ratingAverage ? `${profile.ratingAverage} - ${profile.reviewCount} ${t('foster.reviews')}` : t('foster.noReviews')}</span>
+          </div>
+
+          <p className="line-clamp-2 text-xs leading-relaxed text-[#57645C]">{profile.bio}</p>
+
+          <div className="flex gap-2 pt-1">
+            <PrimaryButton onClick={onView} className="flex-1 !py-2 !text-sm">{t('foster.viewProfile')}</PrimaryButton>
+            <button
+              type="button"
+              onClick={onInvite}
+              aria-label={t('foster.inviteToFoster')}
+              className="p-2 rounded-xl border border-[#E4E2DC] text-[#2C402B] hover:bg-[#F8F7F4] transition-colors"
+            >
+              <Send size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={onSave}
+              aria-label={t('foster.saveFosterHome')}
+              className="p-2 rounded-xl border border-[#E4E2DC] text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
+            >
+              <Bookmark size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FosterHomeDetail({ profile, onClose, onInvite, onSave, t, lang }) {
+  const species = profile.acceptsSpecies.map((item) => item === 'DOG' ? t('common.dog') : t('common.cat')).join(', ');
+  const sizes = profile.acceptsSizes.map((size) => getSizeLabel(size, t)).join(', ');
+
+  return (
+    <div data-testid="foster-home-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
+      <ScreenHeader title={profile.displayName} onBack={onClose} />
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="relative h-52">
+          <img
+            src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=600&h=400&fit=crop'}
+            alt={profile.displayName}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#F8F7F4] via-transparent to-transparent" />
+        </div>
+
+        <div className="px-5 -mt-8 relative space-y-4 pb-32">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{profile.displayName}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {profile.verifiedStatus === 'VERIFIED' && <Badge variant="success"><ShieldCheck size={11} />{t('foster.verifiedHome')}</Badge>}
+              <Badge variant={profile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(profile.availabilityStatus, t)}</Badge>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
+            <div className="flex items-center gap-1.5 text-sm text-[#57645C]">
+              <MapPin size={14} className="text-[#9BAE96]" />
+              <span>{profile.city}{profile.coarseArea ? ` / ${profile.coarseArea}` : ''}</span>
+            </div>
+            <PrivacyNote text={t('matches.locationPrivate')} />
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-3">
+            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.canFoster')}</h3>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="sage">{species}</Badge>
+              <Badge variant="sky">{sizes}</Badge>
+              <Badge variant="default">{t('foster.capacity')}: {profile.maxAnimalsAtOnce}</Badge>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
+            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.availability')}</h3>
+            <p className="text-sm text-[#57645C]">{profile.availableFrom ? `${t('foster.availableFrom')} ${profile.availableFrom}` : t('foster.availableNow')}</p>
+            <Badge variant="sky"><Clock size={11} />{formatDuration(profile.preferredDuration, lang)}</Badge>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
+            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.home')}</h3>
+            <p className="text-sm text-[#57645C]">{profile.housingType}</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant={profile.hasSeparateRoom ? 'sage' : 'default'}>
+                {profile.hasSeparateRoom ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
+                {t('foster.separateRoom')}
+              </Badge>
+              <Badge variant="default">{profile.otherPets}</Badge>
+              <Badge variant="default">{profile.childrenInHome}</Badge>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
+            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.experience')}</h3>
+            <p className="text-sm text-[#57645C]">{profile.experienceSummary}</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="sage">{profile.previousFosterCount} {t('foster.previousFosters')}</Badge>
+              <Badge variant={profile.canTransport ? 'sage' : 'default'}>{t('foster.transportAvailable')}</Badge>
+              <Badge variant={profile.canHandleMedicalNeeds ? 'sage' : 'default'}>{t('foster.medicalCare')}</Badge>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
+            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.reviews')}</h3>
+            <div className="flex items-center gap-2 text-sm text-[#57645C]">
+              <Star size={15} className="text-[#C07E67]" />
+              <span>{profile.ratingAverage ? `${profile.ratingAverage} / 5 - ${profile.reviewCount} ${t('foster.reviews')}` : t('foster.noReviews')}</span>
+            </div>
+            {profile.responseTimeLabel && <p className="text-xs text-[#57645C]">{profile.responseTimeLabel}</p>}
+          </div>
+
+          <div className="bg-[#E3ECE4]/40 rounded-2xl p-4 border border-[#E3ECE4] space-y-2.5">
+            <h3 className="text-sm font-semibold text-[#2C402B]">{t('foster.whatHappensInvite')}</h3>
+            {[t('foster.inviteStep1'), t('foster.inviteStep2'), t('foster.inviteStep3')].map((step, i) => (
+              <div key={step} className="flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-full bg-[#2C402B] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-semibold">{i + 1}</div>
+                <span className="text-sm text-[#57645C]">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto] gap-3 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
+        <PrimaryButton onClick={onInvite} icon={Send}>{t('foster.inviteToFoster')}</PrimaryButton>
+        <button
+          type="button"
+          onClick={onSave}
+          aria-label={t('foster.saveFosterHome')}
+          className="p-3 rounded-xl border border-[#E4E2DC] bg-white text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
+        >
+          <Bookmark size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InviteCard({ invite, fosterCase, fosterHome, t, onOpenMessages }) {
+  const statusMap = {
+    SENT: { label: t('common.submitted'), variant: 'sky' },
+    ACCEPTED: { label: t('common.accepted'), variant: 'success' },
+    DECLINED: { label: t('common.rejected'), variant: 'rose' },
+    EXPIRED: { label: t('common.withdrawn'), variant: 'default' },
+  };
+  const status = statusMap[invite.status] || statusMap.SENT;
+
+  return (
+    <div data-testid={`foster-invite-card-${invite.id}`} className="bg-white rounded-2xl p-4 border border-[#E4E2DC] shadow-sm space-y-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-[#1F2924] font-heading">{fosterCase?.animalName || t('messages.foster')}</h3>
+          <p className="text-xs text-[#57645C]">{t('foster.invitedHome')}: {fosterHome?.displayName || t('foster.fosterHome')}</p>
+        </div>
+        <Badge variant={status.variant}>{status.label}</Badge>
+      </div>
+      {invite.message && <p className="text-xs leading-relaxed text-[#57645C]">{invite.message}</p>}
+      {invite.status === 'ACCEPTED' && (
+        <PrimaryButton onClick={() => onOpenMessages(invite)} className="!py-2 !text-sm">{t('matches.openMessages')}</PrimaryButton>
+      )}
+    </div>
+  );
+}
+
+function MyFosterDashboard({
+  t,
+  lang,
+  user,
+  fosterHomeProfiles,
+  fosterApplications,
+  fosterInvites,
+  fosterCases,
+  canManageFoster,
+  rescuerAccessState,
+  accessLoading,
+  accessError,
+  onRequestAccess,
+  onDemoPreview,
+  onOpenApplicationMessages,
+  onOpenInviteMessages,
+  onEditProfile,
+}) {
+  const myProfile = fosterHomeProfiles[0];
+  const acceptedApplications = fosterApplications.filter((item) => item.status === 'ACCEPTED');
+  const sentInvites = fosterInvites.filter((item) => item.sentByUserId === user.id || item.status === 'SENT' || item.status === 'ACCEPTED');
+
+  return (
+    <div data-testid="my-foster-dashboard" className="px-5 pt-3 pb-8 space-y-4">
+      <p className="text-sm text-[#57645C]">{t('foster.myFosterDesc')}</p>
+
+      {myProfile && (
+        <div className="bg-white rounded-2xl border border-[#E4E2DC] p-4 shadow-sm space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.myFosterProfile')}</h3>
+              <p className="text-sm text-[#57645C]">{myProfile.displayName} - {myProfile.city}{myProfile.coarseArea ? ` / ${myProfile.coarseArea}` : ''}</p>
+            </div>
+            <Badge variant={myProfile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(myProfile.availabilityStatus, t)}</Badge>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              [t('foster.applications'), fosterApplications.length],
+              [t('foster.acceptedFosters'), acceptedApplications.length],
+              [t('foster.pastFosters'), myProfile.previousFosterCount],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-xl bg-[#F8F7F4] p-3 text-center">
+                <div className="text-lg font-bold text-[#1F2924] font-heading">{value}</div>
+                <div className="text-[11px] font-medium text-[#57645C]">{label}</div>
+              </div>
+            ))}
+          </div>
+          <SecondaryButton icon={EditFallbackIcon} onClick={onEditProfile}>{t('foster.editFosterProfile')}</SecondaryButton>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.myApplications')}</h3>
+        {fosterApplications.length === 0 ? (
+          <EmptyState icon={FileText} title={t('foster.noRequests')} description={t('foster.noRequestsDesc')} />
+        ) : (
+          fosterApplications.map((app) => <ApplicationCard key={app.id} app={app} t={t} onOpenMessages={onOpenApplicationMessages} />)
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.invitesSent')}</h3>
+        {sentInvites.length === 0 ? (
+          <EmptyState icon={Send} title={t('foster.noInvites')} description={t('foster.noInvitesDesc')} />
+        ) : (
+          sentInvites.map((invite) => (
+            <InviteCard
+              key={invite.id}
+              invite={invite}
+              fosterCase={fosterCases.find((item) => item.id === invite.fosterCaseId)}
+              fosterHome={fosterHomeProfiles.find((item) => item.id === invite.fosterHomeProfileId)}
+              t={t}
+              onOpenMessages={onOpenInviteMessages}
+            />
+          ))
+        )}
+      </div>
+
+      {canManageFoster ? (
+        <ManageDashboard
+          t={t}
+          isDemoMode={rescuerAccessState === 'demo_preview'}
+          fosterCases={fosterCases}
+          applications={fosterApplications}
+          invites={fosterInvites}
+        />
+      ) : (
+        <RescuerAccessCard
+          state={rescuerAccessState}
+          loading={accessLoading}
+          error={accessError}
+          onRequestAccess={onRequestAccess}
+          onDemoPreview={onDemoPreview}
+          t={t}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditFallbackIcon(props) {
+  return <ClipboardList {...props} />;
+}
+
+function ManageDashboard({ t, isDemoMode, fosterCases, applications, invites = [] }) {
   const activeCases = fosterCases.filter(item => item.status === 'ACTIVE').length;
   const newApplications = applications.filter(item => item.status === 'SUBMITTED' || item.status === 'IN_REVIEW').length;
   const urgentCases = fosterCases.filter(item => item.status === 'ACTIVE' && item.urgency === 'HIGH').length;
+  const activeInvites = invites.filter(item => item.status === 'SENT').length;
 
   return (
-    <div data-testid="foster-manage-dashboard" className="space-y-4 px-5 pt-4 pb-8">
+    <div data-testid="foster-manage-dashboard" className="space-y-4">
       {isDemoMode && <DemoBanner text={t('foster.demoBanner')} />}
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: t('foster.activeCases'), value: activeCases, color: 'bg-[#E3ECE4] text-[#2C402B]' },
           { label: t('foster.newApplications'), value: newApplications, color: 'bg-[#D8EAF0] text-[#3A7080]' },
           { label: t('foster.urgentCases'), value: urgentCases, color: 'bg-[#F5DDD0] text-[#8B4C2F]' },
+          { label: t('foster.invitesSent'), value: activeInvites, color: 'bg-[#EFEDE8] text-[#57645C]' },
         ].map(s => (
           <div key={s.label} className={`${s.color} rounded-2xl p-3 text-center`}>
             <div className="text-2xl font-bold font-heading">{s.value}</div>
@@ -611,16 +1012,36 @@ function RescuerAccessCard({ state, loading, error, onRequestAccess, onDemoPrevi
 }
 
 export default function FosterTab() {
-  const { t, lang, fosterCases, fosterApplications, submitFosterApplication, openFosterConversation, rescuerAccessState, setRescuerAccessState, requestRescuerAccess } = useApp();
+  const {
+    t,
+    lang,
+    user,
+    fosterCases,
+    fosterHomeProfiles,
+    fosterInvites,
+    fosterApplications,
+    submitFosterApplication,
+    openFosterConversation,
+    sendFosterInvite,
+    openFosterInviteConversation,
+    rescuerAccessState,
+    setRescuerAccessState,
+    requestRescuerAccess,
+  } = useApp();
 
-  const [section, setSection] = useState('find');
+  const [section, setSection] = useState('animals');
   const [viewCase, setViewCase] = useState(null);
+  const [viewHome, setViewHome] = useState(null);
   const [applyCase, setApplyCase] = useState(null);
+  const [inviteHome, setInviteHome] = useState(null);
   const [applicationSuccess, setApplicationSuccess] = useState(false);
   const [applicationError, setApplicationError] = useState('');
   const [fosterNotice, setFosterNotice] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState(null);
   const [urgencyFilter, setUrgencyFilter] = useState(false);
+  const [homeSpeciesFilter, setHomeSpeciesFilter] = useState(null);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [medicalCareOnly, setMedicalCareOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [accessLoading, setAccessLoading] = useState(false);
   const [accessError, setAccessError] = useState('');
@@ -631,8 +1052,8 @@ export default function FosterTab() {
     ageRange: null,
     breed: null,
   });
+
   const canManageFoster = rescuerAccessState === 'verified' || rescuerAccessState === 'demo_preview';
-  const visibleSection = !canManageFoster && section === 'manage' ? 'find' : section;
 
   const handleRequestAccess = async () => {
     setAccessLoading(true);
@@ -687,10 +1108,24 @@ export default function FosterTab() {
     return c.status === 'ACTIVE';
   });
 
+  const filteredHomes = fosterHomeProfiles.filter((profile) => {
+    if (homeSpeciesFilter && !profile.acceptsSpecies.includes(homeSpeciesFilter)) return false;
+    if (availableOnly && profile.availabilityStatus !== 'AVAILABLE') return false;
+    if (medicalCareOnly && !profile.canHandleMedicalNeeds) return false;
+    if (fosterFilters.county && getFosterHomeCounty(profile) !== fosterFilters.county) return false;
+    if (fosterFilters.citySearch.trim()) {
+      const search = fosterFilters.citySearch.trim().toLowerCase();
+      const searchableLocation = `${profile.city || ''} ${profile.coarseArea || ''}`.toLowerCase();
+      if (!searchableLocation.includes(search)) return false;
+    }
+    if (fosterFilters.size && !profile.acceptsSizes.includes(fosterFilters.size)) return false;
+    return true;
+  });
+
   const sections = [
-    { key: 'find', label: t('foster.find') },
-    { key: 'requests', label: t('foster.myRequests') },
-    ...(canManageFoster ? [{ key: 'manage', label: t('foster.manage') }] : []),
+    { key: 'animals', label: t('foster.animals') },
+    { key: 'homes', label: t('foster.fosterHomes') },
+    { key: 'myFoster', label: t('foster.myFoster') },
   ];
 
   if (viewCase && !applyCase) {
@@ -699,6 +1134,22 @@ export default function FosterTab() {
         fcase={viewCase}
         onClose={() => setViewCase(null)}
         onApply={() => setApplyCase(viewCase)}
+        t={t}
+        lang={lang}
+      />
+    );
+  }
+
+  if (viewHome && !inviteHome) {
+    return (
+      <FosterHomeDetail
+        profile={viewHome}
+        onClose={() => setViewHome(null)}
+        onInvite={() => setInviteHome(viewHome)}
+        onSave={() => {
+          setFosterNotice(t('foster.savedFosterHome'));
+          setTimeout(() => setFosterNotice(''), 2000);
+        }}
         t={t}
         lang={lang}
       />
@@ -718,13 +1169,32 @@ export default function FosterTab() {
             setViewCase(null);
             setApplicationSuccess(true);
             setTimeout(() => setApplicationSuccess(false), 3000);
-            setSection('requests');
+            setSection('myFoster');
           } catch (error) {
             setApplicationError(error.message || t('foster.validationRequired'));
             setApplyCase(null);
             setViewCase(null);
-            setSection('requests');
+            setSection('myFoster');
           }
+        }}
+        t={t}
+      />
+    );
+  }
+
+  if (inviteHome) {
+    return (
+      <InviteFlow
+        profile={inviteHome}
+        fosterCases={fosterCases}
+        onClose={() => setInviteHome(null)}
+        onSubmit={({ fosterCaseId, fosterHomeProfileId, message }) => {
+          sendFosterInvite({ fosterCaseId, fosterHomeProfileId, message });
+          setInviteHome(null);
+          setViewHome(null);
+          setFosterNotice(t('foster.inviteSent'));
+          setTimeout(() => setFosterNotice(''), 3000);
+          setSection('myFoster');
         }}
         t={t}
       />
@@ -734,7 +1204,8 @@ export default function FosterTab() {
   return (
     <div data-testid="foster-tab" className="flex-1 flex flex-col relative">
       <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
-        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading mb-3">{t('foster.title')}</h1>
+        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading mb-1">{t('foster.title')}</h1>
+        <p className="mb-3 text-sm text-[#57645C]">{t('foster.networkSubtitle')}</p>
 
         <div className="flex gap-1 bg-[#EFEDE8] rounded-xl p-1">
           {sections.map(s => (
@@ -744,7 +1215,7 @@ export default function FosterTab() {
               data-testid={`foster-section-${s.key}`}
               onClick={() => setSection(s.key)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                visibleSection === s.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
+                section === s.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
               }`}
             >
               {s.label}
@@ -754,7 +1225,7 @@ export default function FosterTab() {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
-        {visibleSection === 'find' && (
+        {section === 'animals' && (
           <div className="px-5 pt-3 space-y-3">
             <p className="text-sm text-[#57645C]">{t('foster.animalsNeedHelp')}</p>
 
@@ -765,12 +1236,13 @@ export default function FosterTab() {
               <Chip label={t('matches.filters')} active={advancedFilterActive} onClick={() => setShowFilters(true)} icon={Filter} />
             </div>
 
+            {fosterNotice && (
+              <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
+                <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
+              </div>
+            )}
+
             <div className="space-y-3">
-              {fosterNotice && (
-                <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                  <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
-                </div>
-              )}
               {filteredCases.map(fc => (
                 <FosterCaseCard
                   key={fc.id}
@@ -785,71 +1257,92 @@ export default function FosterTab() {
                 />
               ))}
             </div>
-
-            {!canManageFoster && (
-              <RescuerAccessCard
-                state={rescuerAccessState}
-                loading={accessLoading}
-                error={accessError}
-                onRequestAccess={handleRequestAccess}
-                onDemoPreview={() => {
-                  setRescuerAccessState('demo_preview');
-                  setSection('manage');
-                }}
-                t={t}
-              />
-            )}
           </div>
         )}
 
-        {visibleSection === 'requests' && (
+        {section === 'homes' && (
           <div className="px-5 pt-3 space-y-3">
-            {applicationError && (
-              <div className="bg-[#F5DDD0] rounded-2xl p-4 border border-[#E8C3AF] animate-scaleIn">
-                <p className="text-sm font-semibold text-[#8B4C2F]">{applicationError}</p>
-              </div>
-            )}
-            {applicationSuccess && (
+            <p className="text-sm text-[#57645C]">{t('foster.fosterHomesDesc')}</p>
+
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <Chip label={t('matches.dogs')} active={homeSpeciesFilter === 'DOG'} onClick={() => setHomeSpeciesFilter(homeSpeciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
+              <Chip label={t('matches.cats')} active={homeSpeciesFilter === 'CAT'} onClick={() => setHomeSpeciesFilter(homeSpeciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
+              <Chip label={t('foster.available')} active={availableOnly} onClick={() => setAvailableOnly(!availableOnly)} icon={CheckCircle2} />
+              <Chip label={t('foster.medicalCare')} active={medicalCareOnly} onClick={() => setMedicalCareOnly(!medicalCareOnly)} icon={ShieldCheck} />
+            </div>
+
+            {fosterNotice && (
               <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                <p className="text-sm font-semibold text-[#2C5E3F]">{t('foster.applicationSent')}</p>
-                <p className="text-xs text-[#2C5E3F]/80 mt-1">{t('foster.applicationSentDesc')}</p>
+                <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
               </div>
-            )}
-            {fosterApplications.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                title={t('foster.noRequests')}
-                description={t('foster.noRequestsDesc')}
-              />
-            ) : (
-              fosterApplications.map(app => (
-                <ApplicationCard key={app.id} app={app} t={t} onOpenMessages={openFosterConversation} />
-              ))
             )}
 
-            {!canManageFoster && (
-              <RescuerAccessCard
-                state={rescuerAccessState}
-                loading={accessLoading}
-                error={accessError}
-                onRequestAccess={handleRequestAccess}
-                onDemoPreview={() => {
-                  setRescuerAccessState('demo_preview');
-                  setSection('manage');
-                }}
-                t={t}
-              />
-            )}
+            <div className="space-y-3">
+              {filteredHomes.map((profile) => (
+                <FosterHomeCard
+                  key={profile.id}
+                  profile={profile}
+                  onView={() => setViewHome(profile)}
+                  onInvite={() => setInviteHome(profile)}
+                  onSave={() => {
+                    setFosterNotice(t('foster.savedFosterHome'));
+                    setTimeout(() => setFosterNotice(''), 2000);
+                  }}
+                  t={t}
+                  lang={lang}
+                />
+              ))}
+            </div>
           </div>
         )}
 
-        {visibleSection === 'manage' && canManageFoster && (
-          <ManageDashboard
-            t={t}
-            isDemoMode={rescuerAccessState === 'demo_preview'}
-            fosterCases={fosterCases}
-            applications={fosterApplications}
-          />
+        {section === 'myFoster' && (
+          <>
+            {(applicationError || applicationSuccess || fosterNotice) && (
+              <div className="px-5 pt-3 space-y-2">
+                {applicationError && (
+                  <div className="bg-[#F5DDD0] rounded-2xl p-4 border border-[#E8C3AF] animate-scaleIn">
+                    <p className="text-sm font-semibold text-[#8B4C2F]">{applicationError}</p>
+                  </div>
+                )}
+                {applicationSuccess && (
+                  <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
+                    <p className="text-sm font-semibold text-[#2C5E3F]">{t('foster.applicationSent')}</p>
+                    <p className="text-xs text-[#2C5E3F]/80 mt-1">{t('foster.applicationSentDesc')}</p>
+                  </div>
+                )}
+                {fosterNotice && (
+                  <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
+                    <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <MyFosterDashboard
+              t={t}
+              lang={lang}
+              user={user}
+              fosterHomeProfiles={fosterHomeProfiles}
+              fosterApplications={fosterApplications}
+              fosterInvites={fosterInvites}
+              fosterCases={fosterCases}
+              canManageFoster={canManageFoster}
+              rescuerAccessState={rescuerAccessState}
+              accessLoading={accessLoading}
+              accessError={accessError}
+              onRequestAccess={handleRequestAccess}
+              onDemoPreview={() => {
+                setRescuerAccessState('demo_preview');
+                setSection('myFoster');
+              }}
+              onOpenApplicationMessages={openFosterConversation}
+              onOpenInviteMessages={openFosterInviteConversation}
+              onEditProfile={() => {
+                setFosterNotice(t('foster.editFosterProfileNotice'));
+                setTimeout(() => setFosterNotice(''), 2500);
+              }}
+            />
+          </>
         )}
       </div>
 
