@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { formatAge } from '../data/mockData';
 import {
   Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
   PrivacyNote, VerificationBadge, AnimalSelector, CompatibilityScore,
@@ -12,7 +11,59 @@ import {
   Lock, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat
 } from 'lucide-react';
 
-function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t }) {
+function getSexLabel(sex, t) {
+  if (sex === 'MALE') return t('common.male');
+  if (sex === 'FEMALE') return t('common.female');
+  return t('common.unknown');
+}
+
+function formatMatchAge(months, t) {
+  if (!months) return t('common.unknown');
+  if (months < 12) {
+    return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  const yearLabel = years === 1 ? t('common.year') : t('common.years');
+
+  if (remainingMonths > 0) {
+    return `${years} ${yearLabel} ${remainingMonths} ${remainingMonths === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  return `${years} ${yearLabel}`;
+}
+
+function getSizeLabel(size, t) {
+  if (size === 'SMALL') return t('common.small');
+  if (size === 'MEDIUM') return t('common.medium');
+  if (size === 'LARGE') return t('common.large');
+  return t('common.unknown');
+}
+
+function translateCompatibilityReason(reason, t) {
+  const normalized = reason.toLowerCase();
+  const reasonMap = {
+    'same species': t('matches.reasonSameSpecies'),
+    'compatible age': t('matches.reasonCompatibleAge'),
+    'compatible size': t('matches.reasonCompatibleSize'),
+    'similar size': t('matches.reasonCompatibleSize'),
+    'nearby area': t('matches.reasonNearbyArea'),
+    'verified owner': t('matches.reasonVerifiedOwner'),
+    'health fields available': t('matches.reasonHealthFields'),
+    'similar energy': t('matches.reasonSimilarEnergy'),
+    'good social fit': t('matches.reasonGoodSocialFit'),
+    'reachable area': t('matches.reasonReachableArea'),
+    'complete profile': t('matches.reasonCompleteProfile'),
+    'calm temperament': t('matches.reasonCalmTemperament'),
+    'both social': t('matches.reasonBothSocial'),
+    'active lifestyle match': t('matches.reasonActiveLifestyle'),
+  };
+
+  return reasonMap[normalized] || reason;
+}
+
+function MatchCard({ candidate, onLike, onPass, onSave, onDetails, onCompatibilityPress, isSaved, t }) {
   const { animal, mode, compatibilityScore, ownerVerificationStatus, distanceLabel } = candidate;
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -49,7 +100,7 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-          <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 bg-[#9BAE96] text-white px-5 py-2 rounded-xl text-lg font-bold rotate-[-15deg] border-2 border-white shadow-lg">
+          <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 bg-[#2C402B] text-white px-5 py-2 rounded-xl text-lg font-bold rotate-[-15deg] border-2 border-white shadow-lg">
             {t('matches.like')}
           </motion.div>
           <motion.div style={{ opacity: passOpacity }} className="absolute top-8 right-6 bg-[#CD7A7E] text-white px-5 py-2 rounded-xl text-lg font-bold rotate-[15deg] border-2 border-white shadow-lg">
@@ -61,10 +112,17 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
               <div>
                 <h2 className="text-2xl font-bold text-white tracking-tight font-heading">{animal.name}</h2>
                 <p className="text-sm text-white/80 mt-0.5">
-                  {animal.breed} · {animal.sex === 'MALE' ? 'Male' : 'Female'} · {formatAge(animal.ageMonths)}
+                  {animal.breed} - {getSexLabel(animal.sex, t)} - {formatMatchAge(animal.ageMonths, t)}
                 </p>
               </div>
-              <CompatibilityScore score={compatibilityScore} />
+              <button
+                type="button"
+                aria-label={t('matches.tapScore')}
+                onClick={onCompatibilityPress}
+                className="rounded-full transition-transform active:scale-95"
+              >
+                <CompatibilityScore score={compatibilityScore} label={`${t('matches.compatibility')}: ${compatibilityScore}%`} />
+              </button>
             </div>
           </div>
         </div>
@@ -72,8 +130,8 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
         <div className="p-5 space-y-3 h-[42%] overflow-y-auto no-scrollbar">
           <div className="flex flex-wrap gap-1.5">
             <Badge variant={modeColor}>{modeLabel}</Badge>
-            {ownerVerificationStatus === 'VERIFIED' && <Badge variant="success"><ShieldCheck size={11} />Verified</Badge>}
-            {animal.vaccineStatus === 'UP_TO_DATE' && <Badge variant="sage"><CheckCircle2 size={11} />Vaccines</Badge>}
+            {ownerVerificationStatus === 'VERIFIED' && <Badge variant="success"><ShieldCheck size={11} />{t('matches.verifiedBadge')}</Badge>}
+            {animal.vaccineStatus === 'UP_TO_DATE' && <Badge variant="sage"><CheckCircle2 size={11} />{t('matches.vaccinesBadge')}</Badge>}
           </div>
 
           <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
@@ -87,31 +145,38 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
 
           <div className="flex items-center gap-2.5 pt-2">
             <button
+              type="button"
               data-testid="match-pass-btn"
               onClick={onPass}
+              aria-label={t('matches.passAnimal')}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-[#57645C] font-medium text-sm hover:bg-[#EFEDE8] active:scale-[0.97] transition-all"
             >
               <X size={18} />
               {t('matches.notNow')}
             </button>
             <button
+              type="button"
               data-testid="match-details-btn"
               onClick={onDetails}
+              aria-label={t('matches.viewDetails')}
               className="flex items-center justify-center p-3 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-[#57645C] hover:bg-[#EFEDE8] active:scale-[0.97] transition-all"
             >
               <Info size={18} />
             </button>
             <button
+              type="button"
               data-testid="match-like-btn"
               onClick={onLike}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#9BAE96] text-white font-medium text-sm hover:bg-[#8A9F85] active:scale-[0.97] transition-all shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#2C402B] text-white font-medium text-sm hover:bg-[#243623] active:scale-[0.97] transition-all shadow-sm"
             >
               <Heart size={18} />
               {t('matches.like')}
             </button>
             <button
+              type="button"
               data-testid="match-save-btn"
               onClick={onSave}
+              aria-label={isSaved ? t('matches.savedAnimal') : t('matches.saveAnimal')}
               className={`flex items-center justify-center p-3 rounded-xl border transition-all active:scale-[0.97] ${
                 isSaved ? 'bg-[#E3ECE4] border-[#9BAE96] text-[#2C402B]' : 'bg-[#F8F7F4] border-[#E4E2DC] text-[#57645C] hover:bg-[#EFEDE8]'
               }`}
@@ -125,12 +190,12 @@ function MatchCard({ candidate, onLike, onPass, onSave, onDetails, isSaved, t })
   );
 }
 
-function MatchDetail({ candidate, onClose, onLike, onPass, t }) {
+function MatchDetail({ candidate, onClose, onLike, onPass, onCompatibilityPress, t }) {
   const { animal, compatibilityScore, compatibilityReasons, mode, healthDocumentStatus, distanceLabel } = candidate;
   const modeLabel = mode === 'PLAY' ? t('matches.play') : mode === 'SOCIAL' ? t('matches.social') : t('matches.verifiedMate');
 
   return (
-    <div data-testid="match-detail-screen" className="absolute inset-0 z-30 bg-[#F8F7F4] flex flex-col">
+    <div data-testid="match-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
       <ScreenHeader title={animal.name} onBack={onClose} />
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="relative h-72">
@@ -145,14 +210,21 @@ function MatchDetail({ candidate, onClose, onLike, onPass, t }) {
         <div className="px-5 -mt-10 relative space-y-5 pb-32">
           <div>
             <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{animal.name}</h1>
-            <p className="text-sm text-[#57645C] mt-1">{animal.breed} · {animal.sex === 'MALE' ? 'Male' : 'Female'} · {formatAge(animal.ageMonths)}</p>
+            <p className="text-sm text-[#57645C] mt-1">{animal.breed} - {getSexLabel(animal.sex, t)} - {formatMatchAge(animal.ageMonths, t)}</p>
           </div>
 
           <div className="flex items-center gap-3">
             <Badge variant="sage">{modeLabel}</Badge>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[#57645C]">{t('matches.compatibility')}:</span>
-              <CompatibilityScore score={compatibilityScore} />
+              <button
+                type="button"
+                aria-label={t('matches.tapScore')}
+                onClick={onCompatibilityPress}
+                className="rounded-full transition-transform active:scale-95"
+              >
+                <CompatibilityScore score={compatibilityScore} label={`${t('matches.compatibility')}: ${compatibilityScore}%`} />
+              </button>
             </div>
           </div>
 
@@ -161,7 +233,7 @@ function MatchDetail({ candidate, onClose, onLike, onPass, t }) {
             {compatibilityReasons.map((r, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-[#57645C]">
                 <CheckCircle2 size={14} className="text-[#9BAE96] flex-shrink-0" />
-                <span>{r}</span>
+                <span>{translateCompatibilityReason(r, t)}</span>
               </div>
             ))}
           </div>
@@ -200,6 +272,56 @@ function MatchDetail({ candidate, onClose, onLike, onPass, t }) {
   );
 }
 
+function CompatibilityBreakdownModal({ candidate, onClose, t }) {
+  if (!candidate) return null;
+
+  return (
+    <Modal open={!!candidate} onClose={onClose}>
+      <div data-testid="compatibility-breakdown" className="p-6">
+        <div className="flex items-center gap-4 mb-5">
+          <motion.div
+            initial={{ scale: 0.75, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+          >
+            <CompatibilityScore score={candidate.compatibilityScore} label={`${t('matches.compatibility')}: ${candidate.compatibilityScore}%`} />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-bold text-[#1F2924] font-heading">{t('matches.compatibilityBreakdown')}</h3>
+            <p className="text-sm text-[#57645C] mt-1">{t('matches.compatibilityBreakdownDesc')}</p>
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          {candidate.compatibilityReasons.map((reason, index) => (
+            <motion.div
+              key={`${reason}-${index}`}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.07, duration: 0.22 }}
+              className="flex items-center gap-2.5 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3 py-2.5"
+            >
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: index * 0.07 + 0.08, type: 'spring', stiffness: 260, damping: 12 }}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E3ECE4]"
+              >
+                <CheckCircle2 size={14} className="text-[#2C402B]" />
+              </motion.span>
+              <span className="text-sm font-medium text-[#1F2924]">{translateCompatibilityReason(reason, t)}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        <button type="button" onClick={onClose} className="mt-5 w-full rounded-xl bg-[#2C402B] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#243623]">
+          {t('common.close')}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 function MatchSuccessModal({ match, onClose, onOpenMessages, t }) {
   return (
     <Modal open={!!match} onClose={onClose}>
@@ -218,8 +340,8 @@ function MatchSuccessModal({ match, onClose, onOpenMessages, t }) {
         </p>
         <p className="text-sm text-[#57645C] mb-6">{t('matches.matchSuccessDesc')}</p>
         <PrimaryButton onClick={onOpenMessages}>{t('matches.openMessages')}</PrimaryButton>
-        <button onClick={onClose} className="w-full mt-3 py-3 text-sm font-medium text-[#57645C] hover:text-[#1F2924] transition-colors">
-          Continue browsing
+        <button type="button" onClick={onClose} className="w-full mt-3 py-3 text-sm font-medium text-[#57645C] hover:text-[#1F2924] transition-colors">
+          {t('matches.continueBrowsing')}
         </button>
       </div>
     </Modal>
@@ -263,7 +385,7 @@ function VerifiedMateLockedState({ animal, t }) {
           ))}
         </div>
         <p className="mt-4 text-[11px] leading-relaxed text-[#8A948E]">
-          Demo rule: age eligibility currently uses 12+ months until vet, species, breed, and legal rules are connected.
+          {t('matches.demoAgeRule')}
         </p>
       </div>
     </div>
@@ -280,6 +402,7 @@ export default function MatchesTab() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [showDetail, setShowDetail] = useState(null);
+  const [compatibilityBreakdown, setCompatibilityBreakdown] = useState(null);
   const [speciesFilter, setSpeciesFilter] = useState(null);
   const [matchFilters, setMatchFilters] = useState({
     verifiedOnly: false,
@@ -339,13 +462,21 @@ export default function MatchesTab() {
 
   if (showDetail) {
     return (
-      <MatchDetail
-        candidate={showDetail}
-        onClose={() => setShowDetail(null)}
-        onLike={() => { handleLike(showDetail); setShowDetail(null); }}
-        onPass={() => { handlePass(); setShowDetail(null); }}
-        t={t}
-      />
+      <>
+        <MatchDetail
+          candidate={showDetail}
+          onClose={() => setShowDetail(null)}
+          onLike={() => { handleLike(showDetail); setShowDetail(null); }}
+          onPass={() => { handlePass(); setShowDetail(null); }}
+          onCompatibilityPress={() => setCompatibilityBreakdown(showDetail)}
+          t={t}
+        />
+        <CompatibilityBreakdownModal
+          candidate={compatibilityBreakdown}
+          onClose={() => setCompatibilityBreakdown(null)}
+          t={t}
+        />
+      </>
     );
   }
 
@@ -370,6 +501,7 @@ export default function MatchesTab() {
           <div className="flex gap-2">
             {modes.map(m => (
               <button
+                type="button"
                 key={m.key}
                 data-testid={`mode-${m.key.toLowerCase()}`}
                 onClick={() => setMatchMode(m.key)}
@@ -412,6 +544,7 @@ export default function MatchesTab() {
               onPass={handlePass}
               onSave={() => handleSave(currentCandidate)}
               onDetails={() => setShowDetail(currentCandidate)}
+              onCompatibilityPress={() => setCompatibilityBreakdown(currentCandidate)}
               isSaved={savedAnimals.includes(currentCandidate.animal.id)}
               t={t}
             />
@@ -423,6 +556,12 @@ export default function MatchesTab() {
         match={matchSuccess}
         onClose={() => setMatchSuccess(null)}
         onOpenMessages={() => { setMatchSuccess(null); setActiveTab('messages'); }}
+        t={t}
+      />
+
+      <CompatibilityBreakdownModal
+        candidate={compatibilityBreakdown}
+        onClose={() => setCompatibilityBreakdown(null)}
         t={t}
       />
 
@@ -439,19 +578,19 @@ export default function MatchesTab() {
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.sex')}</label>
             <div className="flex gap-2">
-              <Chip label="Male" active={matchFilters.sex === 'MALE'} onClick={() => toggleMatchFilter('sex', 'MALE')} />
-              <Chip label="Female" active={matchFilters.sex === 'FEMALE'} onClick={() => toggleMatchFilter('sex', 'FEMALE')} />
+              <Chip label={t('common.male')} active={matchFilters.sex === 'MALE'} onClick={() => toggleMatchFilter('sex', 'MALE')} />
+              <Chip label={t('common.female')} active={matchFilters.sex === 'FEMALE'} onClick={() => toggleMatchFilter('sex', 'FEMALE')} />
             </div>
           </div>
           <div>
             <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.size')}</label>
             <div className="flex gap-2">
               {[
-                ['SMALL', 'Small'],
-                ['MEDIUM', 'Medium'],
-                ['LARGE', 'Large'],
-              ].map(([value, label]) => (
-                <Chip key={value} label={label} active={matchFilters.size === value} onClick={() => toggleMatchFilter('size', value)} />
+                'SMALL',
+                'MEDIUM',
+                'LARGE',
+              ].map((value) => (
+                <Chip key={value} label={getSizeLabel(value, t)} active={matchFilters.size === value} onClick={() => toggleMatchFilter('size', value)} />
               ))}
             </div>
           </div>
@@ -463,7 +602,7 @@ export default function MatchesTab() {
               ))}
             </div>
           </div>
-          <PrimaryButton onClick={() => setShowFilters(false)}>Apply filters</PrimaryButton>
+          <PrimaryButton onClick={() => setShowFilters(false)}>{t('matches.applyFilters')}</PrimaryButton>
         </div>
       </FilterSheet>
     </div>

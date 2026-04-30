@@ -75,6 +75,7 @@ body {
 
 input, select, textarea {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 44px;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -86,9 +87,40 @@ button {
   border: none;
   background: none;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #2C402B;
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.petpal-screen {
+  overflow-wrap: break-word;
+}
+
+.petpal-screen h1,
+.petpal-screen h2,
+.petpal-screen h3,
+.petpal-screen p,
+.petpal-screen span,
+.petpal-screen button {
+  min-width: 0;
 }
 
 img {
   -webkit-user-drag: none;
   user-select: none;
+  background-color: #E4E2DC;
 }

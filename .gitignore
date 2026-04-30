@@ -1,6 +1,11 @@
 .env
 .env.*
+*.env
 !.env.example
+!**/.env.example
+!**/.env.production.example
+!**/keystore.properties.example
+
 node_modules/
 dist/
 build/
@@ -9,6 +14,11 @@ build/
 .temp/
 .branches/
 *.tsbuildinfo
+
+evidence/**/*
+!evidence/**/
+!evidence/**/REPORT.md
+
 *.apk
 *.aab
 *.jks
@@ -16,50 +26,10 @@ build/
 *.p12
 *.pem
 *.key
+google-services.json
+keystore.properties
+credentials.json
+.credentials
+
 .DS_Store
 Thumbs.db
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials

@@ -22,8 +22,10 @@ export function Badge({ children, variant = 'default', className = '' }) {
 export function Chip({ label, active, onClick, icon: Icon }) {
   return (
     <button
+      type="button"
       data-testid={`chip-${label?.toLowerCase().replace(/\s/g, '-')}`}
       onClick={onClick}
+      aria-pressed={Boolean(active)}
       className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
         active
           ? 'bg-[#2C402B] text-white shadow-sm'
@@ -36,13 +38,15 @@ export function Chip({ label, active, onClick, icon: Icon }) {
   );
 }
 
-export function PrimaryButton({ children, onClick, disabled, className = '', icon: Icon }) {
+export function PrimaryButton({ children, onClick, disabled, className = '', icon: Icon, ariaLabel }) {
   return (
     <button
+      type="button"
       data-testid="primary-button"
       onClick={onClick}
       disabled={disabled}
-      className={`w-full bg-[#9BAE96] text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#8A9F85] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      aria-label={ariaLabel}
+      className={`w-full bg-[#2C402B] text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#243623] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {Icon && <Icon size={18} />}
       {children}
@@ -50,12 +54,15 @@ export function PrimaryButton({ children, onClick, disabled, className = '', ico
   );
 }
 
-export function SecondaryButton({ children, onClick, className = '', icon: Icon }) {
+export function SecondaryButton({ children, onClick, disabled, className = '', icon: Icon, ariaLabel }) {
   return (
     <button
+      type="button"
       data-testid="secondary-button"
       onClick={onClick}
-      className={`w-full bg-[#F8F7F4] text-[#2C402B] py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 border border-[#E4E2DC] hover:bg-[#EFEDE8] active:scale-[0.98] transition-all duration-200 ${className}`}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className={`w-full bg-[#F8F7F4] text-[#2C402B] py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 border border-[#E4E2DC] hover:bg-[#EFEDE8] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {Icon && <Icon size={18} />}
       {children}
@@ -63,12 +70,14 @@ export function SecondaryButton({ children, onClick, className = '', icon: Icon 
   );
 }
 
-export function ClayButton({ children, onClick, className = '' }) {
+export function ClayButton({ children, onClick, className = '', ariaLabel }) {
   return (
     <button
+      type="button"
       data-testid="clay-button"
       onClick={onClick}
-      className={`w-full bg-[#C07E67] text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#A96B55] active:scale-[0.98] transition-all duration-200 ${className}`}
+      aria-label={ariaLabel}
+      className={`w-full bg-[#8B4C2F] text-white py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#743F28] active:scale-[0.98] transition-all duration-200 ${className}`}
     >
       {children}
     </button>
@@ -76,11 +85,13 @@ export function ClayButton({ children, onClick, className = '' }) {
 }
 
 export function ScreenHeader({ title, onBack, right }) {
+  const { t } = useApp();
+
   return (
     <div data-testid="screen-header" className="flex items-center justify-between px-5 py-4 bg-white/80 backdrop-blur-lg border-b border-[#E4E2DC]/60 sticky top-0 z-30">
       <div className="flex items-center gap-3">
         {onBack && (
-          <button data-testid="back-button" onClick={onBack} className="p-1.5 -ml-1.5 rounded-lg hover:bg-[#F0EDE8] transition-colors">
+          <button type="button" data-testid="back-button" aria-label={t('common.back')} onClick={onBack} className="p-1.5 -ml-1.5 rounded-lg hover:bg-[#F0EDE8] transition-colors">
             <ChevronLeft size={22} className="text-[#2C402B]" />
           </button>
         )}
@@ -145,14 +156,16 @@ export function CoverageChips({ food, vet, transport }) {
 }
 
 export function FilterSheet({ open, onClose, title, children }) {
+  const { t } = useApp();
+
   if (!open) return null;
   return (
     <div data-testid="filter-sheet" className="absolute inset-0 z-40 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl max-h-[75vh] flex flex-col animate-slideUp">
+      <div className="relative bg-white rounded-t-3xl max-h-[75vh] flex flex-col animate-slideUp" role="dialog" aria-modal="true" aria-label={title}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E2DC]">
           <h3 className="text-lg font-semibold text-[#1F2924] font-heading">{title}</h3>
-          <button data-testid="close-filter-sheet" onClick={onClose} className="p-2 rounded-lg hover:bg-[#F0EDE8]">
+          <button type="button" data-testid="close-filter-sheet" aria-label={t('common.close')} onClick={onClose} className="p-2 rounded-lg hover:bg-[#F0EDE8]">
             <X size={20} className="text-[#57645C]" />
           </button>
         </div>
@@ -169,7 +182,7 @@ export function Modal({ open, onClose, children }) {
   return (
     <div data-testid="modal-overlay" className="absolute inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl w-full max-w-sm shadow-xl animate-scaleIn overflow-hidden">
+      <div className="relative bg-white rounded-3xl w-full max-w-sm shadow-xl animate-scaleIn overflow-hidden" role="dialog" aria-modal="true">
         {children}
       </div>
     </div>
@@ -178,7 +191,7 @@ export function Modal({ open, onClose, children }) {
 
 export function DemoBanner({ text }) {
   return (
-    <div data-testid="demo-banner" className="bg-[#C07E67] text-white text-xs font-bold text-center py-2 px-4 tracking-wide">
+    <div data-testid="demo-banner" className="bg-[#8B4C2F] text-white text-xs font-bold text-center py-2 px-4 tracking-wide">
       {text}
     </div>
   );
@@ -193,19 +206,19 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
       <div className="bg-white rounded-t-3xl border-t border-[#E4E2DC] shadow-xl">
         <div className="w-10 h-1 bg-[#E4E2DC] rounded-full mx-auto mt-3" />
         <div className="p-4 space-y-1">
-          <button data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
+          <button type="button" data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
             <Info size={18} className="text-[#57645C]" />
             <span className="text-sm font-medium text-[#1F2924]">{t('messages.viewContext')}</span>
           </button>
-          <button data-testid="safety-report" onClick={onReport} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
+          <button type="button" data-testid="safety-report" onClick={onReport} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
             <AlertTriangle size={18} className="text-[#CD7A7E]" />
             <span className="text-sm font-medium text-[#CD7A7E]">{t('matches.report')}</span>
           </button>
-          <button data-testid="safety-block" onClick={onBlock} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
+          <button type="button" data-testid="safety-block" onClick={onBlock} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
             <XCircle size={18} className="text-[#CD7A7E]" />
             <span className="text-sm font-medium text-[#CD7A7E]">{t('messages.block')}</span>
           </button>
-          <button data-testid="safety-close" onClick={onClose} className="w-full p-3 rounded-xl text-sm font-medium text-[#57645C] hover:bg-[#F8F7F4] transition-colors mt-1">
+          <button type="button" data-testid="safety-close" onClick={onClose} className="w-full p-3 rounded-xl text-sm font-medium text-[#57645C] hover:bg-[#F8F7F4] transition-colors mt-1">
             {t('common.cancel')}
           </button>
         </div>
@@ -222,8 +235,12 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
   return (
     <div className="relative">
       <button
+        type="button"
         data-testid="animal-selector"
         onClick={() => setOpen(!open)}
+        aria-label={t('common.selectAnimal')}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         className="flex items-center gap-2.5 bg-white rounded-xl px-4 py-2.5 border border-[#E4E2DC] hover:border-[#9BAE96] transition-colors w-full"
       >
         {selected?.photoUrls?.[0] ? (
@@ -238,12 +255,15 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
         <ChevronDown size={16} className={`ml-auto text-[#57645C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-hidden" role="listbox" aria-label={t('common.selectAnimal')}>
           {animals.map(a => (
             <button
+              type="button"
               key={a.id}
               data-testid={`animal-option-${a.name.toLowerCase()}`}
               onClick={() => { onSelect(a.id); setOpen(false); }}
+              role="option"
+              aria-selected={a.id === selectedId}
               className={`w-full flex items-center gap-2.5 px-4 py-3 hover:bg-[#F8F7F4] transition-colors ${a.id === selectedId ? 'bg-[#E3ECE4]/50' : ''}`}
             >
               {a.photoUrls?.[0] ? (
@@ -255,7 +275,7 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
               )}
               <div className="text-left">
                 <div className="text-sm font-semibold text-[#1F2924]">{a.name}</div>
-                <div className="text-xs text-[#57645C]">{a.breed} - {a.sex === 'MALE' ? t('common.male') : t('common.female')}</div>
+                <div className="text-xs text-[#57645C]">{a.breed} - {a.sex === 'MALE' ? t('common.male') : a.sex === 'FEMALE' ? t('common.female') : t('common.unknown')}</div>
               </div>
               {a.id === selectedId && <CheckCircle2 size={16} className="ml-auto text-[#9BAE96]" />}
             </button>
@@ -266,10 +286,10 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
   );
 }
 
-export function CompatibilityScore({ score }) {
+export function CompatibilityScore({ score, label }) {
   const color = score >= 80 ? '#2C402B' : score >= 60 ? '#9BAE96' : '#C07E67';
   return (
-    <div data-testid="compatibility-score" className="flex items-center gap-2">
+    <div data-testid="compatibility-score" className="flex items-center gap-2" role="img" aria-label={label || `${score}%`}>
       <div className="relative w-10 h-10">
         <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
           <path d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E4E2DC" strokeWidth="3" />

@@ -49,6 +49,11 @@
   background: #F8F7F4;
 }
 
+.petpal-screen > .flex-1,
+.petpal-screen .flex-1 {
+  min-height: 0;
+}
+
 @media (min-width: 768px) {
   .petpal-screen {
     border-radius: 24px;

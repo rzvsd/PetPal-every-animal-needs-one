@@ -5,6 +5,8 @@
   "dependencies": {
     "@capacitor/android": "^8.3.1",
     "@capacitor/core": "^8.3.1",
+    "@capacitor/push-notifications": "^8.0.3",
+    "@supabase/supabase-js": "^2.105.1",
     "@use-gesture/react": "^10.3.1",
     "autoprefixer": "^10.5.0",
     "framer-motion": "^12.38.0",
@@ -19,6 +21,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:production": "node scripts/build-production-web.js",
+    "build:production:offline": "node scripts/build-production-web.js --offline",
+    "audit:copy-a11y": "node scripts/audit-copy-a11y.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

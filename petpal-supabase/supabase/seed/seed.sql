@@ -140,6 +140,103 @@ values
   ('10000000-0000-4000-8000-000000000002', 'FOSTER')
 on conflict do nothing;
 
+insert into public.owner_animal_profiles (
+  id,
+  owner_id,
+  name,
+  species,
+  breed_or_mix,
+  is_mixed_breed,
+  approximate_age_months,
+  sex,
+  size_label,
+  weight_kg,
+  sterilized_status,
+  vaccine_status,
+  health_document_status,
+  admin_mate_approval_status,
+  temperament_tags,
+  energy_level,
+  good_with_dogs,
+  good_with_cats,
+  good_with_children,
+  city,
+  coarse_area,
+  photo_urls,
+  active_match_modes,
+  profile_completeness,
+  verification_status
+)
+values
+  (
+    '50000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000002',
+    'Max',
+    'DOG',
+    'Labrador',
+    false,
+    36,
+    'MALE',
+    'LARGE',
+    29,
+    'NO',
+    'UP_TO_DATE',
+    'VERIFIED',
+    'PENDING',
+    array['calm', 'social', 'gentle'],
+    'MEDIUM',
+    true,
+    null,
+    true,
+    'Bucharest',
+    'Sector 6',
+    array['https://images.unsplash.com/photo-1772405442022-73adfee1d7d9?w=600&h=800&fit=crop'],
+    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    100,
+    'VERIFIED'
+  ),
+  (
+    '50000000-0000-4000-8000-000000000002',
+    '10000000-0000-4000-8000-000000000002',
+    'Bella',
+    'CAT',
+    'European Shorthair',
+    false,
+    18,
+    'FEMALE',
+    'SMALL',
+    4,
+    'YES',
+    'UP_TO_DATE',
+    'VERIFIED',
+    'UNVERIFIED',
+    array['independent', 'calm', 'clean'],
+    'LOW',
+    false,
+    true,
+    true,
+    'Bucharest',
+    'Sector 6',
+    array['https://images.unsplash.com/photo-1763569586525-251849dce054?w=600&h=800&fit=crop'],
+    array['SOCIAL'],
+    100,
+    'VERIFIED'
+  )
+on conflict (id) do update
+set name = excluded.name,
+    breed_or_mix = excluded.breed_or_mix,
+    approximate_age_months = excluded.approximate_age_months,
+    size_label = excluded.size_label,
+    sex = excluded.sex,
+    temperament_tags = excluded.temperament_tags,
+    energy_level = excluded.energy_level,
+    city = excluded.city,
+    coarse_area = excluded.coarse_area,
+    photo_urls = excluded.photo_urls,
+    active_match_modes = excluded.active_match_modes,
+    profile_completeness = excluded.profile_completeness,
+    updated_at = now();
+
 insert into public.admin_roles (profile_id, role)
 values ('10000000-0000-4000-8000-000000000001', 'SUPER_ADMIN')
 on conflict (profile_id) do update
@@ -276,6 +373,19 @@ set status = excluded.status,
     description = excluded.description,
     expires_at = excluded.expires_at,
     updated_at = now();
+
+update public.animal_listings
+set foster_urgency = 'HIGH',
+    foster_duration = 'ONE_TWO_WEEKS',
+    food_covered = true,
+    vet_covered = true,
+    transport_available = true,
+    good_with_children = false,
+    good_with_other_animals = true,
+    medical_needs = 'Recovering after treatment; follow-up visit already scheduled.',
+    home_fit = 'Calm household, preferably without small children.',
+    updated_at = now()
+where id = '40000000-0000-4000-8000-000000000002';
 
 insert into public.organizations (
   id,
@@ -435,6 +545,19 @@ set status = excluded.status,
     submitted_at = excluded.submitted_at,
     expires_at = excluded.expires_at,
     updated_at = now();
+
+update public.animal_listings
+set foster_urgency = 'MEDIUM',
+    foster_duration = 'UNTIL_ADOPTION',
+    food_covered = true,
+    vet_covered = true,
+    transport_available = false,
+    good_with_children = true,
+    good_with_other_animals = true,
+    medical_needs = 'Vaccinated and waiting for foster placement.',
+    home_fit = 'Patient home with a quiet decompression space.',
+    updated_at = now()
+where id = '40000000-0000-4000-8000-000000000009';
 
 insert into public.reports (
   id,

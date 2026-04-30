@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { formatAge, formatDuration } from '../data/mockData';
+import { formatDuration } from '../data/mockData';
 import {
   Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
   PrivacyNote, UrgencyBadge, CoverageChips, FilterSheet, DemoBanner
@@ -10,6 +10,30 @@ import {
   AlertTriangle, Bookmark, ChevronRight, Dog, Cat, Filter, FileText,
   Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye
 } from 'lucide-react';
+
+function getSizeLabel(size, t) {
+  if (size === 'SMALL') return t('common.small');
+  if (size === 'MEDIUM') return t('common.medium');
+  if (size === 'LARGE') return t('common.large');
+  return size || t('common.unknown');
+}
+
+function formatFosterAge(months, t) {
+  if (!months) return t('common.unknown');
+  if (months < 12) {
+    return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  const yearLabel = years === 1 ? t('common.year') : t('common.years');
+
+  if (remainingMonths > 0) {
+    return `${years} ${yearLabel} ${remainingMonths} ${remainingMonths === 1 ? t('common.month') : t('common.months')}`;
+  }
+
+  return `${years} ${yearLabel}`;
+}
 
 function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
   return (
@@ -25,7 +49,7 @@ function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
             <div>
               <h3 className="text-base font-semibold text-[#1F2924] font-heading">{fcase.animalName}</h3>
               <p className="text-xs text-[#57645C]">
-                {fcase.species === 'DOG' ? t('common.dog') : t('common.cat')} · {formatAge(fcase.ageMonths)} · {fcase.sizeLabel}
+                {fcase.species === 'DOG' ? t('common.dog') : t('common.cat')} - {formatFosterAge(fcase.ageMonths, t)} - {getSizeLabel(fcase.sizeLabel, t)}
               </p>
             </div>
             <UrgencyBadge urgency={fcase.urgency} />
@@ -53,8 +77,10 @@ function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
           <div className="flex gap-2 pt-1">
             <PrimaryButton onClick={onView} className="flex-1 !py-2 !text-sm">{t('foster.viewCase')}</PrimaryButton>
             <button
+              type="button"
               data-testid={`foster-save-${fcase.id}`}
               onClick={onSave}
+              aria-label={t('foster.saveCase')}
               className="p-2 rounded-xl border border-[#E4E2DC] text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
             >
               <Bookmark size={16} />
@@ -68,7 +94,7 @@ function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
 
 function FosterCaseDetail({ fcase, onClose, onApply, t, lang }) {
   return (
-    <div data-testid="foster-detail-screen" className="absolute inset-0 z-30 bg-[#F8F7F4] flex flex-col">
+    <div data-testid="foster-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
       <ScreenHeader title={fcase.animalName} onBack={onClose} />
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="relative h-56">
@@ -84,7 +110,7 @@ function FosterCaseDetail({ fcase, onClose, onApply, t, lang }) {
           <div>
             <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{fcase.animalName}</h1>
             <p className="text-sm text-[#57645C] mt-1">
-              {fcase.species === 'DOG' ? 'Dog' : 'Cat'} · {formatAge(fcase.ageMonths)} · {fcase.sizeLabel}
+              {fcase.species === 'DOG' ? t('common.dog') : t('common.cat')} - {formatFosterAge(fcase.ageMonths, t)} - {getSizeLabel(fcase.sizeLabel, t)}
             </p>
           </div>
 
@@ -138,7 +164,7 @@ function FosterCaseDetail({ fcase, onClose, onApply, t, lang }) {
               <MapPin size={14} className="text-[#9BAE96]" />
               <span>{fcase.city}{fcase.coarseArea ? ` / ${fcase.coarseArea}` : ''}</span>
             </div>
-            <PrivacyNote text="Exact location stays private." />
+            <PrivacyNote text={t('matches.locationPrivate')} />
           </div>
 
           <div className="bg-[#E3ECE4]/40 rounded-2xl p-4 border border-[#E3ECE4] space-y-2.5">
@@ -146,7 +172,7 @@ function FosterCaseDetail({ fcase, onClose, onApply, t, lang }) {
             <div className="space-y-2">
               {[t('foster.step1'), t('foster.step2'), t('foster.step3')].map((step, i) => (
                 <div key={i} className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-[#9BAE96] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-semibold">{i + 1}</div>
+                  <div className="w-5 h-5 rounded-full bg-[#2C402B] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-semibold">{i + 1}</div>
                   <span className="text-sm text-[#57645C]">{step}</span>
                 </div>
               ))}
@@ -192,11 +218,11 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
   };
 
   const validationMessage = () => {
-    if (step === 0) return 'Select your housing type before continuing.';
-    if (step === 1) return 'Add at least 20 characters about your animal experience.';
-    if (step === 2) return 'Select availability, transport, and medical-needs ability.';
-    if (step === 3) return 'Complete other pets, children at home, and a motivation of at least 20 characters.';
-    return 'Complete the required fields.';
+    if (step === 0) return t('foster.validationHousing');
+    if (step === 1) return t('foster.validationExperience');
+    if (step === 2) return t('foster.validationAvailability');
+    if (step === 3) return t('foster.validationHousehold');
+    return t('foster.validationRequired');
   };
 
   const goNext = () => {
@@ -221,7 +247,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
   const toggleClass = (active) => `flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${active ? 'bg-[#2C402B] text-white border-[#2C402B]' : 'bg-white text-[#57645C] border-[#E4E2DC]'}`;
 
   return (
-    <div data-testid="foster-application-flow" className="absolute inset-0 z-30 bg-[#F8F7F4] flex flex-col">
+    <div data-testid="foster-application-flow" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
       <ScreenHeader
         title={`${t('foster.applyFoster')} - ${fcase.animalName}`}
         onBack={step === 0 ? onClose : () => setStep(s => s - 1)}
@@ -246,11 +272,11 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
             <div>
               <label className={labelClass}>{t('foster.housingType')}</label>
               <select value={form.housingType} onChange={e => update('housingType', e.target.value)} className={inputClass}>
-                <option value="">Select...</option>
-                <option value="apartment">Apartment</option>
-                <option value="house_yard">House with yard</option>
-                <option value="house_no_yard">House without yard</option>
-                <option value="rural">Rural property</option>
+                <option value="">{t('foster.select')}</option>
+                <option value="apartment">{t('foster.apartment')}</option>
+                <option value="house_yard">{t('foster.houseWithYard')}</option>
+                <option value="house_no_yard">{t('foster.houseNoYard')}</option>
+                <option value="rural">{t('foster.ruralProperty')}</option>
               </select>
             </div>
           </div>
@@ -263,7 +289,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
               <textarea
                 value={form.experience}
                 onChange={e => update('experience', e.target.value)}
-                placeholder="Describe your experience with animals..."
+                placeholder={t('foster.experiencePlaceholder')}
                 className={`${inputClass} min-h-[100px] resize-none`}
               />
             </div>
@@ -275,25 +301,25 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
             <div>
               <label className={labelClass}>{t('foster.availabilityField')}</label>
               <select value={form.availability} onChange={e => update('availability', e.target.value)} className={inputClass}>
-                <option value="">Select...</option>
-                <option value="few_days">Few days</option>
-                <option value="1-2_weeks">1-2 weeks</option>
-                <option value="1_month">1 month</option>
-                <option value="until_adoption">Until adoption</option>
+                <option value="">{t('foster.select')}</option>
+                <option value="few_days">{t('foster.fewDays')}</option>
+                <option value="1-2_weeks">{t('foster.oneTwoWeeks')}</option>
+                <option value="1_month">{t('foster.oneMonth')}</option>
+                <option value="until_adoption">{t('foster.untilAdoption')}</option>
               </select>
             </div>
             <div>
               <label className={labelClass}>{t('foster.canTransport')}</label>
               <div className="flex gap-3">
-                <button className={toggleClass(form.canTransport === true)} onClick={() => update('canTransport', true)}>Yes</button>
-                <button className={toggleClass(form.canTransport === false)} onClick={() => update('canTransport', false)}>No</button>
+                <button type="button" className={toggleClass(form.canTransport === true)} onClick={() => update('canTransport', true)}>{t('common.yes')}</button>
+                <button type="button" className={toggleClass(form.canTransport === false)} onClick={() => update('canTransport', false)}>{t('common.no')}</button>
               </div>
             </div>
             <div>
               <label className={labelClass}>{t('foster.canHandleMedical')}</label>
               <div className="flex gap-3">
-                <button className={toggleClass(form.canHandleMedicalNeeds === true)} onClick={() => update('canHandleMedicalNeeds', true)}>Yes</button>
-                <button className={toggleClass(form.canHandleMedicalNeeds === false)} onClick={() => update('canHandleMedicalNeeds', false)}>No</button>
+                <button type="button" className={toggleClass(form.canHandleMedicalNeeds === true)} onClick={() => update('canHandleMedicalNeeds', true)}>{t('common.yes')}</button>
+                <button type="button" className={toggleClass(form.canHandleMedicalNeeds === false)} onClick={() => update('canHandleMedicalNeeds', false)}>{t('common.no')}</button>
               </div>
             </div>
           </div>
@@ -306,7 +332,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
               <input
                 value={form.otherPets}
                 onChange={e => update('otherPets', e.target.value)}
-                placeholder="e.g., One calm adult cat"
+                placeholder={t('foster.otherPetsPlaceholder')}
                 className={inputClass}
               />
             </div>
@@ -315,7 +341,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
               <input
                 value={form.childrenInHome}
                 onChange={e => update('childrenInHome', e.target.value)}
-                placeholder="e.g., No children"
+                placeholder={t('foster.childrenPlaceholder')}
                 className={inputClass}
               />
             </div>
@@ -324,7 +350,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
               <textarea
                 value={form.motivation}
                 onChange={e => update('motivation', e.target.value)}
-                placeholder="Why do you want to foster this animal?"
+                placeholder={t('foster.motivationPlaceholder')}
                 className={`${inputClass} min-h-[100px] resize-none`}
               />
             </div>
@@ -334,13 +360,13 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
         {step === 4 && (
           <div className="space-y-3 mt-2">
             <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-              <h4 className="text-sm font-semibold text-[#1F2924]">Application Summary</h4>
+              <h4 className="text-sm font-semibold text-[#1F2924]">{t('foster.applicationSummary')}</h4>
               {[
                 [t('foster.housingType'), form.housingType || '-'],
                 [t('foster.animalExperience'), form.experience || '-'],
                 [t('foster.availabilityField'), form.availability || '-'],
-                [t('foster.canTransport'), form.canTransport === true ? 'Yes' : form.canTransport === false ? 'No' : '-'],
-                [t('foster.canHandleMedical'), form.canHandleMedicalNeeds === true ? 'Yes' : form.canHandleMedicalNeeds === false ? 'No' : '-'],
+                [t('foster.canTransport'), form.canTransport === true ? t('common.yes') : form.canTransport === false ? t('common.no') : '-'],
+                [t('foster.canHandleMedical'), form.canHandleMedicalNeeds === true ? t('common.yes') : form.canHandleMedicalNeeds === false ? t('common.no') : '-'],
                 [t('foster.otherPets'), form.otherPets || '-'],
                 [t('foster.childrenInHome'), form.childrenInHome || '-'],
                 [t('foster.motivation'), form.motivation || '-'],
@@ -367,7 +393,7 @@ function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
   );
 }
 
-function ApplicationCard({ app, t }) {
+function ApplicationCard({ app, t, onOpenMessages }) {
   const statusMap = {
     DRAFT: { label: t('common.draft'), variant: 'default' },
     SUBMITTED: { label: t('common.submitted'), variant: 'sky' },
@@ -384,27 +410,31 @@ function ApplicationCard({ app, t }) {
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-base font-semibold text-[#1F2924] font-heading">{app.animalName}</h3>
-          <p className="text-xs text-[#57645C]">Foster · {app.rescuerName}</p>
+          <p className="text-xs text-[#57645C]">{t('messages.foster')} - {app.rescuerName}</p>
         </div>
         <Badge variant={s.variant}>{s.label}</Badge>
       </div>
       {app.status === 'ACCEPTED' && (
-        <PrimaryButton className="!py-2 !text-sm">Open messages</PrimaryButton>
+        <PrimaryButton onClick={() => onOpenMessages(app)} className="!py-2 !text-sm">{t('matches.openMessages')}</PrimaryButton>
       )}
     </div>
   );
 }
 
-function ManageDashboard({ t, isDemoMode }) {
+function ManageDashboard({ t, isDemoMode, fosterCases, applications }) {
+  const activeCases = fosterCases.filter(item => item.status === 'ACTIVE').length;
+  const newApplications = applications.filter(item => item.status === 'SUBMITTED' || item.status === 'IN_REVIEW').length;
+  const urgentCases = fosterCases.filter(item => item.status === 'ACTIVE' && item.urgency === 'HIGH').length;
+
   return (
     <div data-testid="foster-manage-dashboard" className="space-y-4 px-5 pt-4 pb-8">
       {isDemoMode && <DemoBanner text={t('foster.demoBanner')} />}
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: t('foster.activeCases'), value: '12', color: 'bg-[#E3ECE4] text-[#2C402B]' },
-          { label: t('foster.newApplications'), value: '5', color: 'bg-[#D8EAF0] text-[#3A7080]' },
-          { label: t('foster.urgentCases'), value: '3', color: 'bg-[#F5DDD0] text-[#8B4C2F]' },
+          { label: t('foster.activeCases'), value: activeCases, color: 'bg-[#E3ECE4] text-[#2C402B]' },
+          { label: t('foster.newApplications'), value: newApplications, color: 'bg-[#D8EAF0] text-[#3A7080]' },
+          { label: t('foster.urgentCases'), value: urgentCases, color: 'bg-[#F5DDD0] text-[#8B4C2F]' },
         ].map(s => (
           <div key={s.label} className={`${s.color} rounded-2xl p-3 text-center`}>
             <div className="text-2xl font-bold font-heading">{s.value}</div>
@@ -418,7 +448,7 @@ function ManageDashboard({ t, isDemoMode }) {
           { label: t('foster.addCase'), icon: Plus },
           { label: t('foster.reviewApps'), icon: ClipboardList },
         ].map(item => (
-          <button key={item.label} className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors">
+          <button type="button" key={item.label} className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors">
             <div className="w-10 h-10 rounded-xl bg-[#E3ECE4] flex items-center justify-center">
               <item.icon size={18} className="text-[#2C402B]" />
             </div>
@@ -443,7 +473,9 @@ function FilterGroup({ title, children }) {
 function FilterPill({ active, children, onClick }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={Boolean(active)}
       className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
         active
           ? 'bg-[#2C402B] text-white border-[#2C402B]'
@@ -455,15 +487,20 @@ function FilterPill({ active, children, onClick }) {
   );
 }
 
-function RescuerAccessCard({ state, onRequestAccess, onDemoPreview, t }) {
-  if (state === 'request_sent') {
+function RescuerAccessCard({ state, loading, error, onRequestAccess, onDemoPreview, t }) {
+  if (state === 'request_sent' || state === 'rejected') {
     return (
       <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
         <div className="w-14 h-14 rounded-2xl bg-[#D8EAF0] flex items-center justify-center mx-auto">
           <Clock size={26} className="text-[#3A7080]" />
         </div>
-        <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.requestSent')}</h3>
-        <p className="text-sm text-[#57645C]">{t('foster.requestSentDesc')}</p>
+        <h3 className="text-base font-semibold text-[#1F2924] font-heading">
+          {state === 'rejected' ? t('foster.requestRejected') : t('foster.requestSent')}
+        </h3>
+        <p className="text-sm text-[#57645C]">
+          {state === 'rejected' ? t('foster.requestRejectedDesc') : t('foster.requestSentDesc')}
+        </p>
+        {error && <p className="text-xs font-medium text-[#8B4C2F]">{error}</p>}
         <SecondaryButton onClick={onDemoPreview} icon={Eye}>{t('foster.demoPreview')}</SecondaryButton>
       </div>
     );
@@ -476,21 +513,28 @@ function RescuerAccessCard({ state, onRequestAccess, onDemoPreview, t }) {
       </div>
       <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.rescuerAccess')}</h3>
       <p className="text-sm text-[#57645C]">{t('foster.rescuerAccessDesc')}</p>
-      <PrimaryButton onClick={onRequestAccess}>{t('foster.requestAccess')}</PrimaryButton>
+      {error && <p className="text-xs font-medium text-[#8B4C2F]">{error}</p>}
+      <PrimaryButton onClick={onRequestAccess} disabled={loading}>
+        {loading ? t('auth.working') : t('foster.requestAccess')}
+      </PrimaryButton>
     </div>
   );
 }
 
 export default function FosterTab() {
-  const { t, lang, fosterCases, fosterApplications, submitFosterApplication, rescuerAccessState, setRescuerAccessState } = useApp();
+  const { t, lang, fosterCases, fosterApplications, submitFosterApplication, openFosterConversation, rescuerAccessState, setRescuerAccessState, requestRescuerAccess } = useApp();
 
   const [section, setSection] = useState('find');
   const [viewCase, setViewCase] = useState(null);
   const [applyCase, setApplyCase] = useState(null);
   const [applicationSuccess, setApplicationSuccess] = useState(false);
+  const [applicationError, setApplicationError] = useState('');
+  const [fosterNotice, setFosterNotice] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState(null);
   const [urgencyFilter, setUrgencyFilter] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(false);
+  const [accessError, setAccessError] = useState('');
   const [fosterFilters, setFosterFilters] = useState({
     size: null,
     duration: null,
@@ -506,6 +550,19 @@ export default function FosterTab() {
   });
   const canManageFoster = rescuerAccessState === 'verified' || rescuerAccessState === 'demo_preview';
   const visibleSection = !canManageFoster && section === 'manage' ? 'find' : section;
+
+  const handleRequestAccess = async () => {
+    setAccessLoading(true);
+    setAccessError('');
+
+    try {
+      await requestRescuerAccess();
+    } catch (error) {
+      setAccessError(error.message || t('foster.requestAccessFailed'));
+    } finally {
+      setAccessLoading(false);
+    }
+  };
 
   const setChoiceFilter = (key, value) => {
     setFosterFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
@@ -578,13 +635,21 @@ export default function FosterTab() {
       <ApplicationFlow
         fcase={applyCase}
         onClose={() => setApplyCase(null)}
-        onSubmit={(formData) => {
-          submitFosterApplication(applyCase.id, formData);
-          setApplyCase(null);
-          setViewCase(null);
-          setApplicationSuccess(true);
-          setTimeout(() => setApplicationSuccess(false), 3000);
-          setSection('requests');
+        onSubmit={async (formData) => {
+          try {
+            await submitFosterApplication(applyCase.id, formData);
+            setApplicationError('');
+            setApplyCase(null);
+            setViewCase(null);
+            setApplicationSuccess(true);
+            setTimeout(() => setApplicationSuccess(false), 3000);
+            setSection('requests');
+          } catch (error) {
+            setApplicationError(error.message || t('foster.validationRequired'));
+            setApplyCase(null);
+            setViewCase(null);
+            setSection('requests');
+          }
         }}
         t={t}
       />
@@ -599,6 +664,7 @@ export default function FosterTab() {
         <div className="flex gap-1 bg-[#EFEDE8] rounded-xl p-1">
           {sections.map(s => (
             <button
+              type="button"
               key={s.key}
               data-testid={`foster-section-${s.key}`}
               onClick={() => setSection(s.key)}
@@ -629,12 +695,20 @@ export default function FosterTab() {
             </div>
 
             <div className="space-y-3">
+              {fosterNotice && (
+                <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
+                  <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
+                </div>
+              )}
               {filteredCases.map(fc => (
                 <FosterCaseCard
                   key={fc.id}
                   fcase={fc}
                   onView={() => setViewCase(fc)}
-                  onSave={() => {}}
+                  onSave={() => {
+                    setFosterNotice(t('foster.savedCase'));
+                    setTimeout(() => setFosterNotice(''), 2000);
+                  }}
                   t={t}
                   lang={lang}
                 />
@@ -644,7 +718,9 @@ export default function FosterTab() {
             {!canManageFoster && (
               <RescuerAccessCard
                 state={rescuerAccessState}
-                onRequestAccess={() => setRescuerAccessState('request_sent')}
+                loading={accessLoading}
+                error={accessError}
+                onRequestAccess={handleRequestAccess}
                 onDemoPreview={() => {
                   setRescuerAccessState('demo_preview');
                   setSection('manage');
@@ -657,6 +733,11 @@ export default function FosterTab() {
 
         {visibleSection === 'requests' && (
           <div className="px-5 pt-3 space-y-3">
+            {applicationError && (
+              <div className="bg-[#F5DDD0] rounded-2xl p-4 border border-[#E8C3AF] animate-scaleIn">
+                <p className="text-sm font-semibold text-[#8B4C2F]">{applicationError}</p>
+              </div>
+            )}
             {applicationSuccess && (
               <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
                 <p className="text-sm font-semibold text-[#2C5E3F]">{t('foster.applicationSent')}</p>
@@ -671,14 +752,16 @@ export default function FosterTab() {
               />
             ) : (
               fosterApplications.map(app => (
-                <ApplicationCard key={app.id} app={app} t={t} />
+                <ApplicationCard key={app.id} app={app} t={t} onOpenMessages={openFosterConversation} />
               ))
             )}
 
             {!canManageFoster && (
               <RescuerAccessCard
                 state={rescuerAccessState}
-                onRequestAccess={() => setRescuerAccessState('request_sent')}
+                loading={accessLoading}
+                error={accessError}
+                onRequestAccess={handleRequestAccess}
                 onDemoPreview={() => {
                   setRescuerAccessState('demo_preview');
                   setSection('manage');
@@ -690,24 +773,29 @@ export default function FosterTab() {
         )}
 
         {visibleSection === 'manage' && canManageFoster && (
-          <ManageDashboard t={t} isDemoMode={rescuerAccessState === 'demo_preview'} />
+          <ManageDashboard
+            t={t}
+            isDemoMode={rescuerAccessState === 'demo_preview'}
+            fosterCases={fosterCases}
+            applications={fosterApplications}
+          />
         )}
       </div>
 
       <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('matches.filters')}>
-        <FilterGroup title="Size">
+        <FilterGroup title={t('matches.size')}>
           {['SMALL', 'MEDIUM', 'LARGE'].map(size => (
             <FilterPill key={size} active={fosterFilters.size === size} onClick={() => setChoiceFilter('size', size)}>
-              {size.charAt(0) + size.slice(1).toLowerCase()}
+              {getSizeLabel(size, t)}
             </FilterPill>
           ))}
         </FilterGroup>
 
-        <FilterGroup title="Age">
+        <FilterGroup title={t('matches.age')}>
           {[
-            ['YOUNG', 'Young'],
-            ['ADULT', 'Adult'],
-            ['SENIOR', 'Senior'],
+            ['YOUNG', t('foster.young')],
+            ['ADULT', t('foster.adult')],
+            ['SENIOR', t('foster.senior')],
           ].map(([value, label]) => (
             <FilterPill key={value} active={fosterFilters.ageRange === value} onClick={() => setChoiceFilter('ageRange', value)}>
               {label}
@@ -717,10 +805,10 @@ export default function FosterTab() {
 
         <FilterGroup title={t('foster.duration')}>
           {[
-            ['FEW_DAYS', 'Few days'],
-            ['ONE_TWO_WEEKS', '1-2 weeks'],
-            ['ONE_MONTH', '1 month'],
-            ['UNTIL_ADOPTION', 'Until adoption'],
+            ['FEW_DAYS', t('foster.fewDays')],
+            ['ONE_TWO_WEEKS', t('foster.oneTwoWeeks')],
+            ['ONE_MONTH', t('foster.oneMonth')],
+            ['UNTIL_ADOPTION', t('foster.untilAdoption')],
           ].map(([value, label]) => (
             <FilterPill key={value} active={fosterFilters.duration === value} onClick={() => setChoiceFilter('duration', value)}>
               {label}
@@ -728,7 +816,7 @@ export default function FosterTab() {
           ))}
         </FilterGroup>
 
-        <FilterGroup title="Area">
+        <FilterGroup title={t('foster.area')}>
           {['Bucharest', 'Cluj-Napoca', 'Sector 1', 'Sector 4', 'Centru'].map(area => (
             <FilterPill key={area} active={fosterFilters.area === area} onClick={() => setChoiceFilter('area', area)}>
               {area}
@@ -736,7 +824,7 @@ export default function FosterTab() {
           ))}
         </FilterGroup>
 
-        <FilterGroup title="Home fit">
+        <FilterGroup title={t('foster.homeFit')}>
           <FilterPill active={fosterFilters.goodWithChildren} onClick={() => toggleBooleanFilter('goodWithChildren')}>
             {t('foster.goodWithChildren')}
           </FilterPill>
@@ -747,10 +835,10 @@ export default function FosterTab() {
 
         <FilterGroup title={t('foster.medicalNeeds')}>
           <FilterPill active={fosterFilters.medicalNeeds === 'YES'} onClick={() => setChoiceFilter('medicalNeeds', 'YES')}>
-            Has medical needs
+            {t('foster.hasMedicalNeeds')}
           </FilterPill>
           <FilterPill active={fosterFilters.medicalNeeds === 'NO'} onClick={() => setChoiceFilter('medicalNeeds', 'NO')}>
-            No medical needs
+            {t('foster.noMedicalNeeds')}
           </FilterPill>
         </FilterGroup>
 
@@ -766,15 +854,15 @@ export default function FosterTab() {
           </FilterPill>
         </FilterGroup>
 
-        <FilterGroup title="Safety">
+        <FilterGroup title={t('foster.safety')}>
           <FilterPill active={fosterFilters.verifiedRescuerOnly} onClick={() => toggleBooleanFilter('verifiedRescuerOnly')}>
-            Verified rescuer only
+            {t('foster.verifiedRescuerOnly')}
           </FilterPill>
         </FilterGroup>
 
         <div className="flex gap-3 pt-2">
-          <SecondaryButton onClick={resetFilters}>Reset</SecondaryButton>
-          <PrimaryButton onClick={() => setShowFilters(false)}>Save</PrimaryButton>
+          <SecondaryButton onClick={resetFilters}>{t('foster.reset')}</SecondaryButton>
+          <PrimaryButton onClick={() => setShowFilters(false)}>{t('foster.saveFilters')}</PrimaryButton>
         </div>
       </FilterSheet>
     </div>

@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
-  VerificationBadge
+  VerificationBadge, Modal, PrimaryButton
 } from '../components/SharedComponents';
 import {
   User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2, XCircle,
   Clock, ChevronRight, Edit3, Plus, Settings, Bell, HelpCircle,
-  FileText, Trash2, EyeOff, Heart, Home, AlertTriangle, Languages
+  FileText, Trash2, EyeOff, Heart, Home, AlertTriangle, Languages, LogOut
 } from 'lucide-react';
 
-function AnimalCard({ animal, t, onAction = () => {} }) {
-  const completenessColor = animal.profileCompleteness >= 90 ? 'text-[#2C402B]' : animal.profileCompleteness >= 70 ? 'text-[#9BAE96]' : 'text-[#C07E67]';
+function AnimalCard({
+  animal,
+  t,
+  onEditAnimal = () => {},
+  onMatchSettings = () => {},
+  onDeleteAnimal = () => {},
+}) {
+  const completenessColor = animal.profileCompleteness >= 90 ? 'text-[#2C402B]' : animal.profileCompleteness >= 70 ? 'text-[#6A5A2A]' : 'text-[#8B4C2F]';
   const modeLabels = {
     PLAY: t('matches.play'),
     SOCIAL: t('matches.social'),
@@ -35,7 +41,7 @@ function AnimalCard({ animal, t, onAction = () => {} }) {
             <div>
               <h3 className="text-base font-semibold text-[#1F2924] font-heading">{animal.name}</h3>
               <p className="text-xs text-[#57645C]">
-                {getSpeciesLabel(animal.species, t)} - {animal.breed} - {animal.sex === 'MALE' ? t('common.male') : t('common.female')} - {formatProfileAge(animal.ageMonths, t)}
+                {getSpeciesLabel(animal.species, t)} - {animal.breed} - {getSexLabel(animal.sex, t)} - {formatProfileAge(animal.ageMonths, t)}
               </p>
             </div>
             <VerificationBadge status={animal.verificationStatus} label="" />
@@ -44,7 +50,7 @@ function AnimalCard({ animal, t, onAction = () => {} }) {
             <span className={`text-xs font-semibold ${completenessColor}`}>{t('profile.profileComplete')}: {animal.profileCompleteness}%</span>
           </div>
           <div className="flex flex-wrap gap-1">
-            {animal.activeMatchModes.map(m => (
+            {(animal.activeMatchModes || []).map(m => (
               <Badge key={m} variant={m === 'VERIFIED_MATE' ? 'sage' : 'default'}>
                 {modeLabels[m] || m}
               </Badge>
@@ -52,16 +58,25 @@ function AnimalCard({ animal, t, onAction = () => {} }) {
           </div>
           <div className="flex gap-2 pt-1">
             <button
-              onClick={() => onAction(`${animal.name}: ${t('profile.editAnimalNotice')}`)}
+              type="button"
+              onClick={() => onEditAnimal(animal)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
             >
               <Edit3 size={12} />{t('profile.editAnimal')}
             </button>
             <button
-              onClick={() => onAction(`${animal.name}: ${t('profile.matchSettingsNotice')}`)}
+              type="button"
+              onClick={() => onMatchSettings(animal)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
             >
               <Settings size={12} />{t('profile.matchSettings')}
+            </button>
+            <button
+              type="button"
+              onClick={() => onDeleteAnimal(animal)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F5D5D8] border border-[#F0BEC3] text-xs font-medium text-[#9A4A4F] hover:bg-[#EFC4C9] transition-colors"
+            >
+              <Trash2 size={12} />{t('profile.deleteAnimal')}
             </button>
           </div>
         </div>
@@ -73,6 +88,7 @@ function AnimalCard({ animal, t, onAction = () => {} }) {
 function SectionItem({ icon: Icon, label, badge, danger, onClick }) {
   return (
     <button
+      type="button"
       data-testid={`profile-section-${label?.toLowerCase().replace(/\s/g, '-')}`}
       onClick={onClick}
       className="w-full flex items-center gap-3.5 py-3.5 px-1 border-b border-[#E4E2DC]/50 last:border-0 hover:bg-[#FAFAF8] transition-colors rounded-lg"
@@ -98,9 +114,193 @@ function NoticeBanner({ message }) {
   );
 }
 
+function FormField({ label, value, onChange, type = 'text', placeholder = '' }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
+      <input
+        type={type}
+        value={value ?? ''}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+      />
+    </label>
+  );
+}
+
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
+      <select
+        value={value ?? ''}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ProfileEditModal({ draft, t, onChange, onClose, onSave }) {
+  return (
+    <Modal open={Boolean(draft)} onClose={onClose}>
+      {draft && (
+        <div className="p-5 space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-[#1F2924] font-heading">{t('profile.editProfileTitle')}</h2>
+            <p className="text-xs text-[#57645C] mt-1">{t('profile.editProfileDesc')}</p>
+          </div>
+          <div className="space-y-3">
+            <FormField label={t('profile.displayName')} value={draft.displayName} onChange={(value) => onChange({ displayName: value })} />
+            <FormField label={t('profile.city')} value={draft.city} onChange={(value) => onChange({ city: value })} />
+            <FormField label={t('profile.coarseArea')} value={draft.coarseArea} onChange={(value) => onChange({ coarseArea: value })} />
+            <FormField label={t('profile.email')} value={draft.email} onChange={(value) => onChange({ email: value })} />
+            <FormField label={t('profile.phone')} value={draft.phone} onChange={(value) => onChange({ phone: value })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
+            <PrimaryButton onClick={onSave}>{t('profile.saveChanges')}</PrimaryButton>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
+  const previewUrl = draft?.photoPreviewUrl || draft?.photoUrls?.[0] || null;
+
+  return (
+    <Modal open={Boolean(draft)} onClose={onClose}>
+      {draft && (
+        <div className="p-5 space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-[#1F2924] font-heading">{t('profile.editAnimalTitle')}</h2>
+            <p className="text-xs text-[#57645C] mt-1">{t('profile.editAnimalDesc')}</p>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center gap-4 rounded-2xl border border-[#E4E2DC] bg-[#F8F7F4] p-3">
+              <div className="w-20 h-20 overflow-hidden rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
+                {previewUrl ? (
+                  <img src={previewUrl} alt={draft.name || t('profile.photo')} className="h-full w-full object-cover" />
+                ) : draft.species === 'CAT' ? (
+                  <Cat size={28} className="text-[#9BAE96]" />
+                ) : (
+                  <Dog size={28} className="text-[#9BAE96]" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('profile.photo')}</p>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#E4E2DC] bg-white px-3 py-2 text-xs font-semibold text-[#2C402B] hover:bg-[#EFEDE8]">
+                  <Plus size={13} />
+                  {previewUrl ? t('profile.replacePhoto') : t('profile.choosePhoto')}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      onChange({
+                        photoFile: file,
+                        photoPreviewUrl: URL.createObjectURL(file),
+                      });
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+            <FormField label={t('profile.name')} value={draft.name} onChange={(value) => onChange({ name: value })} />
+            <SelectField
+              label={t('profile.species')}
+              value={draft.species}
+              onChange={(value) => onChange({ species: value })}
+              options={[
+                { value: 'DOG', label: t('common.dog') },
+                { value: 'CAT', label: t('common.cat') },
+              ]}
+            />
+            <FormField label={t('profile.breed')} value={draft.breed} onChange={(value) => onChange({ breed: value })} />
+            <SelectField
+              label={t('profile.sex')}
+              value={draft.sex}
+              onChange={(value) => onChange({ sex: value })}
+              options={[
+                { value: 'UNKNOWN', label: t('common.unknown') },
+                { value: 'MALE', label: t('common.male') },
+                { value: 'FEMALE', label: t('common.female') },
+              ]}
+            />
+            <FormField
+              label={t('profile.ageMonths')}
+              type="number"
+              value={draft.ageMonths}
+              onChange={(value) => onChange({ ageMonths: value })}
+            />
+            <SelectField
+              label={t('profile.size')}
+              value={draft.sizeLabel}
+              onChange={(value) => onChange({ sizeLabel: value })}
+              options={[
+                { value: 'SMALL', label: t('common.small') },
+                { value: 'MEDIUM', label: t('common.medium') },
+                { value: 'LARGE', label: t('common.large') },
+              ]}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
+            <PrimaryButton onClick={onSave}>{t('profile.saveChanges')}</PrimaryButton>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function DeleteAnimalModal({ animal, t, onClose, onDelete }) {
+  return (
+    <Modal open={Boolean(animal)} onClose={onClose}>
+      {animal && (
+        <div className="p-5 space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#F5D5D8] flex items-center justify-center">
+            <Trash2 size={22} className="text-[#CD7A7E]" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-[#1F2924] font-heading">{t('profile.deleteAnimalTitle')}</h2>
+            <p className="text-sm text-[#57645C] mt-1">
+              {t('profile.deleteAnimalDesc').replace('{animalName}', animal.name)}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
+            <PrimaryButton
+              onClick={onDelete}
+              className="bg-[#8F343D] hover:bg-[#7A2B33]"
+            >
+              {t('profile.deleteAnimal')}
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 function getSpeciesLabel(species, t) {
   if (species === 'DOG') return t('common.dog');
   if (species === 'CAT') return t('common.cat');
+  return t('common.unknown');
+}
+
+function getSexLabel(sex, t) {
+  if (sex === 'MALE') return t('common.male');
+  if (sex === 'FEMALE') return t('common.female');
   return t('common.unknown');
 }
 
@@ -185,18 +385,152 @@ function VerificationSection({ user, animals, t }) {
 }
 
 export default function ProfileTab() {
-  const { t, lang, toggleLang, user, myAnimals } = useApp();
+  const { t, lang, toggleLang, user, updateUserProfile, myAnimals, saveAnimalProfile, deleteAnimalProfile, authConfigured, signOut } = useApp();
   const [activeSection, setActiveSection] = useState(null);
   const [notice, setNotice] = useState('');
+  const [profileDraft, setProfileDraft] = useState(null);
+  const [animalDraft, setAnimalDraft] = useState(null);
+  const [deleteDraft, setDeleteDraft] = useState(null);
   const showNotice = (message) => setNotice(message);
+  const openProfileEditor = () => {
+    setNotice('');
+    setProfileDraft({
+      displayName: user.displayName || '',
+      city: user.city || '',
+      coarseArea: user.coarseArea || '',
+      email: user.email || '',
+      phone: user.phone || '',
+    });
+  };
+  const openAnimalEditor = (animal) => {
+    setNotice('');
+    setAnimalDraft({
+      id: animal.id,
+      name: animal.name || '',
+      species: animal.species || 'DOG',
+      breed: animal.breed || '',
+      sex: animal.sex || 'MALE',
+      ageMonths: String(animal.ageMonths || ''),
+      sizeLabel: animal.sizeLabel || 'MEDIUM',
+      photoUrls: animal.photoUrls || [],
+      photoFile: null,
+      photoPreviewUrl: '',
+    });
+  };
+  const openNewAnimalEditor = () => {
+    setNotice('');
+    setAnimalDraft({
+      id: null,
+      name: '',
+      species: 'DOG',
+      breed: '',
+      sex: 'UNKNOWN',
+      ageMonths: '',
+      sizeLabel: 'MEDIUM',
+      photoUrls: [],
+      photoFile: null,
+      photoPreviewUrl: '',
+    });
+  };
+  const saveProfileDraft = async () => {
+    try {
+      await updateUserProfile(profileDraft);
+      setProfileDraft(null);
+      showNotice(t('profile.profileSaved'));
+    } catch (error) {
+      showNotice(error.message || t('profile.profileSaveFailed'));
+    }
+  };
+  const saveAnimalDraft = async () => {
+    const normalizedAge = Number.parseInt(animalDraft.ageMonths, 10);
+    const existingAnimal = myAnimals.find((animal) => animal.id === animalDraft.id);
+    const nextAnimal = {
+      ...(existingAnimal || {}),
+      id: animalDraft.id,
+      name: animalDraft.name.trim() || existingAnimal?.name || t('profile.newAnimalFallbackName'),
+      species: animalDraft.species,
+      breed: animalDraft.breed.trim() || existingAnimal?.breed || '',
+      isMixedBreed: existingAnimal?.isMixedBreed || false,
+      sex: animalDraft.sex,
+      ageMonths: Number.isNaN(normalizedAge) ? existingAnimal?.ageMonths ?? null : Math.max(0, normalizedAge),
+      sizeLabel: animalDraft.sizeLabel,
+      weightKg: existingAnimal?.weightKg ?? null,
+      sterilizedStatus: existingAnimal?.sterilizedStatus || 'UNKNOWN',
+      vaccineStatus: existingAnimal?.vaccineStatus || 'UNKNOWN',
+      temperamentTags: existingAnimal?.temperamentTags || [],
+      energyLevel: existingAnimal?.energyLevel || 'MEDIUM',
+      goodWithDogs: existingAnimal?.goodWithDogs ?? null,
+      goodWithCats: existingAnimal?.goodWithCats ?? null,
+      goodWithChildren: existingAnimal?.goodWithChildren ?? null,
+      city: existingAnimal?.city || user.city || '',
+      coarseArea: existingAnimal?.coarseArea || user.coarseArea || '',
+      photoUrls: existingAnimal?.photoUrls || [],
+      photoFile: animalDraft.photoFile || null,
+      photoPreviewUrl: animalDraft.photoPreviewUrl || '',
+      activeMatchModes: existingAnimal?.activeMatchModes || ['PLAY', 'SOCIAL'],
+      profileCompleteness: existingAnimal?.profileCompleteness || 0,
+      verificationStatus: existingAnimal?.verificationStatus || 'UNVERIFIED',
+      healthDocumentStatus: existingAnimal?.healthDocumentStatus || 'UNVERIFIED',
+      adminMateApprovalStatus: existingAnimal?.adminMateApprovalStatus || 'UNVERIFIED',
+    };
+
+    try {
+      await saveAnimalProfile(nextAnimal);
+      setAnimalDraft(null);
+      showNotice(t('profile.animalSaved'));
+    } catch (error) {
+      showNotice(error.message || t('profile.animalSaveFailed'));
+    }
+  };
+  const showMatchSettingsNotice = (animal) => showNotice(`${animal.name}: ${t('profile.matchSettingsNotice')}`);
+  const requestDeleteAnimal = (animal) => {
+    setNotice('');
+    setDeleteDraft(animal);
+  };
+  const confirmDeleteAnimal = async () => {
+    if (!deleteDraft) return;
+
+    try {
+      await deleteAnimalProfile(deleteDraft.id);
+      setDeleteDraft(null);
+      showNotice(t('profile.animalDeleted').replace('{animalName}', deleteDraft.name));
+    } catch (error) {
+      showNotice(error.message || t('profile.animalDeleteFailed'));
+    }
+  };
+  const renderEditModals = () => (
+    <>
+      <ProfileEditModal
+        draft={profileDraft}
+        t={t}
+        onChange={(patch) => setProfileDraft((current) => ({ ...current, ...patch }))}
+        onClose={() => setProfileDraft(null)}
+        onSave={saveProfileDraft}
+      />
+      <AnimalEditModal
+        draft={animalDraft}
+        t={t}
+        onChange={(patch) => setAnimalDraft((current) => ({ ...current, ...patch }))}
+        onClose={() => setAnimalDraft(null)}
+        onSave={saveAnimalDraft}
+      />
+      <DeleteAnimalModal
+        animal={deleteDraft}
+        t={t}
+        onClose={() => setDeleteDraft(null)}
+        onDelete={confirmDeleteAnimal}
+      />
+    </>
+  );
 
   if (activeSection === 'verification') {
     return (
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.verification')} onBack={() => setActiveSection(null)} />
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
           <VerificationSection user={user} animals={myAnimals} t={t} />
         </div>
+        {renderEditModals()}
       </div>
     );
   }
@@ -209,14 +543,16 @@ export default function ProfileTab() {
           onBack={() => setActiveSection(null)}
           right={
             <button
-              onClick={() => showNotice(t('profile.addAnimalNotice'))}
+              type="button"
+              onClick={openNewAnimalEditor}
+              aria-label={t('profile.addAnimal')}
               className="p-2 rounded-lg hover:bg-[#F0EDE8] transition-colors"
             >
               <Plus size={20} className="text-[#2C402B]" />
             </button>
           }
         />
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-3">
+        <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-3">
           <NoticeBanner message={notice} />
           {myAnimals.length === 0 ? (
             <EmptyState
@@ -224,12 +560,23 @@ export default function ProfileTab() {
               title={t('profile.noAnimals')}
               description={t('profile.noAnimalsDesc')}
               action={t('profile.addAnimal')}
+              onAction={openNewAnimalEditor}
             />
           ) : (
-            myAnimals.map(a => <AnimalCard key={a.id} animal={a} t={t} onAction={showNotice} />)
+            myAnimals.map(a => (
+              <AnimalCard
+                key={a.id}
+                animal={a}
+                t={t}
+                onEditAnimal={openAnimalEditor}
+                onMatchSettings={showMatchSettingsNotice}
+                onDeleteAnimal={requestDeleteAnimal}
+              />
+            ))
           )}
-          <SecondaryButton icon={Plus} onClick={() => showNotice(t('profile.addAnimalNotice'))}>{t('profile.addAnimal')}</SecondaryButton>
+          <SecondaryButton icon={Plus} onClick={openNewAnimalEditor}>{t('profile.addAnimal')}</SecondaryButton>
         </div>
+        {renderEditModals()}
       </div>
     );
   }
@@ -251,6 +598,7 @@ export default function ProfileTab() {
             </div>
           </div>
         </div>
+        {renderEditModals()}
       </div>
     );
   }
@@ -259,7 +607,7 @@ export default function ProfileTab() {
     return (
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.help')} onBack={() => setActiveSection(null)} />
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
+        <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
           <NoticeBanner message={notice} />
           <div className="space-y-0">
             <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => showNotice(t('profile.matchingHelpNotice'))} />
@@ -270,17 +618,18 @@ export default function ProfileTab() {
             <SectionItem icon={Dog} label={t('profile.animalWelfare')} onClick={() => showNotice(t('profile.animalWelfareNotice'))} />
           </div>
         </div>
+        {renderEditModals()}
       </div>
     );
   }
 
   return (
-    <div data-testid="profile-tab" className="flex-1 flex flex-col">
+    <div data-testid="profile-tab" className="min-h-0 flex-1 flex flex-col">
       <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
         <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('profile.title')}</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-20 space-y-5">
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-24 space-y-5">
         <NoticeBanner message={notice} />
 
         <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] shadow-sm">
@@ -303,7 +652,8 @@ export default function ProfileTab() {
             </div>
           </div>
           <button
-            onClick={() => showNotice(t('profile.editProfileNotice'))}
+            type="button"
+            onClick={openProfileEditor}
             className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-sm font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
           >
             <Edit3 size={14} />{t('profile.editProfile')}
@@ -313,7 +663,7 @@ export default function ProfileTab() {
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('profile.myAnimals')}</h3>
-            <button className="text-xs font-medium text-[#9BAE96]" onClick={() => setActiveSection('animals')}>{t('profile.viewAll')}</button>
+            <button type="button" className="text-xs font-medium text-[#2C402B]" onClick={() => setActiveSection('animals')}>{t('profile.viewAll')}</button>
           </div>
           {myAnimals.length === 0 ? (
             <EmptyState
@@ -321,10 +671,20 @@ export default function ProfileTab() {
               title={t('profile.noAnimals')}
               description={t('profile.noAnimalsDesc')}
               action={t('profile.addAnimal')}
+              onAction={openNewAnimalEditor}
             />
           ) : (
             <div className="space-y-2">
-              {myAnimals.slice(0, 2).map(a => <AnimalCard key={a.id} animal={a} t={t} onAction={showNotice} />)}
+              {myAnimals.slice(0, 2).map(a => (
+                <AnimalCard
+                  key={a.id}
+                  animal={a}
+                  t={t}
+                  onEditAnimal={openAnimalEditor}
+                  onMatchSettings={showMatchSettingsNotice}
+                  onDeleteAnimal={requestDeleteAnimal}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -332,6 +692,7 @@ export default function ProfileTab() {
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.verification')}</h3>
           <button
+            type="button"
             data-testid="verification-overview"
             onClick={() => setActiveSection('verification')}
             className="w-full bg-white rounded-2xl p-4 border border-[#E4E2DC] shadow-sm hover:bg-[#FAFAF8] transition-colors"
@@ -369,7 +730,8 @@ export default function ProfileTab() {
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.app')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-            <div
+            <button
+              type="button"
               className="w-full flex items-center gap-3.5 py-3.5 px-4 border-b border-[#E4E2DC]/50 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
               onClick={toggleLang}
             >
@@ -378,9 +740,12 @@ export default function ProfileTab() {
               </div>
               <span className="text-sm font-medium text-[#1F2924] flex-1">{t('profile.language')}</span>
               <Badge variant="sage">{lang === 'en' ? t('profile.languageEnglish') : t('profile.languageRomanian')}</Badge>
-            </div>
+            </button>
             <SectionItem icon={Settings} label={t('profile.notifications')} onClick={() => showNotice(t('profile.notificationSettingsNotice'))} />
             <SectionItem icon={FileText} label={t('profile.dataExport')} onClick={() => showNotice(t('profile.dataExportNotice'))} />
+            {authConfigured && (
+              <SectionItem icon={LogOut} label={t('profile.signOut')} onClick={signOut} />
+            )}
           </div>
         </div>
 
@@ -397,9 +762,10 @@ export default function ProfileTab() {
         </div>
 
         <div className="text-center py-4">
-          <p className="text-xs text-[#57645C]/60">PetPal v1.0.0</p>
+          <p className="text-xs text-[#57645C]/60" aria-label={t('profile.appVersion')}>PetPal v1.0.0</p>
         </div>
       </div>
+      {renderEditModals()}
     </div>
   );
 }

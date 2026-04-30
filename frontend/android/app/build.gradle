@@ -1,5 +1,23 @@
 apply plugin: 'com.android.application'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def releaseStoreFile = System.getenv('PETPAL_RELEASE_STORE_FILE') ?: keystoreProperties['storeFile']
+def releaseStorePassword = System.getenv('PETPAL_RELEASE_STORE_PASSWORD') ?: keystoreProperties['storePassword']
+def releaseKeyAlias = System.getenv('PETPAL_RELEASE_KEY_ALIAS') ?: keystoreProperties['keyAlias']
+def releaseKeyPassword = System.getenv('PETPAL_RELEASE_KEY_PASSWORD') ?: keystoreProperties['keyPassword']
+def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
+def allowDebugReleaseSigning = (System.getenv('PETPAL_ALLOW_DEBUG_RELEASE_SIGNING') ?: project.findProperty('PETPAL_ALLOW_DEBUG_RELEASE_SIGNING') ?: 'false').toString().toBoolean()
+
+def resolveReleaseStoreFile = { value ->
+    def candidate = file(value)
+    return candidate.isAbsolute() ? candidate : rootProject.file(value)
+}
+
 android {
     namespace = "com.petpal.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +34,32 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    buildTypes {
+    signingConfigs {
         release {
+            if (hasReleaseSigning) {
+                storeFile resolveReleaseStoreFile(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            manifestPlaceholders = [usesCleartextTraffic: "true"]
+        }
+        release {
+            manifestPlaceholders = [usesCleartextTraffic: "false"]
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            } else if (allowDebugReleaseSigning) {
+                logger.warn("PETPAL_ALLOW_DEBUG_RELEASE_SIGNING=true; release artifact is signed with the debug key and is not store-ready.")
+                signingConfig signingConfigs.debug
+            } else {
+                logger.warn("Release signing is not configured. APK/AAB output may be unsigned until frontend/android/keystore.properties or PETPAL_RELEASE_* env vars are provided.")
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

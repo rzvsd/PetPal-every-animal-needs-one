@@ -371,6 +371,8 @@ export const demoConversations = [
     contextLabel: 'This chat opened after the foster request was accepted.',
     privacyLabel: 'Exact location stays private.',
     animalName: 'Bruno',
+    fosterCaseId: 'foster-bruno',
+    fosterApplicationId: 'app-bruno',
     fosterStatus: 'ACCEPTED',
     organizationName: 'Hope Rescue',
     organizationVerified: true,
