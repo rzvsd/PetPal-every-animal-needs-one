@@ -25,7 +25,7 @@ function getPushPlatform() {
   return 'WEB';
 }
 
-export async function initializePushNotifications({ onToken, onError }) {
+export async function initializePushNotifications({ onToken, onError, onOpenConversation }) {
   if (!Capacitor.isNativePlatform()) {
     return {
       status: 'skipped',
@@ -70,6 +70,10 @@ export async function initializePushNotifications({ onToken, onError }) {
     // Native OS UI handles foreground/background display policy. Keep this listener
     // registered so the plugin is initialized consistently on Android.
   });
+  const actionListener = await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
+    const conversationId = notification?.data?.conversationId;
+    if (typeof conversationId === 'string' && /^[0-9a-f-]{36}$/i.test(conversationId)) onOpenConversation?.(conversationId);
+  });
 
   await PushNotifications.register();
 
@@ -79,6 +83,7 @@ export async function initializePushNotifications({ onToken, onError }) {
       await registrationListener.remove();
       await errorListener.remove();
       await receivedListener.remove();
+      await actionListener.remove();
     },
   };
 }

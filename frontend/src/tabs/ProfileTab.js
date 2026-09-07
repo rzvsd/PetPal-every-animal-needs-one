@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useBackHandler } from '../navigation/backNavigation';
 import {
   Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
   VerificationBadge, Modal, PrimaryButton
@@ -219,6 +220,11 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
               </div>
             </div>
             <FormField label={t('profile.name')} value={draft.name} onChange={(value) => onChange({ name: value })} />
+            <fieldset className="space-y-2"><legend className="font-semibold text-sm">{t('profile.matchSettings')}</legend>
+              {[['PLAY', 'matches.play'], ['SOCIAL', 'matches.social'], ['VERIFIED_MATE', 'matches.verifiedMate']].map(([mode, label]) =>
+                <label key={mode} className="flex items-center gap-2 min-h-11 text-sm"><input type="checkbox" checked={draft.activeMatchModes?.includes(mode) || false}
+                  onChange={event => onChange({ activeMatchModes: event.target.checked ? [...(draft.activeMatchModes || []), mode] : draft.activeMatchModes.filter(value => value !== mode) })} />{t(label)}</label>)}
+            </fieldset>
             <SelectField
               label={t('profile.species')}
               value={draft.species}
@@ -630,6 +636,7 @@ export default function ProfileTab({ environment = 'match' }) {
     createDonationSession,
     paymentReturnNotice,
     clearPaymentReturnNotice,
+    activeScreen, screenParams, goBack,
   } = useApp();
   const isFosterEnvironment = environment === 'foster';
   const [activeSection, setActiveSection] = useState(null);
@@ -645,6 +652,21 @@ export default function ProfileTab({ environment = 'match' }) {
   });
   const [activeHelpTopic, setActiveHelpTopic] = useState(null);
   const showNotice = (message) => setNotice(message);
+  useBackHandler(Boolean(activeSection || activeHelpTopic), () => { setActiveSection(null); setActiveHelpTopic(null); });
+
+  useEffect(() => {
+    if (!activeScreen) return;
+    if (activeScreen === 'verification') setActiveSection('verification');
+    if (activeScreen === 'editAnimal' || activeScreen === 'createAnimal') {
+      const animal = myAnimals.find(item => item.id === screenParams?.animalId);
+      setActiveSection('animals');
+      setAnimalDraft({ id: animal?.id || null, name: animal?.name || '', species: animal?.species || 'DOG',
+        breed: animal?.breed || '', sex: animal?.sex || 'UNKNOWN', ageMonths: String(animal?.ageMonths ?? ''),
+        sizeLabel: animal?.sizeLabel || 'MEDIUM', photoUrls: animal?.photoUrls || [], photoFile: null,
+        photoPreviewUrl: '', activeMatchModes: animal?.activeMatchModes || ['PLAY', 'SOCIAL'] });
+    }
+    goBack();
+  }, [activeScreen, screenParams, myAnimals, goBack]);
 
   useEffect(() => {
     if (!paymentReturnNotice) return;
@@ -718,6 +740,7 @@ export default function ProfileTab({ environment = 'match' }) {
       sex: animal.sex || 'MALE',
       ageMonths: String(animal.ageMonths || ''),
       sizeLabel: animal.sizeLabel || 'MEDIUM',
+      activeMatchModes: animal.activeMatchModes || [],
       photoUrls: animal.photoUrls || [],
       photoFile: null,
       photoPreviewUrl: '',
@@ -733,6 +756,7 @@ export default function ProfileTab({ environment = 'match' }) {
       sex: 'UNKNOWN',
       ageMonths: '',
       sizeLabel: 'MEDIUM',
+      activeMatchModes: ['PLAY', 'SOCIAL'],
       photoUrls: [],
       photoFile: null,
       photoPreviewUrl: '',
@@ -773,7 +797,7 @@ export default function ProfileTab({ environment = 'match' }) {
       photoUrls: existingAnimal?.photoUrls || [],
       photoFile: animalDraft.photoFile || null,
       photoPreviewUrl: animalDraft.photoPreviewUrl || '',
-      activeMatchModes: existingAnimal?.activeMatchModes || ['PLAY', 'SOCIAL'],
+      activeMatchModes: animalDraft.activeMatchModes || ['PLAY', 'SOCIAL'],
       profileCompleteness: existingAnimal?.profileCompleteness || 0,
       verificationStatus: existingAnimal?.verificationStatus || 'UNVERIFIED',
       healthDocumentStatus: existingAnimal?.healthDocumentStatus || 'UNVERIFIED',
@@ -788,7 +812,7 @@ export default function ProfileTab({ environment = 'match' }) {
       showNotice(error.message || t('profile.animalSaveFailed'));
     }
   };
-  const showMatchSettingsNotice = (animal) => showNotice(`${animal.name}: ${t('profile.matchSettingsNotice')}`);
+  const showMatchSettingsNotice = animal => openAnimalEditor(animal);
   const requestDeleteAnimal = (animal) => {
     setNotice('');
     setDeleteDraft(animal);
@@ -1248,6 +1272,7 @@ export default function ProfileTab({ environment = 'match' }) {
               type="button"
               className="w-full flex items-center gap-3.5 py-3.5 px-4 border-b border-[#E4E2DC]/50 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
               onClick={toggleLang}
+              data-testid="language-toggle"
             >
               <div className="w-9 h-9 rounded-xl bg-[#E3ECE4] flex items-center justify-center">
                 <Languages size={17} className="text-[#2C402B]" />

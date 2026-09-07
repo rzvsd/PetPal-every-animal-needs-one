@@ -33,3 +33,8 @@ credentials.json
 
 .DS_Store
 Thumbs.db
+
+# Local verification artifacts can contain session and network details.
+.playwright-cli/
+output/playwright/
+.serena/

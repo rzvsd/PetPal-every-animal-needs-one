@@ -1,660 +1,238 @@
-import React, { useState } from 'react';
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Heart, MessageCircle, X, Bookmark, BookmarkCheck, Info, ShieldCheck, MapPin, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
-import {
-  Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
-  PrivacyNote, VerificationBadge, AnimalSelector, CompatibilityScore,
-  FilterSheet, Modal
-} from '../components/SharedComponents';
-import {
-  Heart, X, Bookmark, BookmarkCheck, Info, ShieldCheck, MapPin,
-  Lock, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat
-} from 'lucide-react';
+import { Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote, FilterSheet, Modal } from '../components/SharedComponents';
+import { loadMatchCandidates, findSocialWalkConversation, requestSocialWalk } from '../services/supabaseApi';
+import { useBackHandler } from '../navigation/backNavigation';
 
-function getSexLabel(sex, t) {
-  if (sex === 'MALE') return t('common.male');
-  if (sex === 'FEMALE') return t('common.female');
-  return t('common.unknown');
+export const emptyMatchFilters = { species: '', verifiedOnly: false, breed: '', sex: '', size: '', area: '' };
+
+export function matchesPreferences(candidate, mode, filters) {
+  const a = candidate.animal;
+  return a.activeMatchModes?.includes(mode)
+    && (mode !== 'VERIFIED_MATE' || (a.healthDocumentStatus === 'VERIFIED' && a.adminMateApprovalStatus === 'VERIFIED'))
+    && (!filters.species || a.species === filters.species)
+    && (!filters.verifiedOnly || candidate.ownerVerificationStatus === 'VERIFIED')
+    && (!filters.breed || a.breed === filters.breed)
+    && (!filters.sex || a.sex === filters.sex)
+    && (!filters.size || a.sizeLabel === filters.size)
+    && (!filters.area || a.city === filters.area || a.coarseArea === filters.area);
 }
 
-function formatMatchAge(months, t) {
-  if (!months) return t('common.unknown');
-  if (months < 12) {
-    return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
-  }
-
+function ageLabel(months, t) {
+  if (months == null) return t('common.unknown');
   const years = Math.floor(months / 12);
-  const remainingMonths = months % 12;
-  const yearLabel = years === 1 ? t('common.year') : t('common.years');
-
-  if (remainingMonths > 0) {
-    return `${years} ${yearLabel} ${remainingMonths} ${remainingMonths === 1 ? t('common.month') : t('common.months')}`;
-  }
-
-  return `${years} ${yearLabel}`;
+  return years ? `${years} ${t(years === 1 ? 'common.year' : 'common.years')}` : `${months} ${t(months === 1 ? 'common.month' : 'common.months')}`;
 }
 
-function getSizeLabel(size, t) {
-  if (size === 'SMALL') return t('common.small');
-  if (size === 'MEDIUM') return t('common.medium');
-  if (size === 'LARGE') return t('common.large');
-  return t('common.unknown');
-}
-
-function translateCompatibilityReason(reason, t) {
-  const normalized = reason.toLowerCase();
-  const reasonMap = {
-    'same species': t('matches.reasonSameSpecies'),
-    'compatible age': t('matches.reasonCompatibleAge'),
-    'compatible size': t('matches.reasonCompatibleSize'),
-    'similar size': t('matches.reasonCompatibleSize'),
-    'nearby area': t('matches.reasonNearbyArea'),
-    'verified owner': t('matches.reasonVerifiedOwner'),
-    'health fields available': t('matches.reasonHealthFields'),
-    'similar energy': t('matches.reasonSimilarEnergy'),
-    'good social fit': t('matches.reasonGoodSocialFit'),
-    'reachable area': t('matches.reasonReachableArea'),
-    'complete profile': t('matches.reasonCompleteProfile'),
-    'calm temperament': t('matches.reasonCalmTemperament'),
-    'both social': t('matches.reasonBothSocial'),
-    'active lifestyle match': t('matches.reasonActiveLifestyle'),
-  };
-
-  return reasonMap[normalized] || reason;
-}
-
-function MatchCard({ candidate, onLike, onPass, onSave, onDetails, onCompatibilityPress, isSaved, t }) {
-  const { animal, mode, compatibilityScore, ownerVerificationStatus, distanceLabel } = candidate;
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const likeOpacity = useTransform(x, [0, 100], [0, 1]);
-  const passOpacity = useTransform(x, [-100, 0], [1, 0]);
-
-  const handleDragEnd = (_, info) => {
-    if (info.offset.x > 100) onLike();
-    else if (info.offset.x < -100) onPass();
-  };
-
-  const modeLabel = mode === 'PLAY' ? t('matches.play') : mode === 'SOCIAL' ? t('matches.social') : t('matches.verifiedMate');
-  const modeColor = mode === 'VERIFIED_MATE' ? 'sage' : mode === 'PLAY' ? 'sky' : 'default';
-
-  return (
-    <motion.div
-      data-testid="match-card"
-      className="absolute inset-0 mx-5 cursor-grab active:cursor-grabbing"
-      style={{ x, rotate }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.7}
-      onDragEnd={handleDragEnd}
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ x: 300, opacity: 0, transition: { duration: 0.3 } }}
-    >
-      <div className="relative w-full h-full rounded-3xl overflow-hidden bg-white shadow-lg border border-[#E4E2DC]/60">
-        <div className="relative h-[58%]">
-          <img
-            src={animal.photoUrls?.[0] || 'https://images.unsplash.com/photo-1642303009474-851f1dd5195f?w=600&h=800&fit=crop'}
-            alt={animal.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 bg-[#2C402B] text-white px-5 py-2 rounded-xl text-lg font-bold rotate-[-15deg] border-2 border-white shadow-lg">
-            {t('matches.like')}
-          </motion.div>
-          <motion.div style={{ opacity: passOpacity }} className="absolute top-8 right-6 bg-[#CD7A7E] text-white px-5 py-2 rounded-xl text-lg font-bold rotate-[15deg] border-2 border-white shadow-lg">
-            {t('matches.notNow')}
-          </motion.div>
-
-          <div className="absolute bottom-0 left-0 right-0 p-5 pb-4">
-            <div className="flex items-end justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight font-heading">{animal.name}</h2>
-                <p className="text-sm text-white/80 mt-0.5">
-                  {animal.breed} - {getSexLabel(animal.sex, t)} - {formatMatchAge(animal.ageMonths, t)}
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label={t('matches.tapScore')}
-                onClick={onCompatibilityPress}
-                className="rounded-full transition-transform active:scale-95"
-              >
-                <CompatibilityScore score={compatibilityScore} label={`${t('matches.compatibility')}: ${compatibilityScore}%`} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-5 space-y-3 h-[42%] overflow-y-auto no-scrollbar">
-          <div className="flex flex-wrap gap-1.5">
-            <Badge variant={modeColor}>{modeLabel}</Badge>
-            {ownerVerificationStatus === 'VERIFIED' && <Badge variant="success"><ShieldCheck size={11} />{t('matches.verifiedBadge')}</Badge>}
-            {animal.vaccineStatus === 'UP_TO_DATE' && <Badge variant="sage"><CheckCircle2 size={11} />{t('matches.vaccinesBadge')}</Badge>}
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
-            <MapPin size={13} className="text-[#9BAE96]" />
-            <span>{distanceLabel}</span>
-          </div>
-
-          <p className="text-sm text-[#57645C] leading-relaxed">
-            {animal.temperamentTags?.join(', ')}
-          </p>
-
-          <div className="flex items-center gap-2.5 pt-2">
-            <button
-              type="button"
-              data-testid="match-pass-btn"
-              onClick={onPass}
-              aria-label={t('matches.passAnimal')}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-[#57645C] font-medium text-sm hover:bg-[#EFEDE8] active:scale-[0.97] transition-all"
-            >
-              <X size={18} />
-              {t('matches.notNow')}
-            </button>
-            <button
-              type="button"
-              data-testid="match-details-btn"
-              onClick={onDetails}
-              aria-label={t('matches.viewDetails')}
-              className="flex items-center justify-center p-3 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-[#57645C] hover:bg-[#EFEDE8] active:scale-[0.97] transition-all"
-            >
-              <Info size={18} />
-            </button>
-            <button
-              type="button"
-              data-testid="match-like-btn"
-              onClick={onLike}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#2C402B] text-white font-medium text-sm hover:bg-[#243623] active:scale-[0.97] transition-all shadow-sm"
-            >
-              <Heart size={18} />
-              {t('matches.like')}
-            </button>
-            <button
-              type="button"
-              data-testid="match-save-btn"
-              onClick={onSave}
-              aria-label={isSaved ? t('matches.savedAnimal') : t('matches.saveAnimal')}
-              className={`flex items-center justify-center p-3 rounded-xl border transition-all active:scale-[0.97] ${
-                isSaved ? 'bg-[#E3ECE4] border-[#9BAE96] text-[#2C402B]' : 'bg-[#F8F7F4] border-[#E4E2DC] text-[#57645C] hover:bg-[#EFEDE8]'
-              }`}
-            >
-              {isSaved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function MatchDetail({ candidate, onClose, onLike, onPass, onCompatibilityPress, t }) {
-  const { animal, compatibilityScore, compatibilityReasons, mode, healthDocumentStatus, distanceLabel } = candidate;
-  const modeLabel = mode === 'PLAY' ? t('matches.play') : mode === 'SOCIAL' ? t('matches.social') : t('matches.verifiedMate');
-
-  return (
-    <div data-testid="match-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader title={animal.name} onBack={onClose} />
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="relative h-72">
-          <img
-            src={animal.photoUrls?.[0] || 'https://images.unsplash.com/photo-1642303009474-851f1dd5195f?w=600&h=800&fit=crop'}
-            alt={animal.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#F8F7F4] via-transparent to-transparent" />
-        </div>
-
-        <div className="px-5 -mt-10 relative space-y-5 pb-32">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{animal.name}</h1>
-            <p className="text-sm text-[#57645C] mt-1">{animal.breed} - {getSexLabel(animal.sex, t)} - {formatMatchAge(animal.ageMonths, t)}</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Badge variant="sage">{modeLabel}</Badge>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-[#57645C]">{t('matches.compatibility')}:</span>
-              <button
-                type="button"
-                aria-label={t('matches.tapScore')}
-                onClick={onCompatibilityPress}
-                className="rounded-full transition-transform active:scale-95"
-              >
-                <CompatibilityScore score={compatibilityScore} label={`${t('matches.compatibility')}: ${compatibilityScore}%`} />
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2.5">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('matches.whyMatch')}</h3>
-            {compatibilityReasons.map((r, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-[#57645C]">
-                <CheckCircle2 size={14} className="text-[#9BAE96] flex-shrink-0" />
-                <span>{translateCompatibilityReason(r, t)}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('matches.temperament')}</h3>
-            <p className="text-sm text-[#57645C]">{animal.temperamentTags?.join(', ')}</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('matches.health')}</h3>
-            <div className="flex flex-wrap gap-2">
-              <VerificationBadge status={animal.vaccineStatus === 'UP_TO_DATE' ? 'VERIFIED' : 'PENDING'} label={t('matches.vaccinesSet')} />
-              <VerificationBadge status={healthDocumentStatus} label={t('matches.healthDocs')} />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('matches.location')}</h3>
-            <div className="flex items-center gap-1.5 text-sm text-[#57645C]">
-              <MapPin size={14} className="text-[#9BAE96]" />
-              <span>{distanceLabel}</span>
-            </div>
-            <PrivacyNote text={t('matches.locationPrivate')} />
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
-        <div className="flex gap-3">
-          <SecondaryButton onClick={onPass} className="flex-1">{t('matches.notNow')}</SecondaryButton>
-          <PrimaryButton onClick={onLike} className="flex-1" icon={Heart}>{t('matches.like')}</PrimaryButton>
-        </div>
-      </div>
+function AnimalFacts({ candidate, t, detailed = false, onVerification }) {
+  const { animal, ownerVerificationStatus } = candidate;
+  return <>
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0"><h2 className="font-heading text-2xl font-bold break-words">{animal.name}</h2>
+        <p className="text-sm text-[#57645C]">{animal.breed} · {ageLabel(animal.ageMonths, t)}</p></div>
+      {ownerVerificationStatus === 'VERIFIED' && <button type="button" onClick={onVerification} aria-label={t('readiness.verificationInfo')} className="verification-info">
+        <ShieldCheck size={15} /><span>{t('readiness.ownerVerified')}</span><Info size={14} />
+      </button>}
     </div>
-  );
+    <p className="flex gap-1.5 items-center text-sm text-[#57645C]"><MapPin size={15} className="shrink-0" />
+      {[animal.city, animal.coarseArea].filter(Boolean).join(' · ') || t('common.unknown')}</p>
+    <div className="flex flex-wrap gap-1.5">{animal.temperamentTags?.slice(0, detailed ? undefined : 3).map(tag => <Badge key={tag} variant="sage">{tag}</Badge>)}</div>
+    {detailed && <>
+      <p className="text-sm">{animal.sex === 'MALE' ? t('common.male') : animal.sex === 'FEMALE' ? t('common.female') : t('common.unknown')}</p>
+      <div className="space-y-2 border-t pt-3">
+        <h3 className="font-semibold">{t('matches.health')}</h3>
+        {animal.vaccineStatus === 'UP_TO_DATE' && <p className="text-sm">{t('readiness.vaccineReported')}</p>}
+        <p className="text-sm">{t(animal.healthDocumentStatus === 'VERIFIED' ? 'readiness.documentsVerified' : 'readiness.healthUnverified')}</p>
+        <p className="text-xs text-[#57645C]">{t('readiness.verificationInfo')}</p>
+      </div><PrivacyNote text={t('matches.locationPrivate')} />
+    </>}
+  </>;
 }
 
-function CompatibilityBreakdownModal({ candidate, onClose, t }) {
-  if (!candidate) return null;
-
-  return (
-    <Modal open={!!candidate} onClose={onClose}>
-      <div data-testid="compatibility-breakdown" className="p-6">
-        <div className="flex items-center gap-4 mb-5">
-          <motion.div
-            initial={{ scale: 0.75, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-          >
-            <CompatibilityScore score={candidate.compatibilityScore} label={`${t('matches.compatibility')}: ${candidate.compatibilityScore}%`} />
-          </motion.div>
-          <div>
-            <h3 className="text-lg font-bold text-[#1F2924] font-heading">{t('matches.compatibilityBreakdown')}</h3>
-            <p className="text-sm text-[#57645C] mt-1">{t('matches.compatibilityBreakdownDesc')}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2.5">
-          {candidate.compatibilityReasons.map((reason, index) => (
-            <motion.div
-              key={`${reason}-${index}`}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.07, duration: 0.22 }}
-              className="flex items-center gap-2.5 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3 py-2.5"
-            >
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.07 + 0.08, type: 'spring', stiffness: 260, damping: 12 }}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E3ECE4]"
-              >
-                <CheckCircle2 size={14} className="text-[#2C402B]" />
-              </motion.span>
-              <span className="text-sm font-medium text-[#1F2924]">{translateCompatibilityReason(reason, t)}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <button type="button" onClick={onClose} className="mt-5 w-full rounded-xl bg-[#2C402B] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#243623]">
-          {t('common.close')}
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-function MatchSuccessModal({ match, onClose, onOpenMessages, t }) {
-  return (
-    <Modal open={!!match} onClose={onClose}>
-      <div className="p-6 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-          className="w-20 h-20 rounded-full bg-[#E3ECE4] flex items-center justify-center mx-auto mb-5"
-        >
-          <Heart size={36} className="text-[#2C402B] fill-[#9BAE96]" />
-        </motion.div>
-        <h2 className="text-2xl font-bold text-[#1F2924] font-heading mb-2">{t('matches.matchSuccess')}</h2>
-        <p className="text-[#57645C] mb-1">
-          <span className="font-semibold">{match?.myAnimal?.name}</span> & <span className="font-semibold">{match?.theirAnimal?.name}</span>
-        </p>
-        <p className="text-sm text-[#57645C] mb-6">{t('matches.matchSuccessDesc')}</p>
-        <PrimaryButton onClick={onOpenMessages}>{t('matches.openMessages')}</PrimaryButton>
-        <button type="button" onClick={onClose} className="w-full mt-3 py-3 text-sm font-medium text-[#57645C] hover:text-[#1F2924] transition-colors">
-          {t('matches.continueBrowsing')}
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-function VerifiedMateLockedState({ animal, t }) {
-  const checks = [
-    { key: 'owner', label: t('matches.ownerVerified'), ok: animal?.verificationStatus === 'VERIFIED' },
-    { key: 'profile', label: t('matches.profileComplete'), ok: (animal?.profileCompleteness || 0) >= 90 },
-    { key: 'age', label: t('matches.ageEligible'), ok: (animal?.ageMonths || 0) >= 12 },
-    { key: 'sex', label: t('matches.sexKnown'), ok: animal?.sex !== 'UNKNOWN' },
-    { key: 'sterilization', label: t('matches.sterilizationKnown'), ok: animal?.sterilizedStatus !== 'UNKNOWN' },
-    { key: 'vaccines', label: t('matches.vaccinesSet'), ok: animal?.vaccineStatus === 'UP_TO_DATE' },
-    { key: 'health', label: t('matches.healthDocs'), ok: animal?.healthDocumentStatus === 'VERIFIED' },
-    { key: 'admin', label: t('matches.adminApproval'), ok: animal?.adminMateApprovalStatus === 'VERIFIED' },
-  ];
-
-  return (
-    <div data-testid="verified-mate-locked" className="mx-5 my-6">
-      <div className="bg-white rounded-3xl border border-[#E4E2DC] p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
-            <Lock size={22} className="text-[#2C402B]" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('matches.verifiedMate')}</h3>
-            <p className="text-xs text-[#57645C]">{t('matches.verifiedMateLocked')}</p>
-          </div>
-        </div>
-        <div className="space-y-2.5">
-          {checks.map(c => (
-            <div key={c.key} className="flex items-center gap-2.5">
-              {c.ok ? (
-                <CheckCircle2 size={18} className="text-[#9BAE96] flex-shrink-0" />
-              ) : (
-                <XCircle size={18} className="text-[#CD7A7E] flex-shrink-0" />
-              )}
-              <span className={`text-sm ${c.ok ? 'text-[#57645C]' : 'text-[#1F2924] font-medium'}`}>{c.label}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 text-[11px] leading-relaxed text-[#8A948E]">
-          {t('matches.demoAgeRule')}
-        </p>
-      </div>
+function MatchActions({ onLike, onPass, onSave, isSaved, busy, error, social, t }) {
+  return <div className="match-actions">
+    {error && <p role="alert" className="text-sm text-[#9B4650] w-full">{error}</p>}
+    <div className="flex gap-2">
+      <button type="button" data-testid="match-pass-btn" onClick={onPass} disabled={busy} className="match-action-secondary"><X size={18} />{t('matches.notNow')}</button>
+      <button type="button" data-testid="match-like-btn" onClick={onLike} disabled={busy} className="match-action-primary">{social ? <MessageCircle size={18} className="shrink-0" /> : <Heart size={18} />}<span>{t(busy ? 'auth.working' : social ? 'readiness.proposeWalk' : 'matches.like')}</span></button>
+      <button type="button" data-testid="match-save-btn" onClick={onSave} disabled={busy} aria-pressed={isSaved}
+        aria-label={t(isSaved ? 'readiness.unsave' : 'readiness.savedLabel')} className="match-action-save">
+        {isSaved ? <BookmarkCheck size={21} /> : <Bookmark size={21} />}
+      </button>
     </div>
-  );
+  </div>;
 }
 
 export default function MatchesTab() {
-  const {
-    t, myAnimals, selectedAnimalId, setSelectedAnimalId, selectedAnimal,
-    matchMode, setMatchMode, candidates, currentCardIndex,
-    setCurrentCardIndex, matchSuccess, setMatchSuccess, savedAnimals,
-    handleLike, handlePass, handleSave, setActiveTab, navigate
-  } = useApp();
-
+  const { t, myAnimals, selectedAnimal, selectedAnimalId, matchMode, setMatchMode, candidates, dataSource,
+    savedAnimals, skippedMatches, handleLike, handlePass, handleSave, matchSuccess, setMatchSuccess,
+    setActiveTab, navigate, requestOpenConversation, messaging } = useApp();
+  const [view, setView] = useState('browse');
+  const [filters, setFilters] = useState(emptyMatchFilters);
+  const [draft, setDraft] = useState(emptyMatchFilters);
   const [showFilters, setShowFilters] = useState(false);
-  const [showDetail, setShowDetail] = useState(null);
-  const [compatibilityBreakdown, setCompatibilityBreakdown] = useState(null);
-  const [speciesFilter, setSpeciesFilter] = useState(null);
-  const [matchFilters, setMatchFilters] = useState({
-    verifiedOnly: false,
-    breed: null,
-    sex: null,
-    size: null,
-    area: null,
-  });
-
-  const updateSpeciesFilter = (species) => {
-    setSpeciesFilter(current => current === species ? null : species);
-    setCurrentCardIndex(0);
-  };
-
-  const toggleMatchFilter = (key, value = true) => {
-    setMatchFilters(current => ({
-      ...current,
-      [key]: current[key] === value ? (key === 'verifiedOnly' ? false : null) : value,
-    }));
-    setCurrentCardIndex(0);
-  };
-
-  const setMatchFilter = (key, value) => {
-    setMatchFilters(current => ({
-      ...current,
-      [key]: value || null,
-    }));
-    setCurrentCardIndex(0);
-  };
-
-  const modes = [
-    { key: 'PLAY', label: t('matches.play'), icon: Play },
-    { key: 'SOCIAL', label: t('matches.social'), icon: Users },
-    { key: 'VERIFIED_MATE', label: t('matches.verifiedMate'), icon: ShieldCheck },
+  const [detail, setDetail] = useState(null);
+  const [verification, setVerification] = useState(false);
+  const [page, setPage] = useState({ rows: [], hasMore: false, cursor: null, loading: false, error: '' });
+  const [actionError, setActionError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [walkTarget, setWalkTarget] = useState(null);
+  const [walkBody, setWalkBody] = useState('');
+  const actionLock = useRef(false);
+  const pageRef = useRef(page); pageRef.current = page;
+  const requestVersion = useRef(0);
+  const loadPage = useCallback(async (reset = false) => {
+    if (!selectedAnimalId || dataSource !== 'supabase') return;
+    if (!reset && pageRef.current.loading) return;
+    const version = ++requestVersion.current;
+    const previous = pageRef.current;
+    const next = { ...(reset ? { rows: [], cursor: null, hasMore: false } : previous), loading: true, error: '' };
+    pageRef.current = next; setPage(next);
+    try {
+      const rows = await loadMatchCandidates({ animalId: selectedAnimalId, mode: matchMode, filters, savedOnly: view === 'saved', afterId: reset ? null : previous.cursor });
+      if (requestVersion.current !== version) return;
+      const result = { rows: reset ? rows : [...previous.rows, ...rows], cursor: rows[rows.length - 1]?.animal.id || previous.cursor, hasMore: rows.length === 20, loading: false, error: '' };
+      pageRef.current = result; setPage(result);
+    } catch {
+      if (requestVersion.current === version) setPage(current => ({ ...current, loading: false, error: t('readiness.loadError') }));
+    }
+  }, [selectedAnimalId, matchMode, filters, view, dataSource, t]);
+  useEffect(() => {
+    setDetail(null); setWalkTarget(null); setActionError('');
+    loadPage(true);
+    return () => { requestVersion.current += 1; };
+  }, [loadPage]);
+  const skipped = skippedMatches[`${selectedAnimalId}:${matchMode}`] || [];
+  const rows = dataSource === 'supabase' ? page.rows : candidates.filter(c => matchesPreferences(c, matchMode, filters));
+  const candidate = rows.find(c => !skipped.includes(c.animal.id) && (view !== 'saved' || savedAnimals.includes(c.animal.id)));
+  const current = candidate ? { ...candidate, mode: matchMode } : null;
+  const hasCandidate = Boolean(current);
+  useEffect(() => {
+    if (!hasCandidate && page.hasMore && !page.loading && !page.error) loadPage();
+  }, [hasCandidate, page.hasMore, page.loading, page.error, loadPage]);
+  useBackHandler(Boolean(detail), () => setDetail(null));
+  const modes = [['PLAY', 'matches.play', Play], ['SOCIAL', 'matches.social', Users], ['VERIFIED_MATE', 'matches.verifiedMate', ShieldCheck]];
+  const checks = [
+    ['readiness.modeEnabled', selectedAnimal?.activeMatchModes?.includes(matchMode), 'animals'],
+    ...(matchMode === 'VERIFIED_MATE' ? [
+      ['readiness.documentsVerified', selectedAnimal?.healthDocumentStatus === 'VERIFIED', 'verification'],
+      ['matches.adminApproval', selectedAnimal?.adminMateApprovalStatus === 'VERIFIED', 'verification'],
+    ] : []),
   ];
-  const modeHint = {
-    PLAY: t('matches.playHint'),
-    SOCIAL: t('matches.socialHint'),
-    VERIFIED_MATE: t('matches.verifiedMateHint'),
-  }[matchMode];
+  const eligible = checks.every(([, ok]) => ok);
+  const openProfile = section => { navigate(section === 'verification' ? 'verification' : 'editAnimal', { animalId: selectedAnimalId }); setActiveTab('profile'); };
+  const act = async (type, item) => {
+    if (!item || actionLock.current) return;
+    actionLock.current = true; setBusy(true); setActionError('');
+    try {
+      if (type === 'like' && matchMode === 'SOCIAL') {
+        if (dataSource !== 'supabase') { setActionError(t('readiness.walkLiveOnly')); return; }
+        const existingId = await findSocialWalkConversation(item.animal.ownerId);
+        setDetail(null);
+        if (existingId) requestOpenConversation(existingId);
+        else { setWalkTarget(item); setWalkBody(messaging.drafts[`walk:${selectedAnimalId}:${item.animal.id}`] || ''); }
+      }
+      else if (type === 'like') { await handleLike(item); setDetail(null); }
+      else if (type === 'save') await handleSave(item);
+      else { handlePass(item); setDetail(null); }
+    } catch { setActionError(t(type === 'save' ? 'readiness.saveError' : matchMode === 'SOCIAL' ? 'readiness.walkError' : 'readiness.likeError')); }
+    finally { actionLock.current = false; setBusy(false); }
+  };
+  const sendWalkRequest = async () => {
+    if (actionLock.current || !walkTarget || !walkBody.trim() || [...walkBody].length > 4000) return;
+    actionLock.current = true; setBusy(true); setActionError('');
+    try {
+      if (!messaging.saveDraft(`walk:${selectedAnimalId}:${walkTarget.animal.id}`, walkBody)) {
+        setActionError(t('readiness.storageFailed')); return;
+      }
+      const id = await requestSocialWalk(selectedAnimalId, walkTarget.animal.id, walkBody);
+      messaging.saveDraft(`walk:${selectedAnimalId}:${walkTarget.animal.id}`, '');
+      setWalkTarget(null); requestOpenConversation(id);
+    } catch { setActionError(t('readiness.walkError')); }
+    finally { actionLock.current = false; setBusy(false); }
+  };
+  const actions = item => <MatchActions onLike={() => act('like', item)} onPass={() => act('pass', item)} onSave={() => act('save', item)}
+    isSaved={savedAnimals.includes(item.animal.id)} busy={busy} error={actionError} social={matchMode === 'SOCIAL'} t={t} />;
+  const toggleDraft = (name, value) => setDraft(d => ({ ...d, [name]: d[name] === value ? emptyMatchFilters[name] : value }));
+  const clear = () => { setFilters({ ...emptyMatchFilters }); setDraft({ ...emptyMatchFilters }); };
+  const breeds = draft.species === 'CAT' ? CAT_BREEDS : draft.species === 'DOG' ? DOG_BREEDS : [...new Set([...DOG_BREEDS, ...CAT_BREEDS])].sort();
 
-  const filteredCandidates = candidates.filter(c => {
-    if (!c.animal.activeMatchModes?.includes(matchMode)) return false;
-    if (speciesFilter && c.animal.species !== speciesFilter) return false;
-    if (matchFilters.verifiedOnly && c.ownerVerificationStatus !== 'VERIFIED') return false;
-    if (matchFilters.breed && c.animal.breed !== matchFilters.breed) return false;
-    if (matchFilters.sex && c.animal.sex !== matchFilters.sex) return false;
-    if (matchFilters.size && c.animal.sizeLabel !== matchFilters.size) return false;
-    if (matchFilters.area && c.animal.city !== matchFilters.area && c.animal.coarseArea !== matchFilters.area) return false;
-    return true;
-  });
-
-  const candidate = filteredCandidates[currentCardIndex];
-  const currentCandidate = candidate ? { ...candidate, mode: matchMode } : candidate;
-  const isVerifiedMateLocked = matchMode === 'VERIFIED_MATE' &&
-    (selectedAnimal?.adminMateApprovalStatus !== 'VERIFIED' || selectedAnimal?.healthDocumentStatus !== 'VERIFIED');
-  const breedOptions = speciesFilter === 'CAT'
-    ? CAT_BREEDS
-    : speciesFilter === 'DOG'
-      ? DOG_BREEDS
-      : Array.from(new Set([...DOG_BREEDS, ...CAT_BREEDS])).sort((a, b) => a.localeCompare(b));
-
-  if (myAnimals.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col">
-        <ScreenHeader title={t('matches.title')} />
-        <EmptyState
-          icon={Dog}
-          title={t('matches.noAnimalTitle')}
-          description={t('matches.noAnimalDesc')}
-          action={t('matches.createProfile')}
-          onAction={() => navigate('createAnimal')}
-        />
-      </div>
-    );
-  }
-
-  if (showDetail) {
-    return (
-      <>
-        <MatchDetail
-          candidate={showDetail}
-          onClose={() => setShowDetail(null)}
-          onLike={() => { handleLike(showDetail); setShowDetail(null); }}
-          onPass={() => { handlePass(); setShowDetail(null); }}
-          onCompatibilityPress={() => setCompatibilityBreakdown(showDetail)}
-          t={t}
-        />
-        <CompatibilityBreakdownModal
-          candidate={compatibilityBreakdown}
-          onClose={() => setCompatibilityBreakdown(null)}
-          t={t}
-        />
-      </>
-    );
-  }
-
-  return (
-    <div data-testid="matches-tab" className="min-h-0 flex-1 flex flex-col relative">
-      <div className="px-5 pt-4 pb-2 bg-[#F8F7F4] space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('matches.title')}</h1>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('matches.myAnimal')}</label>
-          <AnimalSelector
-            animals={myAnimals}
-            selectedId={selectedAnimalId}
-            onSelect={setSelectedAnimalId}
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.whatLooking')}</label>
-          <div className="flex gap-2">
-            {modes.map(m => (
-              <button
-                type="button"
-                key={m.key}
-                data-testid={`mode-${m.key.toLowerCase()}`}
-                onClick={() => {
-                  setMatchMode(m.key);
-                  setCurrentCardIndex(0);
-                }}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  matchMode === m.key
-                    ? 'bg-[#2C402B] text-white shadow-sm'
-                    : 'bg-white text-[#57645C] border border-[#E4E2DC] hover:border-[#9BAE96]'
-                }`}
-              >
-                <m.icon size={15} />
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-[#57645C]">{modeHint}</p>
-        </div>
-
-        <div className="space-y-2 rounded-2xl border border-[#E4E2DC]/70 bg-white/55 p-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('matches.showMe')}</label>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
-              <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => updateSpeciesFilter('DOG')} icon={Dog} />
-              <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => updateSpeciesFilter('CAT')} icon={Cat} />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('matches.safety')}</label>
-            <Chip label={t('matches.verifiedOwnersOnly')} active={matchFilters.verifiedOnly} onClick={() => toggleMatchFilter('verifiedOnly')} icon={ShieldCheck} />
-          </div>
-          <button
-            type="button"
-            data-testid="matches-more-filters"
-            onClick={() => setShowFilters(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-4 py-2.5 text-sm font-semibold text-[#2C402B] transition-colors hover:bg-[#EFEDE8] active:scale-[0.98]"
-          >
-            <Filter size={15} />
-            {t('matches.moreFilters')}
-          </button>
+  return <div data-testid="matches-tab" className="match-discovery min-h-0 flex-1 overflow-y-auto">
+    {!myAnimals.length ? <EmptyState icon={Dog} title={t('matches.noAnimalTitle')} description={t('matches.noAnimalDesc')}
+      action={t('matches.createProfile')} onAction={() => { navigate('createAnimal'); setActiveTab('profile'); }} /> : <>
+      <div className="match-controls">
+        <div className="match-modes">{modes.map(([value, label, Icon]) => <button type="button" key={value} aria-pressed={matchMode === value}
+          data-testid={`mode-${value.toLowerCase()}`} onClick={() => setMatchMode(value)}><Icon size={16} /><span>{t(label)}</span></button>)}</div>
+        <div className="flex items-center justify-between gap-2 pt-2">
+          <div className="flex gap-1" aria-label={t('readiness.discover')}>{['browse', 'saved'].map(value => <button type="button" key={value}
+            aria-pressed={view === value} data-testid={`discover-${value}`} onClick={() => setView(value)} className={`min-h-11 px-3 rounded-full text-sm ${view === value ? 'bg-[#E3ECE4] font-semibold' : 'text-[#57645C]'}`}>{t(`readiness.${value}`)}</button>)}</div>
+          <button type="button" data-testid="matches-more-filters" className="filter-trigger" onClick={() => { setDraft({ ...filters }); setShowFilters(true); }}>
+            <Filter size={16} />{t('readiness.filters')}{Object.values(filters).filter(Boolean).length > 0 && ` (${Object.values(filters).filter(Boolean).length})`}</button>
         </div>
       </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar pb-24">
-        <div className="relative mt-2 mb-6 min-h-[440px] h-[calc(100dvh-360px)] max-h-[560px]">
-          {isVerifiedMateLocked ? (
-            <VerifiedMateLockedState animal={selectedAnimal} t={t} />
-          ) : !currentCandidate ? (
-            <div className="flex h-full items-center justify-center px-5">
-              <EmptyState
-                icon={Heart}
-                title={t('matches.noMoreCards')}
-                description={t('matches.noMoreDesc')}
-              />
-            </div>
-          ) : (
-            <AnimatePresence mode="wait">
-              <MatchCard
-                key={currentCandidate.animal.id}
-                candidate={currentCandidate}
-                onLike={() => handleLike(currentCandidate)}
-                onPass={handlePass}
-                onSave={() => handleSave(currentCandidate)}
-                onDetails={() => setShowDetail(currentCandidate)}
-                onCompatibilityPress={() => setCompatibilityBreakdown(currentCandidate)}
-                isSaved={savedAnimals.includes(currentCandidate.animal.id)}
-                t={t}
-              />
-            </AnimatePresence>
-          )}
-        </div>
-      </div>
-
-      <MatchSuccessModal
-        match={matchSuccess}
-        onClose={() => setMatchSuccess(null)}
-        onOpenMessages={() => { setMatchSuccess(null); setActiveTab('messages'); }}
-        t={t}
-      />
-
-      <CompatibilityBreakdownModal
-        candidate={compatibilityBreakdown}
-        onClose={() => setCompatibilityBreakdown(null)}
-        t={t}
-      />
-
-      <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('matches.filters')}>
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.breed')}</label>
-            <select
-              value={matchFilters.breed || ''}
-              onChange={(event) => setMatchFilter('breed', event.target.value)}
-              className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
-            >
-              <option value="">{t('matches.anyBreed')}</option>
-              {breedOptions.map(breed => (
-                <option key={breed} value={breed}>{breed}</option>
-              ))}
-            </select>
+      {!eligible ? <div data-testid="verified-mate-locked" className="m-4 p-5 rounded-2xl bg-white border space-y-4">
+        <h2 className="text-lg font-semibold">{t(matchMode === 'VERIFIED_MATE' ? 'matches.verifiedMate' : 'readiness.modeDisabled')}</h2>
+        {matchMode === 'VERIFIED_MATE' && <p className="text-sm">{t('readiness.verificationRequired')}</p>}
+        {checks.map(([label, ok, section]) => <div key={label} className="flex items-center gap-2 text-sm">
+          {ok ? <CheckCircle2 size={18} /> : <XCircle size={18} />}<span>{t(label)} · {t(ok ? 'readiness.ready' : 'readiness.missing')}</span>
+          {!ok && <button type="button" className="ml-auto underline min-h-11" onClick={() => openProfile(section)}>{t('readiness.reviewChecks')}</button>}
+        </div>)}
+      </div> : page.loading && !current ? <p role="status" className="p-8 text-center">{t('readiness.loading')}</p>
+        : page.error ? <div role="alert" className="p-5 space-y-3"><p>{page.error}</p><SecondaryButton onClick={() => loadPage(true)}>{t('readiness.retry')}</SecondaryButton></div>
+        : current ? <article data-testid="match-card" className="match-card">
+          <img src={current.animal.photoUrls?.[0]} alt={current.animal.name} className="match-photo" />
+          <div className="match-card-info"><AnimalFacts candidate={current} t={t} onVerification={() => setVerification(true)} />
+            <button type="button" data-testid="match-details-btn" onClick={() => setDetail(current)} className="about-animal">{t('readiness.about')} {current.animal.name} <span aria-hidden="true">›</span></button>
+            {actions(current)}
           </div>
-          <div>
-            <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.sex')}</label>
-            <div className="flex gap-2">
-              <Chip label={t('common.male')} active={matchFilters.sex === 'MALE'} onClick={() => toggleMatchFilter('sex', 'MALE')} />
-              <Chip label={t('common.female')} active={matchFilters.sex === 'FEMALE'} onClick={() => toggleMatchFilter('sex', 'FEMALE')} />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.size')}</label>
-            <div className="flex gap-2">
-              {[
-                'SMALL',
-                'MEDIUM',
-                'LARGE',
-              ].map((value) => (
-                <Chip key={value} label={getSizeLabel(value, t)} active={matchFilters.size === value} onClick={() => toggleMatchFilter('size', value)} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2 block">{t('matches.area')}</label>
-            <div className="flex flex-wrap gap-2">
-              {['Bucharest', 'Ilfov', 'Cluj-Napoca', 'Timisoara'].map(a => (
-                <Chip key={a} label={a} active={matchFilters.area === a} onClick={() => toggleMatchFilter('area', a)} />
-              ))}
-            </div>
-          </div>
-          <PrimaryButton onClick={() => setShowFilters(false)}>{t('matches.applyFilters')}</PrimaryButton>
-        </div>
-      </FilterSheet>
-    </div>
-  );
+        </article> : <EmptyState icon={view === 'saved' ? Bookmark : Heart} title={t(view === 'saved' ? 'readiness.noSaved' : 'readiness.noCandidates')}
+          description={t(view === 'saved' ? 'readiness.noSavedHint' : 'readiness.noCandidatesHint')} action={t('readiness.clearFilters')} onAction={clear} />}
+      <p className="match-mutual-hint">{t(matchMode === 'SOCIAL' ? 'readiness.walkHint' : 'readiness.mutualHint')}</p>
+    </>}
+    <FilterSheet open={Boolean(walkTarget)} onClose={() => { if (!busy) setWalkTarget(null); }} title={t('readiness.proposeWalk')}
+      footer={<PrimaryButton onClick={sendWalkRequest} disabled={busy || !walkBody.trim() || [...walkBody].length > 4000}>{t(busy ? 'auth.working' : 'readiness.sendWalkRequest')}</PrimaryButton>}>
+      <p className="font-semibold">{selectedAnimal?.name} + {walkTarget?.animal.name}</p>
+      <p className="text-sm">{t('readiness.walkHint')}</p>
+      <label className="block space-y-2"><span>{t('readiness.walkFirstMessage')}</span>
+        <textarea data-testid="walk-request-input" rows={3} value={walkBody} disabled={busy}
+          className="w-full rounded-xl border p-3 text-base" onChange={event => {
+            setWalkBody(event.target.value);
+            if (!messaging.saveDraft(`walk:${selectedAnimalId}:${walkTarget.animal.id}`, event.target.value)) setActionError(t('readiness.storageFailed'));
+          }} /></label>
+      <p className="text-xs">{[...walkBody].length}/4000 {t('readiness.characterCount')}</p>
+      {actionError && <p role="alert" className="text-sm text-[#9B4650]">{actionError}</p>}
+    </FilterSheet>
+    {detail && <section data-testid="match-detail-screen" className="petpal-fullscreen">
+      <ScreenHeader title={`${t('readiness.about')} ${detail.animal.name}`} onBack={() => setDetail(null)} />
+      <div className="min-h-0 flex-1 overflow-y-auto"><img src={detail.animal.photoUrls?.[0]} alt={detail.animal.name} className="w-full h-64 object-cover" />
+        <div className="p-5 space-y-3"><AnimalFacts candidate={detail} detailed t={t} onVerification={() => setVerification(true)} /></div>
+      </div><footer className="shrink-0 p-4 border-t bg-white">{actions(detail)}</footer>
+    </section>}
+    <Modal open={verification} onClose={() => setVerification(false)}><div className="p-5 space-y-4">
+      <h2 className="font-semibold">{t('profile.verification')}</h2><p>{t('readiness.verificationInfo')}</p>
+      <PrimaryButton onClick={() => setVerification(false)}>{t('common.close')}</PrimaryButton></div></Modal>
+    <Modal open={Boolean(matchSuccess)} onClose={() => setMatchSuccess(null)}><div className="p-6 text-center space-y-4">
+      <Heart className="mx-auto text-[#2C402B]" size={40} /><h2 className="text-2xl font-heading font-bold">{t('matches.matchSuccess')}</h2>
+      <p>{matchSuccess?.myAnimal?.name} + {matchSuccess?.theirAnimal?.name}</p><p>{t('matches.matchSuccessDesc')}</p>
+      <PrimaryButton onClick={() => { const id = matchSuccess.conversationId; setMatchSuccess(null); requestOpenConversation(id); }}>{t('matches.openMessages')}</PrimaryButton>
+      <SecondaryButton onClick={() => setMatchSuccess(null)}>{t('matches.continueBrowsing')}</SecondaryButton>
+    </div></Modal>
+    <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('readiness.filters')} footer={<>
+      <SecondaryButton onClick={() => { clear(); setShowFilters(false); }}>{t('readiness.reset')}</SecondaryButton>
+      <PrimaryButton onClick={() => { setFilters({ ...draft }); setShowFilters(false); }}>{t('matches.applyFilters')}</PrimaryButton></>}>
+      <fieldset><legend className="mb-2 font-semibold">{t('matches.showMe')}</legend><div className="flex flex-wrap gap-2">
+        <Chip label={t('matches.dogs')} icon={Dog} active={draft.species === 'DOG'} onClick={() => { toggleDraft('species', 'DOG'); setDraft(d => ({ ...d, breed: '' })); }} />
+        <Chip label={t('matches.cats')} icon={Cat} active={draft.species === 'CAT'} onClick={() => { toggleDraft('species', 'CAT'); setDraft(d => ({ ...d, breed: '' })); }} /></div></fieldset>
+      <Chip label={t('matches.verifiedOwnersOnly')} active={draft.verifiedOnly} icon={ShieldCheck} onClick={() => toggleDraft('verifiedOnly', true)} />
+      <label className="block space-y-2"><span className="font-semibold">{t('matches.breed')}</span><select value={draft.breed} onChange={event => setDraft(d => ({ ...d, breed: event.target.value }))} className="w-full border rounded-xl p-3">
+        <option value="">{t('matches.anyBreed')}</option>{breeds.map(breed => <option key={breed}>{breed}</option>)}</select></label>
+      <fieldset><legend className="mb-2 font-semibold">{t('matches.sex')}</legend><div className="flex flex-wrap gap-2">
+        {[['MALE', 'common.male'], ['FEMALE', 'common.female']].map(([value, label]) => <Chip key={value} label={t(label)} active={draft.sex === value} onClick={() => toggleDraft('sex', value)} />)}</div></fieldset>
+      <fieldset><legend className="mb-2 font-semibold">{t('matches.size')}</legend><div className="flex flex-wrap gap-2">
+        {['SMALL', 'MEDIUM', 'LARGE'].map(value => <Chip key={value} label={t(`common.${value.toLowerCase()}`)} active={draft.size === value} onClick={() => toggleDraft('size', value)} />)}</div></fieldset>
+      <label className="block space-y-2"><span className="font-semibold">{t('matches.area')}</span><input value={draft.area} onChange={event => setDraft(d => ({ ...d, area: event.target.value }))} className="w-full border rounded-xl p-3" /></label>
+    </FilterSheet>
+  </div>;
 }

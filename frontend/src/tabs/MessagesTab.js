@@ -1,12 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-  Badge, ScreenHeader, EmptyState, SafetyMenu, Modal
+  Badge, EmptyState, SafetyMenu, PrimaryButton, SecondaryButton
 } from '../components/SharedComponents';
 import {
-  MessageCircle, ShieldCheck, MapPin, Lock, Send,
+  MessageCircle, MapPin, Send, ArrowLeft, Info, ChevronDown,
   MoreVertical, Heart, FileText
 } from 'lucide-react';
+import { useBackHandler } from '../navigation/backNavigation';
 
 function ConversationCard({ conv, onClick, t }) {
   const isMatch = conv.source === 'MATCH';
@@ -22,7 +23,7 @@ function ConversationCard({ conv, onClick, t }) {
       className="w-full flex items-start gap-3 p-4 bg-white rounded-2xl border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors text-left shadow-sm"
     >
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${isMatch ? 'bg-[#E3ECE4]' : 'bg-[#F5DDD0]'}`}>
-        {isMatch ? <Heart size={20} className="text-[#2C402B]" /> : <FileText size={20} className="text-[#C07E67]" />}
+        {conv.animalPhoto ? <img src={conv.animalPhoto} alt="" className="w-full h-full rounded-2xl object-cover" /> : isMatch ? <Heart size={20} className="text-[#2C402B]" /> : <FileText size={20} className="text-[#C07E67]" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
@@ -31,7 +32,10 @@ function ConversationCard({ conv, onClick, t }) {
         </div>
         <div className="flex items-center gap-1.5 mb-1">
           <Badge variant={isMatch ? 'sage' : 'clay'}>
-            {isMatch ? t('messages.match') : t('messages.foster')}
+            {conv.socialRequestStatus === 'PENDING' ? t(conv.socialRequestIsMine ? 'readiness.walkPending' : 'readiness.walkIncoming')
+              : conv.socialRequestStatus === 'DECLINED' ? t('readiness.walkDeclined')
+                : conv.socialRequestStatus === 'ACCEPTED' ? t('readiness.walkAccepted')
+                : conv.mode === 'SOCIAL' ? t('matches.social') : isMatch ? t('messages.match') : t('messages.foster')}
           </Badge>
           <span className="text-xs text-[#57645C]">{subtitle}</span>
         </div>
@@ -51,255 +55,173 @@ function ConversationCard({ conv, onClick, t }) {
 }
 
 function ConversationThread({ conv, onBack, t }) {
-  const { sendMessage, reportConversation, blockConversation, setActiveTab, fosterApplications } = useApp();
-  const [input, setInput] = useState('');
+  const { messaging, reportConversation, blockConversation, dataSource, lang, fosterApplications } = useApp();
+  const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
+    threadHasMore, loadingThread, markRead, respondToWalk } = messaging;
+  const [input, setInput] = useState(drafts[conv.id] || '');
+  const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
-  const [showContext, setShowContext] = useState(false);
-  const [showApplicationDetails, setShowApplicationDetails] = useState(false);
-  const [reported, setReported] = useState(Boolean(conv.reported));
-  const [blocked, setBlocked] = useState(Boolean(conv.blocked));
-  const [safetyNotice, setSafetyNotice] = useState('');
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conv.messages]);
-
-  const handleSend = () => {
-    if (!input.trim() || blocked) return;
-    sendMessage(conv.id, input.trim());
-    setInput('');
-  };
-
-  const handleReport = async () => {
-    setShowSafety(false);
-    try {
-      await reportConversation(conv.id, `${conv.title}: ${t('messages.conversationReported')}`);
-      setReported(true);
-      setSafetyNotice(t('messages.conversationReported'));
-    } catch (error) {
-      setSafetyNotice(error.message || t('messages.reportFailed'));
-    }
-  };
-
-  const handleBlock = async () => {
-    setShowSafety(false);
-    try {
-      await blockConversation(conv.id);
-      setBlocked(true);
-      setSafetyNotice(t('messages.userBlocked'));
-    } catch (error) {
-      setSafetyNotice(error.message || t('messages.blockFailed'));
-    }
-  };
-
+  const [notice, setNotice] = useState('');
+  const [newMessages, setNewMessages] = useState(false);
+  const [responding, setResponding] = useState(false);
+  const scroll = useRef(null);
+  const atBottom = useRef(true);
+  const olderAnchor = useRef(null);
+  const sending = useRef(false);
   const isMatch = conv.source === 'MATCH';
-  const subtitle = getConversationSubtitle(conv, t);
-  const contextLabel = isMatch ? t('messages.matchChatContext') : t('messages.fosterChatContext');
-  const privacyLabel = t('matches.locationPrivate');
-  const contextActionText = isMatch
-    ? t('messages.matchContextNotice')
-    : t('messages.fosterContextNotice');
-  const fosterApplication = fosterApplications.find(app =>
-    app.id === conv.fosterApplicationId || app.fosterCaseId === conv.fosterCaseId
-  );
-
-  const openContext = () => {
-    setShowContext(true);
-    setShowApplicationDetails(false);
-    setSafetyNotice(contextActionText);
+  const canWrite = !conv.blocked && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
+  const application = fosterApplications.find(item => item.id === conv.fosterApplicationId || item.fosterCaseId === conv.fosterCaseId);
+  const pending = conv.blocked ? [] : outbox.filter(message => message.conversationId === conv.id
+    && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId));
+  const messages = conv.blocked ? [] : [...conv.messages, ...pending];
+  const latest = conv.messages[conv.messages.length - 1];
+  useBackHandler(true, onBack);
+  useEffect(() => {
+    openThread(conv.id);
+    return () => openThread(null);
+  }, [conv.id, openThread]);
+  useEffect(() => { setInput(drafts[conv.id] || ''); }, [conv.id, drafts]);
+  useLayoutEffect(() => {
+    const element = scroll.current;
+    if (!element) return;
+    if (olderAnchor.current) {
+      element.scrollTop = olderAnchor.current.top + element.scrollHeight - olderAnchor.current.height;
+      olderAnchor.current = null;
+    } else if (atBottom.current) element.scrollTop = element.scrollHeight;
+    else setNewMessages(true);
+  }, [conv.messages, outbox]);
+  useEffect(() => {
+    const read = () => {
+      if (atBottom.current && document.visibilityState !== 'hidden' && !conv.blocked) markRead(conv.id, latest);
+    };
+    read();
+    document.addEventListener('visibilitychange', read);
+    return () => document.removeEventListener('visibilitychange', read);
+  }, [conv.id, conv.blocked, latest, markRead]);
+  const handleSend = async () => {
+    if (sending.current || !input.trim() || !canWrite) return;
+    sending.current = true; setSendError('');
+    try {
+      await sendMessage(conv.id, input);
+      setInput(''); atBottom.current = true;
+    } catch (error) { setSendError(t(error.message)); }
+    finally { sending.current = false; }
   };
-
-  const openContextTab = (tab) => {
-    setShowContext(false);
-    onBack();
-    setActiveTab(tab);
+  const respond = async accept => {
+    if (sending.current) return;
+    sending.current = true; setResponding(true); setSendError('');
+    try { await respondToWalk(conv.id, accept); }
+    catch { setSendError(t('readiness.walkResponseError')); }
+    finally { sending.current = false; setResponding(false); }
   };
-
-  return (
-    <div data-testid="conversation-thread" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader
-        title={conv.title}
-        onBack={onBack}
-        right={
-          <button
-            type="button"
-            data-testid="safety-menu-trigger"
-            onClick={() => setShowSafety(true)}
-            aria-label={t('messages.safetyMenu')}
-            className="p-2 rounded-lg hover:bg-[#F0EDE8] transition-colors"
-          >
-            <MoreVertical size={20} className="text-[#57645C]" />
-          </button>
-        }
-      />
-
-      <div className={`mx-4 mt-2 mb-2 p-3 rounded-2xl border ${isMatch ? 'bg-[#E3ECE4]/30 border-[#E3ECE4]' : 'bg-[#F5DDD0]/30 border-[#F5DDD0]'}`}>
-        <div className="flex items-center gap-2 mb-1.5">
-          <Badge variant={isMatch ? 'sage' : 'clay'}>
-            {isMatch ? t('messages.match') : t('messages.foster')}
-          </Badge>
-          <span className="text-xs text-[#57645C]">{subtitle}</span>
-        </div>
-        {conv.organizationName && (
-          <div className="flex items-center gap-1.5 text-xs text-[#57645C] mb-1">
-            <ShieldCheck size={12} className="text-[#9BAE96]" />
-            <span className="font-medium">{conv.organizationName}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1.5 text-xs text-[#57645C] mb-1">
-          <MapPin size={11} className="text-[#9BAE96]" />
-          <span>{conv.city}{conv.coarseArea ? ` / ${conv.coarseArea}` : ''}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-[#3A7080]">
-          <Lock size={11} />
-          <span>{privacyLabel}</span>
-        </div>
-        <p className="text-xs text-[#57645C] mt-2 italic">{contextLabel}</p>
-        <button
-          type="button"
-          onClick={openContext}
-          className="mt-2 text-xs font-semibold text-[#2C402B] underline underline-offset-2"
-        >
-          {isMatch ? t('messages.viewMatchDetails') : t('messages.fosterContext')}
-        </button>
-        {(reported || blocked || safetyNotice) && (
-          <div className="mt-2 rounded-xl border border-[#E4E2DC] bg-white px-3 py-2 text-xs text-[#57645C]">
-            {blocked ? t('messages.userBlocked') : reported ? t('messages.conversationReported') : safetyNotice}
-          </div>
-        )}
+  const loadEarlier = async () => {
+    if (loadingThread) return;
+    olderAnchor.current = { height: scroll.current.scrollHeight, top: scroll.current.scrollTop };
+    const loaded = await loadThread(conv.id, true);
+    // A failed request doesn't leave an anchor waiting for an unrelated new message.
+    if (!loaded) olderAnchor.current = null;
+  };
+  const safetyAction = async action => {
+    setShowSafety(false);
+    try {
+      if (action === 'block') await blockConversation(conv.id);
+      else await reportConversation(conv.id, t('messages.conversationReported'));
+      setNotice(t(action === 'block' ? 'messages.userBlocked' : 'messages.conversationReported'));
+    } catch { setNotice(t(action === 'block' ? 'messages.blockFailed' : 'messages.reportFailed')); }
+  };
+  const scrollChanged = () => {
+    const element = scroll.current;
+    atBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 48;
+    if (atBottom.current) { setNewMessages(false); markRead(conv.id, latest); }
+  };
+  return <section data-testid="conversation-thread" className="petpal-fullscreen conversation-thread">
+    <header className="chat-header">
+      <button type="button" data-testid="back-button" onClick={onBack} aria-label={t('common.back')} className="chat-icon-button"><ArrowLeft size={22} /></button>
+      {conv.animalPhoto ? <img src={conv.animalPhoto} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" /> : <Heart size={24} className="shrink-0" />}
+      <div className="min-w-0 flex-1"><h1 className="font-heading text-lg font-semibold line-clamp-2">{isMatch ? conv.relatedAnimalName : conv.animalName || conv.title}</h1>
+        <p className="text-xs text-[#57645C] truncate">{getConversationSubtitle(conv, t)}{conv.otherOwnerName ? ` · ${conv.otherOwnerName}` : ''}</p></div>
+      <button type="button" data-testid="safety-menu-trigger" onClick={() => setShowSafety(true)} aria-label={t('messages.safetyMenu')} className="chat-icon-button"><MoreVertical size={22} /></button>
+    </header>
+    <details className="chat-context" data-testid="conversation-context-panel">
+      <summary className="min-h-11 flex items-center gap-2 cursor-pointer"><Info size={16} />{t(conv.mode === 'SOCIAL' ? 'readiness.walkDetails' : isMatch ? 'readiness.matchDetails' : 'messages.fosterContext')}<ChevronDown size={16} className="ml-auto" /></summary>
+      <div className="pb-3 space-y-2 text-sm">
+        <p className="font-semibold">{conv.title}</p>
+        {conv.otherOwnerName && <p>{conv.otherOwnerName}</p>}
+        <p>{t(conv.mode === 'SOCIAL' ? 'readiness.walkHint' : isMatch ? 'messages.matchChatContext' : 'messages.fosterChatContext')}</p>
+        <p>{[conv.city, conv.coarseArea].filter(Boolean).join(' · ')}</p>
+        {conv.organizationName && <p>{conv.organizationName}</p>}
+        <p>{t('matches.locationPrivate')}</p>
+        <p>{getConversationSubtitle(conv, t)}</p>
+        {!isMatch && application && <div className="space-y-2 border-t pt-2">
+          <h2 className="font-semibold">{t('messages.applicationDetails')}</h2>
+          <ContextRow label={t('common.submitted')} value={getApplicationStatusLabel(application.status, t)} />
+          <ContextRow label={t('foster.housingType')} value={application.housingType} />
+          <ContextRow label={t('foster.availabilityField')} value={application.availability} />
+          <ContextRow label={t('foster.animalExperience')} value={application.experience} />
+          <ContextRow label={t('foster.otherPets')} value={application.otherPets} />
+          <ContextRow label={t('foster.childrenInHome')} value={application.childrenInHome} />
+        </div>}
       </div>
-
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 no-scrollbar">
-        {conv.messages.map(msg => (
-          <div key={msg.messageId} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-              msg.isMine
-                ? 'bg-[#2C402B] text-white rounded-br-md'
-                : 'bg-white border border-[#E4E2DC] text-[#1F2924] rounded-bl-md'
-            }`}>
-              {!msg.isMine && (
-                <p className="text-xs font-semibold text-[#2C402B] mb-0.5">{msg.senderDisplayName}</p>
-              )}
-              <p className="text-sm leading-relaxed">{msg.body}</p>
-              <p className={`text-xs mt-1 ${msg.isMine ? 'text-white/60' : 'text-[#57645C]'}`}>
-                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
+    </details>
+    {conv.blocked && <p role="status" className="px-4 py-2 text-sm bg-[#F5DDD0]">{t('readiness.blockedChat')}</p>}
+    {notice && <p role="status" className="px-4 py-2 text-sm">{notice}</p>}
+    {dataSource === 'supabase' && !realtimeReady && <p role="status" className="px-4 text-xs text-[#57645C]">{t('readiness.refreshing')}</p>}
+    {chatError && <div role="alert" className="px-4 text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="underline min-h-11" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button></div>}
+    <div ref={scroll} onScroll={scrollChanged} data-testid="message-scroll" className="min-h-0 flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      {threadHasMore[conv.id] && <button type="button" disabled={loadingThread} onClick={loadEarlier} className="min-h-11 w-full text-sm underline">{t('readiness.earlierMessages')}</button>}
+      {loadingThread && <p role="status" className="text-center text-xs">{t('readiness.loading')}</p>}
+      {messages.map((msg, index) => {
+        const day = new Date(msg.createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB');
+        const previousDay = index ? new Date(messages[index - 1].createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB') : null;
+        return <React.Fragment key={msg.messageId}>
+          {day !== previousDay && <p className="text-center text-xs text-[#57645C] py-2">{day}</p>}
+          <div data-testid="message-bubble" data-status={msg.status || 'sent'} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
+            <div className={`chat-bubble ${msg.isMine ? 'chat-bubble-mine' : ''}`}>
+              {!msg.isMine && <p className="text-xs font-semibold mb-1">{msg.senderDisplayName}</p>}
+              <p className="whitespace-pre-wrap break-words text-sm">{msg.body}</p>
+              <p className="text-[11px] mt-1 text-[#57645C]">{new Date(msg.createdAt).toLocaleTimeString(lang === 'ro' ? 'ro-RO' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
+                {msg.isMine && ` · ${t(msg.status === 'sending' ? 'readiness.sending' : msg.status === 'failed' ? 'readiness.failed' : 'readiness.sent')}`}</p>
+              {msg.status === 'failed' && <div role="alert" className="text-xs mt-2">
+                <p>{t('readiness.sendFailed')}</p>
+                <button type="button" data-testid="retry-message" disabled={!canWrite} className="underline font-semibold min-h-11"
+                  onClick={() => sendMessage(conv.id, msg.body, msg.clientMessageId).catch(error => setSendError(t(error.message)))}>{t('readiness.retryMessage')}</button>
+              </div>}
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="p-4 bg-white/80 backdrop-blur-lg border-t border-[#E4E2DC]/60">
-        <div className="flex items-center gap-2">
-          <input
-            data-testid="message-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
-            disabled={blocked}
-            aria-label={t('messages.messageInput')}
-            placeholder={blocked ? t('messages.blockedPlaceholder') : t('messages.typeMessage')}
-            className="flex-1 bg-[#F8F7F4] border border-[#E4E2DC] rounded-xl px-4 py-3 text-sm text-[#1F2924] placeholder:text-[#57645C]/50 focus:outline-none focus:ring-2 focus:ring-[#9BAE96] transition-all"
-          />
-          <button
-            type="button"
-            data-testid="send-message-btn"
-            onClick={handleSend}
-            disabled={!input.trim() || blocked}
-            aria-label={t('messages.send')}
-            className="w-11 h-11 rounded-xl bg-[#2C402B] text-white flex items-center justify-center hover:bg-[#243623] active:scale-[0.95] transition-all disabled:opacity-40"
-          >
-            <Send size={18} />
-          </button>
-        </div>
-      </div>
-
-      <SafetyMenu
-        open={showSafety}
-        onClose={() => setShowSafety(false)}
-        onReport={handleReport}
-        onBlock={handleBlock}
-        onViewContext={() => {
-          openContext();
-          setShowSafety(false);
-        }}
-      />
-
-      <Modal open={showContext} onClose={() => setShowContext(false)}>
-        <div data-testid="conversation-context-panel" className="p-5 space-y-4">
-          <div>
-            <h3 className="text-lg font-bold text-[#1F2924] font-heading">
-              {isMatch ? t('messages.viewMatchDetails') : t('messages.fosterContext')}
-            </h3>
-            <p className="text-sm text-[#57645C] mt-1">{contextLabel}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Badge variant={isMatch ? 'sage' : 'clay'}>{isMatch ? t('messages.match') : t('messages.foster')}</Badge>
-            <Badge variant="default">{subtitle}</Badge>
-            {conv.ownerVerified && <Badge variant="success">{t('messages.ownerVerified')}</Badge>}
-            {conv.organizationVerified && <Badge variant="success">{t('messages.verifiedRescuer')}</Badge>}
-          </div>
-
-          <div className="rounded-2xl border border-[#E4E2DC] bg-[#F8F7F4] p-4 space-y-2">
-            <ContextRow label={isMatch ? t('messages.myAnimal') : t('messages.animal')} value={conv.animalName || conv.title} />
-            {isMatch && <ContextRow label={t('messages.matchedAnimal')} value={conv.relatedAnimalName} />}
-            {!isMatch && <ContextRow label={t('messages.rescuerShelter')} value={conv.organizationName || t('foster.rescuer')} />}
-            <ContextRow label={t('messages.location')} value={`${conv.city}${conv.coarseArea ? ` / ${conv.coarseArea}` : ''}`} />
-            <ContextRow label={t('messages.privacy')} value={privacyLabel} />
-          </div>
-
-          {showApplicationDetails && (
-            <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 space-y-2">
-              <h4 className="text-sm font-semibold text-[#1F2924]">{t('messages.applicationDetails')}</h4>
-              {fosterApplication ? (
-                <>
-                  <ContextRow label={t('common.submitted')} value={getApplicationStatusLabel(fosterApplication.status, t)} />
-                  <ContextRow label={t('foster.housingType')} value={fosterApplication.housingType} />
-                  <ContextRow label={t('foster.availabilityField')} value={fosterApplication.availability} />
-                  <ContextRow label={t('foster.animalExperience')} value={fosterApplication.experience} />
-                  <ContextRow label={t('foster.otherPets')} value={fosterApplication.otherPets} />
-                  <ContextRow label={t('foster.childrenInHome')} value={fosterApplication.childrenInHome} />
-                  <ContextRow label={t('foster.canTransport')} value={fosterApplication.canTransport ? t('common.yes') : t('common.no')} />
-                  <ContextRow label={t('foster.canHandleMedical')} value={fosterApplication.canHandleMedicalNeeds ? t('common.yes') : t('common.no')} />
-                </>
-              ) : (
-                <p className="text-sm text-[#57645C]">{t('messages.noApplicationDetails')}</p>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => openContextTab(isMatch ? 'matches' : 'foster')}
-              className="w-full rounded-xl bg-[#2C402B] py-3 text-sm font-semibold text-white hover:bg-[#243623] transition-colors"
-            >
-              {isMatch ? t('messages.openMatchesTab') : t('messages.openFosterTab')}
-            </button>
-            {!isMatch && (
-              <button
-                type="button"
-                onClick={() => setShowApplicationDetails(current => !current)}
-                className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] py-3 text-sm font-semibold text-[#2C402B] hover:bg-[#EFEDE8] transition-colors"
-              >
-                {t('messages.viewApplication')}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowContext(false)}
-              className="w-full rounded-xl border border-[#E4E2DC] py-3 text-sm font-semibold text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
-            >
-              {t('common.close')}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        </React.Fragment>;
+      })}
     </div>
-  );
+    {newMessages && <button type="button" className="shrink-0 text-sm py-2 bg-[#E3ECE4]" onClick={() => {
+      atBottom.current = true; scroll.current.scrollTop = scroll.current.scrollHeight; setNewMessages(false); markRead(conv.id, latest);
+    }}>{t('readiness.newMessages')}</button>}
+    <footer className="chat-composer">
+      {sendError && <p role="alert" className="text-sm text-[#9B4650] mb-2">{sendError}</p>}
+      {conv.socialRequestStatus && conv.socialRequestStatus !== 'ACCEPTED' && !conv.blocked ? <div className="space-y-2">
+        <p role="status" className="text-sm">{t(conv.socialRequestStatus === 'DECLINED' ? 'readiness.walkDeclinedHint'
+          : conv.socialRequestIsMine ? 'readiness.walkPendingHint' : 'readiness.walkIncomingHint')}</p>
+        {conv.socialRequestStatus === 'PENDING' && !conv.socialRequestIsMine && <>
+          <div className="flex gap-2">
+            <PrimaryButton disabled={responding} onClick={() => respond(true)}>{t('readiness.walkAccept')}</PrimaryButton>
+            <SecondaryButton disabled={responding} onClick={() => respond(false)}>{t('readiness.walkDecline')}</SecondaryButton>
+          </div>
+          <button type="button" disabled={responding} className="min-h-11 underline text-sm" onClick={() => safetyAction('block')}>{t('readiness.walkBlock')}</button>
+        </>}
+      </div> : <>
+      <div className="flex items-end gap-2">
+        <textarea data-testid="message-input" rows={1} value={input} disabled={!canWrite}
+          onChange={event => { setInput(event.target.value); if (!saveDraft(conv.id, event.target.value)) setSendError(t('readiness.storageFailed')); }}
+          aria-label={t('messages.messageInput')} placeholder={t(conv.blocked ? 'messages.blockedPlaceholder' : 'messages.typeMessage')}
+          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#D5D5CE] bg-[#F8F7F4] p-3 text-base max-h-32"
+          onInput={event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(128, event.target.scrollHeight)}px`; }} />
+        <button type="button" data-testid="send-message-btn" onClick={handleSend} disabled={!input.trim() || [...input].length > 4000 || !canWrite}
+          aria-label={t('messages.send')} className="chat-send"><Send size={21} /></button>
+      </div>
+      {input.length > 0 && <p className={`text-xs mt-1 ${[...input].length > 4000 ? 'text-[#9B4650]' : 'text-[#57645C]'}`}>{[...input].length}/4000 {t('readiness.characterCount')}</p>}
+      </>}
+    </footer>
+    <SafetyMenu open={showSafety} onClose={() => setShowSafety(false)} onReport={() => safetyAction('report')} onBlock={() => safetyAction('block')}
+      onViewContext={() => { setShowSafety(false); document.querySelector('[data-testid="conversation-context-panel"]')?.setAttribute('open', ''); }} />
+  </section>;
 }
 
 function getConversationSubtitle(conv, t) {
@@ -353,8 +275,10 @@ function getTimeAgo(dateStr, t) {
 }
 
 export default function MessagesTab({ source = 'MATCH' }) {
-  const { t, conversations } = useApp();
+  const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation, requestOpenConversation } = useApp();
+  const { refreshInbox, inboxHasMore, chatError } = messaging;
   const [activeConvId, setActiveConvId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const isMatchInbox = source === 'MATCH';
   const scopedConversations = conversations.filter((conversation) => conversation.source === source);
   const activeConv = scopedConversations.find((conversation) => conversation.id === activeConvId);
@@ -364,6 +288,33 @@ export default function MessagesTab({ source = 'MATCH' }) {
   const emptyDescription = isMatchInbox
     ? t('messages.noMatchConversationsDesc')
     : t('messages.noFosterConversationsDesc');
+
+  useEffect(() => {
+    let alive = true;
+    if (dataSource === 'supabase') {
+      setLoading(true);
+      refreshInbox(source).catch(() => {}).finally(() => { if (alive) setLoading(false); });
+    }
+    return () => { alive = false; };
+  }, [source, dataSource, refreshInbox]);
+
+  useEffect(() => {
+    if (!requestedConversation?.id) return;
+    let alive = true;
+    const open = async () => {
+      const existing = conversations.find(c => c.id === requestedConversation.id);
+      const conversation = existing || (await refreshInbox(undefined, false, requestedConversation.id))[0];
+      if (!alive) return;
+      if (conversation?.source && conversation.source !== source) {
+        requestOpenConversation(conversation.id, conversation.source);
+        return;
+      }
+      if (conversation) setActiveConvId(conversation.id);
+      setRequestedConversation(null);
+    };
+    open().catch(() => { if (alive) setRequestedConversation(null); });
+    return () => { alive = false; };
+  }, [requestedConversation, conversations, source, refreshInbox, requestOpenConversation, setRequestedConversation]);
 
   useEffect(() => {
     document.body.classList.toggle('petpal-thread-open', Boolean(activeConv));
@@ -389,7 +340,9 @@ export default function MessagesTab({ source = 'MATCH' }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-3 pb-20">
-        {scopedConversations.length === 0 ? (
+        {chatError && <div role="alert" className="text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="min-h-11 underline" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button></div>}
+        {loading && <p role="status">{t('readiness.loading')}</p>}
+        {!loading && scopedConversations.length === 0 ? (
           <EmptyState
             icon={MessageCircle}
             title={emptyTitle}
@@ -405,6 +358,9 @@ export default function MessagesTab({ source = 'MATCH' }) {
                 t={t}
               />
             ))}
+            {inboxHasMore[source] && <button type="button" disabled={loading} className="min-h-11 w-full underline" onClick={async () => {
+              setLoading(true); try { await refreshInbox(source, true); } catch {} finally { setLoading(false); }
+            }}>{t('readiness.more')}</button>}
           </div>
         )}
       </div>

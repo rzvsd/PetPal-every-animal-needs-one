@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import DialogLayer from './DialogLayer';
+import { useBackHandler } from '../navigation/backNavigation';
 import { useApp } from '../context/AppContext';
 import { X, ChevronDown, ChevronLeft, Info, Lock, CheckCircle2, XCircle, Clock, AlertTriangle, Dog, Cat } from 'lucide-react';
 
@@ -155,37 +157,34 @@ export function CoverageChips({ food, vet, transport }) {
   );
 }
 
-export function FilterSheet({ open, onClose, title, children }) {
+export function FilterSheet({ open, onClose, title, children, footer }) {
   const { t } = useApp();
 
   if (!open) return null;
   return (
-    <div data-testid="filter-sheet" className="absolute inset-0 z-[70] flex flex-col justify-end">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl max-h-[75vh] flex flex-col animate-slideUp" role="dialog" aria-modal="true" aria-label={title}>
+    <DialogLayer open={open} onClose={onClose} sheet label={title}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E2DC]">
           <h3 className="text-lg font-semibold text-[#1F2924] font-heading">{title}</h3>
           <button type="button" data-testid="close-filter-sheet" aria-label={t('common.close')} onClick={onClose} className="p-2 rounded-lg hover:bg-[#F0EDE8]">
             <X size={20} className="text-[#57645C]" />
           </button>
         </div>
-        <div className="overflow-y-auto p-5 pb-8 space-y-4">
+        <div className="min-h-0 overflow-y-auto p-5 space-y-4">
           {children}
         </div>
-      </div>
-    </div>
+        {footer && <div className="shrink-0 border-t p-4 flex gap-3">{footer}</div>}
+    </DialogLayer>
   );
 }
 
 export function Modal({ open, onClose, children }) {
   if (!open) return null;
   return (
-    <div data-testid="modal-overlay" className="absolute inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl w-full max-w-sm shadow-xl animate-scaleIn overflow-hidden" role="dialog" aria-modal="true">
+    <DialogLayer open={open} onClose={onClose}>
+      <div className="min-h-0 overflow-y-auto">
         {children}
       </div>
-    </div>
+    </DialogLayer>
   );
 }
 
@@ -202,7 +201,7 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
 
   if (!open) return null;
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-40 animate-slideUp">
+    <DialogLayer open={open} onClose={onClose} sheet label={t('messages.safetyMenu')}>
       <div className="bg-white rounded-t-3xl border-t border-[#E4E2DC] shadow-xl">
         <div className="w-10 h-1 bg-[#E4E2DC] rounded-full mx-auto mt-3" />
         <div className="p-4 space-y-1">
@@ -223,14 +222,15 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
           </button>
         </div>
       </div>
-    </div>
+    </DialogLayer>
   );
 }
 
-export function AnimalSelector({ animals, selectedId, onSelect }) {
+export function AnimalSelector({ animals, selectedId, onSelect, compact = false }) {
   const { t } = useApp();
   const [open, setOpen] = useState(false);
   const selected = animals.find(a => a.id === selectedId);
+  useBackHandler(open, () => setOpen(false), 20);
 
   return (
     <div className="relative">
@@ -251,11 +251,11 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
           </div>
         )}
         <span className="font-semibold text-[#1F2924] text-sm">{selected?.name || t('common.selectAnimal')}</span>
-        <span className="text-xs text-[#57645C]">{selected?.breed}</span>
+        {!compact && <span className="text-xs text-[#57645C]">{selected?.breed}</span>}
         <ChevronDown size={16} className={`ml-auto text-[#57645C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-hidden" role="listbox" aria-label={t('common.selectAnimal')}>
+        <div className="absolute top-full right-0 min-w-[240px] max-h-[60vh] mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-y-auto" role="listbox" aria-label={t('common.selectAnimal')}>
           {animals.map(a => (
             <button
               type="button"
@@ -282,21 +282,6 @@ export function AnimalSelector({ animals, selectedId, onSelect }) {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-export function CompatibilityScore({ score, label }) {
-  const color = score >= 80 ? '#2C402B' : score >= 60 ? '#9BAE96' : '#C07E67';
-  return (
-    <div data-testid="compatibility-score" className="flex items-center gap-2" role="img" aria-label={label || `${score}%`}>
-      <div className="relative w-10 h-10">
-        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
-          <path d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E4E2DC" strokeWidth="3" />
-          <path d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={color} strokeWidth="3" strokeDasharray={`${score}, 100`} strokeLinecap="round" />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color }}>{score}%</span>
-      </div>
     </div>
   );
 }

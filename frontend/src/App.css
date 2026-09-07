@@ -1,6 +1,6 @@
 .petpal-container {
   width: 100vw;
-  min-height: 100dvh;
+  height: var(--app-height, 100dvh);
   display: flex;
   align-items: stretch;
   justify-content: stretch;
@@ -11,11 +11,11 @@
 .petpal-frame {
   width: 100%;
   max-width: 430px;
-  min-height: 100dvh;
+  height: var(--app-height, 100dvh);
   position: relative;
   background: #F8F7F4;
   box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25);
-  overflow: visible;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -49,11 +49,12 @@
 
 .petpal-screen {
   width: 100%;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   background: #F8F7F4;
@@ -63,12 +64,6 @@
 .petpal-screen > .flex-1,
 .petpal-screen .flex-1 {
   min-height: 0;
-}
-
-@media (max-width: 767px) {
-  .petpal-screen .overflow-y-auto {
-    overflow: visible !important;
-  }
 }
 
 @media (min-width: 768px) {
@@ -83,7 +78,7 @@
 }
 
 .petpal-bottom-tabs {
-  position: fixed;
+  position: absolute;
   left: 50%;
   right: auto;
   bottom: 0;
@@ -95,6 +90,52 @@
 .petpal-thread-open .petpal-bottom-tabs {
   display: none;
 }
+
+.petpal-thread-open .petpal-screen { padding-bottom: 0; }
+.petpal-screen:has(> .data-source-banner) .petpal-fullscreen { top: 19px; }
+.petpal-fullscreen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: #F8F7F4; }
+.petpal-fullscreen > [data-testid="screen-header"] { flex-shrink: 0; }
+.dialog-layer { position: fixed; inset: 0; height: var(--app-height, 100dvh); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.dialog-layer.dialog-sheet { align-items: flex-end; padding: 0; }
+.dialog-content { position: relative; display: flex; flex-direction: column; width: 100%; max-width: 430px; max-height: 90%; min-height: 0; background: white; overflow: hidden; box-shadow: 0 12px 40px #0002; }
+.dialog-content > :first-child { flex-shrink: 0; }
+.dialog-content > .overflow-y-auto { flex-shrink: 1; }
+.dialog-content > .min-h-0 { flex-shrink: 1; }
+.data-source-banner { flex-shrink: 0; padding: 2px 8px; text-align: center; font-size: 10px; background: #E3ECE4; color: #2C402B; }
+.match-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; flex-shrink: 0; background: #F8F7F4; }
+.match-header [data-testid="animal-selector"] { padding: 6px 8px; min-height: 44px; border-radius: 24px; }
+.match-header [data-testid="animal-selector"] > span { overflow: hidden; text-overflow: ellipsis; }
+.match-controls { padding: 4px 16px 8px; }
+.match-modes { display: flex; border: 1px solid #E4E2DC; border-radius: 18px; padding: 3px; gap: 2px; }
+.match-modes button { display: flex; flex: 1; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; min-height: 44px; font-size: .75rem; line-height: 1.25; border-radius: 14px; }
+.match-modes button svg { flex-shrink: 0; }
+.match-modes button[aria-pressed="true"] { color: #2C402B; background: #E3ECE4; font-weight: 600; }
+.filter-trigger { display: flex; align-items: center; gap: 6px; border: 1px solid #E4E2DC; border-radius: 24px; min-height: 44px; padding: 6px 12px; font-size: .875rem; }
+.match-card { margin: 0 16px; border: 1px solid #E4E2DC; border-radius: 20px; overflow: hidden; background: white; }
+.match-photo { width: 100%; height: clamp(140px, calc(var(--app-height, 100dvh) - 465px), 330px); object-fit: cover; }
+.match-card-info { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.verification-info { display: flex; align-items: center; gap: 4px; min-height: 44px; max-width: 48%; font-size: .6875rem; line-height: 1.25; color: #2C402B; }
+.verification-info svg { flex-shrink: 0; }
+.about-animal { text-align: left; min-height: 36px; color: #2C402B; font-weight: 600; font-size: .875rem; }
+.match-actions { display: flex; flex-direction: column; gap: 6px; }
+.match-action-primary, .match-action-secondary, .match-action-save { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 48px; padding: 10px 12px; border-radius: 14px; font-size: .875rem; line-height: 1.25; }
+.match-action-primary { flex: 1; background: #2C402B; color: white; font-weight: 600; }
+.match-action-secondary { flex: 1; border: 1px solid #D5D5CE; color: #2C402B; }
+.match-action-save { border: 1px solid #D5D5CE; color: #2C402B; flex-shrink: 0; }
+.match-action-save[aria-pressed="true"] { background: #E3ECE4; }
+.match-actions button:disabled { opacity: .55; }
+.match-actions svg { flex-shrink: 0; }
+.match-mutual-hint { padding: 10px 20px 14px; text-align: center; font-size: .75rem; color: #57645C; }
+.chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; flex-shrink: 0; background: #F8F7F4; }
+.chat-icon-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; }
+.chat-context { margin: 0 16px 8px; padding: 0 12px; border: 1px solid #E4E2DC; border-radius: 14px; font-size: .875rem; flex-shrink: 0; max-height: 30%; overflow: auto; }
+.chat-bubble { max-width: 85%; padding: 10px 14px; border: 1px solid #E4E2DC; background: white; border-radius: 18px 18px 18px 4px; overflow-wrap: anywhere; }
+.chat-bubble-mine { background: #E3ECE4; border-color: #D2DDCE; border-radius: 18px 18px 4px 18px; }
+.chat-composer { flex-shrink: 0; border-top: 1px solid #E4E2DC; background: white; padding: 10px 12px max(10px, env(safe-area-inset-bottom)); }
+.chat-send { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #2C402B; color: white; flex-shrink: 0; }
+.chat-send:disabled { opacity: .45; }
+.petpal-screen button:focus-visible, .dialog-layer button:focus-visible { outline: 2px solid #2C402B; outline-offset: 2px; }
+.petpal-screen p, .petpal-screen h1, .petpal-screen h2 { overflow-wrap: anywhere; }
 
 @media (min-width: 768px) {
   .petpal-bottom-tabs {

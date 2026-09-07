@@ -132,25 +132,12 @@ function mapMatchCandidate(row) {
   });
   const preferredMode = animal.activeMatchModes?.includes('PLAY') ? 'PLAY' : animal.activeMatchModes?.[0] || 'SOCIAL';
   const verifiedOwner = row.owner_verification_status === 'VERIFIED';
-  const score = Math.min(96, 55
-    + (verifiedOwner ? 10 : 0)
-    + (animal.profileCompleteness >= 85 ? 10 : 0)
-    + (animal.vaccineStatus === 'UP_TO_DATE' ? 8 : 0)
-    + (animal.healthDocumentStatus === 'VERIFIED' ? 8 : 0)
-    + (animal.city ? 5 : 0));
 
   return {
     animal,
     mode: preferredMode,
     hasLikedBack: Boolean(row.has_liked_back),
-    compatibilityScore: score,
-    compatibilityReasons: [
-      'complete profile',
-      animal.city ? 'nearby area' : 'reachable area',
-      verifiedOwner ? 'verified owner' : 'good social fit',
-      animal.healthDocumentStatus === 'VERIFIED' ? 'health fields available' : 'compatible age',
-    ],
-    ownerVerificationStatus: row.owner_verification_status || 'UNVERIFIED',
+    ownerVerificationStatus: verifiedOwner ? 'VERIFIED' : row.owner_verification_status || 'UNVERIFIED',
     healthDocumentStatus: animal.healthDocumentStatus,
     distanceLabel: `${animal.city || 'Romania'}${animal.coarseArea ? ` / ${animal.coarseArea}` : ''}`,
     exactLocationHidden: true,
@@ -227,6 +214,9 @@ function mapConversation(row, messages) {
       body: message.body,
       createdAt: message.created_at,
       isMine: message.is_mine,
+      clientMessageId: message.client_message_id,
+      sequence: message.message_seq,
+      status: 'sent',
     }));
 
   const source = row.source === 'MATCH' ? 'MATCH' : 'FOSTER';
@@ -235,8 +225,14 @@ function mapConversation(row, messages) {
 
   return {
     id: row.conversation_id,
+    animalPhoto: row.animal_photo,
+    otherOwnerName: row.other_owner_name,
+    activityAt: row.activity_at,
+    lastReadSequence: row.last_read_seq || 0,
     source,
     matchId: row.match_id,
+    socialRequestStatus: row.social_request_status,
+    socialRequestIsMine: Boolean(row.social_request_is_mine),
     fosterCaseId: row.listing_id,
     fosterApplicationId: row.application_id,
     fosterInviteId: row.foster_invite_id,
@@ -258,11 +254,11 @@ function mapConversation(row, messages) {
     city: row.city || '',
     coarseArea: row.coarse_area || '',
     otherParticipantIds: row.other_participant_ids || [],
-    blocked: Boolean(row.blocked_by_me),
+    blocked: Boolean(row.messaging_blocked || row.blocked_by_me),
     reported: Boolean(row.reported_by_me),
-    lastMessage: row.last_message_body || '',
+    lastMessage: row.messaging_blocked ? '' : row.last_message_body || '',
     lastMessageAt: row.last_message_at || row.created_at,
-    unread: 0,
+    unread: row.unread_count || 0,
     messages: conversationMessages,
   };
 }
@@ -422,12 +418,11 @@ async function loadFosterCases() {
   return (data || []).map(mapFosterCase);
 }
 
-async function loadMatchCandidates() {
-  const { data, error } = await supabase
-    .from('match_candidates_view')
-    .select('*')
-    .order('profile_completeness', { ascending: false });
-
+export async function loadMatchCandidates({ animalId, mode, filters = {}, savedOnly = false, afterId = null }) {
+  const { data, error } = await supabase.rpc('discover_match_candidates', {
+    my_animal_id_input: animalId, mode_input: mode, filters_input: filters,
+    saved_only_input: savedOnly, after_id_input: afterId,
+  });
   if (error) throw error;
   return (data || []).map(mapMatchCandidate);
 }
@@ -474,24 +469,65 @@ async function loadMyAnimals() {
   return (data || []).map(mapOwnerAnimal);
 }
 
-async function loadConversations() {
-  const { data: rows, error } = await supabase
-    .from('my_conversations_view')
+export async function loadConversations({ source, before = null, id } = {}) {
+  let query = supabase
+    .from('conversation_inbox_view')
     .select('*')
-    .order('last_message_at', { ascending: false, nullsFirst: false });
-
+    .order('activity_at', { ascending: false }).order('conversation_id', { ascending: false }).limit(20);
+  if (source === 'MATCH') query = query.eq('source', 'MATCH');
+  if (source === 'FOSTER') query = query.in('source', ['FOSTER', 'FOSTER_INVITE']);
+  if (id) query = query.eq('conversation_id', id);
+  if (before) query = query.or(`activity_at.lt.${before.activityAt},and(activity_at.eq.${before.activityAt},conversation_id.lt.${before.id})`);
+  const { data: rows, error } = await query;
   if (error) throw error;
-  const conversationIds = (rows || []).map((row) => row.conversation_id);
-  if (conversationIds.length === 0) return [];
+  return (rows || []).map((row) => mapConversation(row, []));
+}
 
-  const { data: messages, error: messagesError } = await supabase
-    .from('conversation_messages_view')
-    .select('*')
-    .in('conversation_id', conversationIds)
-    .order('created_at', { ascending: true });
+export async function loadConversationMessages(conversationId, { before, after } = {}) {
+  let query = supabase.from('conversation_messages_view').select('*')
+    .eq('conversation_id', conversationId).order('message_seq', { ascending: after !== undefined }).limit(50);
+  if (before) query = query.lt('message_seq', before);
+  if (after !== undefined) query = query.gt('message_seq', after);
+  const { data, error } = await query;
+  if (error) throw error;
+  return mapConversation({ conversation_id: conversationId }, data || []).messages.sort((a, b) => a.sequence - b.sequence);
+}
 
-  if (messagesError) throw messagesError;
-  return rows.map((row) => mapConversation(row, messages || []));
+export async function loadSavedAnimals() {
+  const { data, error } = await supabase.from('saved_animals').select('animal_id');
+  if (error) throw error;
+  return (data || []).map(row => row.animal_id);
+}
+
+export async function setAnimalSaved(animalId, saved) {
+  const query = saved ? supabase.from('saved_animals').insert({ animal_id: animalId })
+    : supabase.from('saved_animals').delete().eq('animal_id', animalId);
+  const { error } = await query;
+  if (error && !(saved && error.code === '23505')) throw error;
+}
+
+export async function findSocialWalkConversation(ownerId) {
+  const { data, error } = await supabase.from('conversation_inbox_view').select('conversation_id')
+    .eq('match_mode', 'SOCIAL').contains('other_participant_ids', [ownerId])
+    .order('created_at', { ascending: false }).limit(1);
+  if (error) throw error;
+  return data[0]?.conversation_id;
+}
+
+export async function requestSocialWalk(myAnimalId, targetAnimalId, body) {
+  const { data, error } = await supabase.rpc('request_social_walk', {
+    my_animal_id_input: myAnimalId, target_animal_id_input: targetAnimalId, body_input: body,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function respondSocialWalk(conversationId, accept) {
+  const { data, error } = await supabase.rpc('respond_social_walk', {
+    conversation_id_input: conversationId, accept_input: accept,
+  });
+  if (error) throw error;
+  return data;
 }
 
 async function loadPaymentSessions() {
@@ -517,7 +553,7 @@ export async function loadSupabaseAppData() {
     ? await Promise.all([
         loadProfile(),
         loadMyAnimals(),
-        loadMatchCandidates(),
+        Promise.resolve([]),
         loadFosterHomeProfiles(),
         loadApplications(),
         loadFosterInvites(),
@@ -719,11 +755,12 @@ export async function createSupabasePaymentSession({
   return session?.amount_cents ? mapPaymentSession(session) : session;
 }
 
-export async function sendSupabaseConversationMessage(conversationId, body) {
+export async function sendSupabaseConversationMessage(conversationId, body, clientMessageId) {
   const { data, error } = await supabase.rpc('send_conversation_message', {
     conversation_id_input: conversationId,
     body_input: body,
-  });
+    client_message_id_input: clientMessageId,
+  }).abortSignal(AbortSignal.timeout(12000));
 
   if (error) throw error;
   return data;

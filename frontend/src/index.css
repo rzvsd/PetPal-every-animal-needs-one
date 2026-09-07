@@ -21,13 +21,13 @@ body {
   background: #E4E2DC;
   color: #1F2924;
   overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 100dvh;
+  overflow-y: hidden;
+  height: var(--app-height, 100dvh);
   width: 100vw;
 }
 
 #root {
-  min-height: 100dvh;
+  height: var(--app-height, 100dvh);
   width: 100vw;
   display: flex;
   align-items: stretch;

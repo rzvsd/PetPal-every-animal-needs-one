@@ -4,7 +4,8 @@ const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
-export const allowLocalDemo = process.env.REACT_APP_ALLOW_LOCAL_DEMO === 'true';
+export const isProductionBuild = process.env.REACT_APP_BUILD_PROFILE === 'production';
+export const allowLocalDemo = !isProductionBuild && process.env.REACT_APP_ALLOW_LOCAL_DEMO === 'true';
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {

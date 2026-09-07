@@ -1,5 +1,6 @@
 const { spawnSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 const localUrlPattern = /(localhost|127\.0\.0\.1|10\.0\.2\.2|0\.0\.0\.0|192\.168\.|172\.1[6-9]\.|172\.2\d\.|172\.3[0-1]\.|10\.)/i;
 const allowOfflineRelease = process.env.PETPAL_ALLOW_OFFLINE_RELEASE === 'true'
@@ -27,6 +28,7 @@ const env = {
   NODE_ENV: 'production',
   GENERATE_SOURCEMAP: process.env.GENERATE_SOURCEMAP || 'false',
   REACT_APP_BUILD_PROFILE: 'production',
+  REACT_APP_ALLOW_LOCAL_DEMO: 'false',
   REACT_APP_VERSION: process.env.REACT_APP_VERSION || process.env.npm_package_version || '0.1.0',
   REACT_APP_SUPABASE_URL: supabaseUrl,
   REACT_APP_SUPABASE_ANON_KEY: supabaseAnonKey,
@@ -57,4 +59,9 @@ if (result.error) {
   process.exit(1);
 }
 
+if (result.status === 0) {
+  fs.writeFileSync(path.join(process.cwd(), 'build', 'petpal-build.json'), JSON.stringify({
+    profile: 'production', allowLocalDemo: false, backendConfigured: Boolean(supabaseUrl && supabaseAnonKey),
+  }));
+}
 process.exit(result.status || 0);

@@ -54,6 +54,7 @@ select is(
     select count(*)::integer
     from public.owner_animal_profiles
     where owner_id = '10000000-0000-4000-8000-000000000002'
+      and id in ('50000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002')
   ),
   2,
   'seed includes two owner animal profiles for demo adopter'

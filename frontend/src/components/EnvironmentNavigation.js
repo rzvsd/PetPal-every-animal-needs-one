@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Heart, Home, MessageCircle, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { AnimalSelector } from './SharedComponents';
 import {
   FOSTER_ENVIRONMENT,
   getEnvironmentConversations,
@@ -8,9 +9,15 @@ import {
 } from '../navigation/environments';
 
 export function EnvironmentHeader({ environment, onBack }) {
-  const { t } = useApp();
+  const { t, activeTab, myAnimals, selectedAnimalId, setSelectedAnimalId } = useApp();
   const isFoster = environment === FOSTER_ENVIRONMENT;
   const Icon = isFoster ? Home : Heart;
+
+  if (!isFoster && activeTab === 'matches') return <header className="match-header">
+    <button type="button" data-testid="back-to-environments" onClick={onBack} aria-label={t('environment.backToSpaces')} className="shrink-0 min-h-11 min-w-8"><ArrowLeft size={20} /></button>
+    <h1 className="font-heading text-lg font-bold leading-tight">{t('environment.matchTitle')}</h1>
+    <div className="ml-auto min-w-0 max-w-[48%]"><AnimalSelector animals={myAnimals} selectedId={selectedAnimalId} onSelect={setSelectedAnimalId} compact /></div>
+  </header>;
 
   return (
     <header className="flex min-h-14 items-center gap-3 border-b border-[#E4E2DC]/70 bg-white/90 px-4 backdrop-blur-xl">
@@ -38,19 +45,19 @@ export function EnvironmentHeader({ environment, onBack }) {
 }
 
 export function EnvironmentBottomTabs({ environment }) {
-  const { activeTab, setActiveTab, t, conversations } = useApp();
+  const { activeTab, setActiveTab, t, conversations, messaging, dataSource } = useApp();
   const homeTab = getEnvironmentHomeTab(environment);
   const isFoster = environment === FOSTER_ENVIRONMENT;
   const tabs = [
     {
       key: homeTab,
       icon: isFoster ? Home : Heart,
-      label: isFoster ? t('tabs.foster') : t('tabs.matches'),
+      label: isFoster ? t('tabs.foster') : t('readiness.discover'),
     },
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
-  const unreadCount = getEnvironmentConversations(conversations, environment)
+  const unreadCount = dataSource === 'supabase' ? messaging.unreadTotals[isFoster ? 'FOSTER' : 'MATCH'] : getEnvironmentConversations(conversations, environment)
     .reduce((total, conversation) => total + (conversation.unread || 0), 0);
 
   return (

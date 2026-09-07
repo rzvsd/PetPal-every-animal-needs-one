@@ -14,9 +14,12 @@ import {
   getEnvironmentHomeTab,
 } from './navigation/environments';
 import './App.css';
+import { dismissTopLayer } from './navigation/backNavigation';
+import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
 
 function AppContent() {
-  const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn } = useApp();
+  const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, dataSource,
+    backendStatus, refreshSupabaseData, requestedConversation } = useApp();
   const [environment, setEnvironment] = useState(null);
   const backStateRef = useRef({ activeTab, authLoading, authRequired, environment });
 
@@ -40,6 +43,7 @@ function AppContent() {
   };
 
   const handleAppBack = useCallback(() => {
+    if (dismissTopLayer()) return;
     const current = backStateRef.current;
     if (current.authLoading || current.authRequired || !current.environment) return;
 
@@ -51,6 +55,13 @@ function AppContent() {
 
     setEnvironment(null);
   }, [setActiveTab]);
+
+  useEffect(() => {
+    if (requestedConversation && !authRequired) {
+      setEnvironment(requestedConversation.source === 'FOSTER' ? 'foster' : 'match');
+      setActiveTab('messages');
+    }
+  }, [requestedConversation, authRequired, setActiveTab]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.history?.pushState) return undefined;
@@ -106,78 +117,23 @@ function AppContent() {
   }, [handlePaymentReturn]);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return undefined;
-
-    let activeScroller = null;
-    let lastY = 0;
-    let lastX = 0;
-
-    const findScroller = (target) => {
-      if (!(target instanceof Element)) return document.querySelector('.petpal-screen');
-      return target.closest('.overflow-y-auto') || document.querySelector('.petpal-screen');
-    };
-
-    const handleTouchStart = (event) => {
-      const touch = event.touches?.[0];
-      if (!touch) return;
-      activeScroller = findScroller(event.target);
-      lastY = touch.clientY;
-      lastX = touch.clientX;
-    };
-
-    const handleTouchMove = (event) => {
-      const touch = event.touches?.[0];
-      if (!touch || !activeScroller) return;
-
-      const deltaY = lastY - touch.clientY;
-      const deltaX = lastX - touch.clientX;
-
-      if (Math.abs(deltaY) < 3 || Math.abs(deltaY) < Math.abs(deltaX)) {
-        lastY = touch.clientY;
-        lastX = touch.clientX;
-        return;
-      }
-
-      if (activeScroller.scrollHeight <= activeScroller.clientHeight) {
-        activeScroller = document.querySelector('.petpal-screen');
-      }
-
-      if (!activeScroller || activeScroller.scrollHeight <= activeScroller.clientHeight) {
-        return;
-      }
-
-      const before = activeScroller.scrollTop;
-      activeScroller.scrollTop += deltaY;
-      lastY = touch.clientY;
-      lastX = touch.clientX;
-
-      if (activeScroller.scrollTop !== before) {
-        event.preventDefault();
-      }
-    };
-
-    const handleTouchEnd = () => {
-      activeScroller = null;
-    };
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-    document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
-
+    const resize = () => document.documentElement.style.setProperty(
+      '--app-height', `${window.visualViewport?.height || window.innerHeight}px`,
+    );
+    resize();
+    window.visualViewport?.addEventListener('resize', resize);
+    window.addEventListener('resize', resize);
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('touchcancel', handleTouchEnd);
+      window.visualViewport?.removeEventListener('resize', resize);
+      window.removeEventListener('resize', resize);
     };
   }, []);
-
   return (
     <div className="petpal-container">
       <div className="petpal-frame">
         <div className="petpal-screen">
-          {authLoading ? (
+          {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
+          {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
             <div className="flex flex-1 items-center justify-center bg-[#F8F7F4] px-8 text-center">
               <div className="space-y-3">
                 <div className="mx-auto h-12 w-12 animate-pulse rounded-2xl bg-[#E3ECE4]" />
@@ -186,6 +142,9 @@ function AppContent() {
             </div>
           ) : authRequired ? (
             <AuthScreen />
+          ) : backendStatus.message === 'readiness.loadError' ? (
+            <div role="alert" className="p-6 space-y-4"><p>{t('readiness.loadError')}</p>
+              <button type="button" className="match-action-primary" onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</button></div>
           ) : !environment ? (
             <EnvironmentChooser onSelect={enterEnvironment} />
           ) : (

@@ -65,6 +65,7 @@ select is(
   (
     select count(*)::integer
     from public.match_candidates_view
+    where animal_id in ('50000000-0000-4000-8000-000000000003','50000000-0000-4000-8000-000000000004')
   ),
   2,
   'demo adopter can browse two seeded external match candidates'

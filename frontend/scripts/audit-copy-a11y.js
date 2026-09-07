@@ -36,10 +36,13 @@ function flattenKeys(value, prefix = '', out = []) {
 function loadTranslations() {
   const source = read(translationsPath);
   const normalized = source
+    .replace(/^import .*;\r?\n/gm, '')
     .replace('export const translations =', 'module.exports =')
     .replace(/;\s*$/, ';');
   const moduleShim = { exports: {} };
-  Function('module', normalized)(moduleShim);
+  const readinessSource = read(path.join(root, 'src', 'i18n', 'matchReadiness.js'));
+  const readiness = Function(readinessSource.replace('export const matchReadiness =', 'const matchReadiness =') + '\nreturn matchReadiness;')();
+  Function('module', 'matchReadiness', normalized)(moduleShim, readiness);
   return moduleShim.exports;
 }
 

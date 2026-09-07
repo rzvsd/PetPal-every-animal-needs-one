@@ -35,18 +35,6 @@ select ok(
   'application review RPC is security definer for accepted-chat side effects'
 );
 
-select ok(
-  exists (
-    select 1
-    from pg_policies
-    where schemaname = 'public'
-      and tablename = 'messages'
-      and policyname = 'messages_participant_insert'
-      and with_check like '%is_conversation_blocked%'
-  ),
-  'direct message insert policy blocks blocked conversations'
-);
-
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
 
 create temp table m6_pending_application as
@@ -133,7 +121,7 @@ select ok(
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
 
 select is(
-  (select count(*)::integer from public.my_conversations_view),
+  (select count(*)::integer from public.my_conversations_view where conversation_id=(select conversation_id from m6_conversation)),
   1,
   'applicant can see accepted conversation summary'
 );
@@ -143,6 +131,13 @@ select public.send_conversation_message(
   (select conversation_id from m6_conversation),
   'Hello, I am available to coordinate Luna next steps.'
 ) as message_id;
+
+grant select on m6_conversation to authenticated;
+set local role authenticated;
+select throws_ok($$insert into public.messages(conversation_id,sender_id,body)
+  select conversation_id,auth.uid(),'Bypass attempt' from m6_conversation$$,
+  '42501',null,'direct insert cannot bypass serialized send RPC and notifications');
+reset role;
 
 select ok(
   exists (
@@ -155,7 +150,7 @@ select ok(
 );
 
 select is(
-  (select count(*)::integer from public.conversation_messages_view),
+  (select count(*)::integer from public.conversation_messages_view where conversation_id=(select conversation_id from m6_conversation)),
   1,
   'participant can read conversation messages before block'
 );
@@ -216,7 +211,7 @@ select throws_ok(
 );
 
 select is(
-  (select count(*)::integer from public.conversation_messages_view),
+  (select count(*)::integer from public.conversation_messages_view where conversation_id=(select conversation_id from m6_conversation)),
   0,
   'blocked conversation hides messages from blocked participant'
 );

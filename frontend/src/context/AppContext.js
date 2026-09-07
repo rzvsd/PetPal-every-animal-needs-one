@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { translations } from '../i18n/translations';
 import { demoAnimals, demoMatchCandidates, demoFosterCases, demoFosterHomeProfiles, demoFosterInvites, demoConversations, demoFosterApplications, demoUser } from '../data/mockData';
 import {
@@ -17,7 +17,8 @@ import {
   sendSupabaseFosterInvite,
   rateSupabaseFosterHome,
   createSupabasePaymentSession,
-  sendSupabaseConversationMessage,
+  loadSavedAnimals,
+  setAnimalSaved,
   reportSupabaseConversation,
   blockSupabaseConversation,
   requestSupabaseRescuerAccess,
@@ -25,6 +26,8 @@ import {
 } from '../services/supabaseApi';
 import { allowLocalDemo, demoSupabaseCredentials, isSupabaseConfigured, supabase } from '../services/supabaseClient';
 import { initializePushNotifications } from '../services/pushNotifications';
+import { useMessaging } from '../services/useMessaging';
+import { clearChatStorage } from '../services/messageStorage';
 
 const AppContext = createContext();
 
@@ -32,20 +35,19 @@ export function AppProvider({ children }) {
   const [lang, setLang] = useState('en');
   const [activeTab, setActiveTab] = useState('matches');
   const [user, setUser] = useState(demoUser);
-  const [myAnimals, setMyAnimals] = useState(demoAnimals);
-  const [selectedAnimalId, setSelectedAnimalId] = useState(demoAnimals[0]?.id || null);
+  const [myAnimals, setMyAnimals] = useState([]);
+  const [selectedAnimalId, setSelectedAnimalId] = useState(null);
   const [matchMode, setMatchMode] = useState('PLAY');
-  const [candidates, setCandidates] = useState(demoMatchCandidates);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [candidates, setCandidates] = useState([]);
   const [matchSuccess, setMatchSuccess] = useState(null);
   const [savedAnimals, setSavedAnimals] = useState([]);
-  const [fosterCases, setFosterCases] = useState(demoFosterCases);
-  const [fosterHomeProfiles, setFosterHomeProfiles] = useState(demoFosterHomeProfiles);
-  const [fosterInvites, setFosterInvites] = useState(demoFosterInvites);
-  const [fosterApplications, setFosterApplications] = useState(demoFosterApplications);
-  const [conversations, setConversations] = useState(demoConversations);
+  const [fosterCases, setFosterCases] = useState([]);
+  const [fosterHomeProfiles, setFosterHomeProfiles] = useState([]);
+  const [fosterInvites, setFosterInvites] = useState([]);
+  const [fosterApplications, setFosterApplications] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [paymentSessions, setPaymentSessions] = useState([]);
-  const [dataSource, setDataSource] = useState('mock');
+  const [dataSource, setDataSource] = useState(isSupabaseConfigured ? 'supabase' : 'unconfigured');
   const [backendStatus, setBackendStatus] = useState({ loading: false, message: null });
   const [authSession, setAuthSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
@@ -57,6 +59,17 @@ export function AppProvider({ children }) {
   const [rescuerAccessState, setRescuerAccessState] = useState('not_requested');
   const [activeScreen, setActiveScreen] = useState(null);
   const [screenParams, setScreenParams] = useState(null);
+  const [skippedMatches, setSkippedMatches] = useState({});
+  const [requestedConversation, setRequestedConversation] = useState(null);
+  const authVersion = useRef(0);
+  const sessionAccount = useRef(null);
+  const messaging = useMessaging({ accountId: authSession?.user?.id || (localDemoSession ? 'demo' : null),
+    live: Boolean(authSession && dataSource === 'supabase'), conversations, setConversations });
+  const { sendMessage } = messaging;
+  const requestOpenConversation = useCallback((id, source = 'MATCH') => {
+    setRequestedConversation({ id, source });
+    setActiveTab('messages');
+  }, []);
 
   const t = useCallback((path) => {
     const keys = path.split('.');
@@ -86,7 +99,9 @@ export function AppProvider({ children }) {
   };
 
   const applySupabaseData = useCallback(async () => {
+    const version = authVersion.current;
     const data = await loadSupabaseAppData();
+    if (version !== authVersion.current) return data;
 
     if (!data.configured) {
       setBackendStatus({ loading: false, message: null });
@@ -126,7 +141,13 @@ export function AppProvider({ children }) {
     }
 
     setFosterApplications(data.session ? (data.fosterApplications || []) : []);
-    setConversations(data.session ? (data.conversations || []) : []);
+    setConversations(current => data.session ? (data.conversations || []).map(row => ({ ...row,
+      messages: row.blocked ? [] : current.find(c => c.id === row.id)?.messages || [],
+    })) : []);
+    if (data.session) {
+      const saved = await loadSavedAnimals();
+      if (version === authVersion.current) setSavedAnimals(saved);
+    }
     setDataSource('supabase');
     setBackendStatus({ loading: false, message: null });
     return data;
@@ -146,16 +167,16 @@ export function AppProvider({ children }) {
       setBackendStatus({ loading: true, message: null });
 
       try {
-        await getSupabaseSession();
+        const session = await getSupabaseSession();
         if (cancelled) return;
+        setAuthSession(session);
         await applySupabaseData();
       } catch (error) {
         if (cancelled) return;
-        setAuthSession(null);
-        setDataSource('mock');
+        setDataSource('supabase');
         setBackendStatus({
           loading: false,
-          message: error.message || 'Supabase data could not be loaded. Mock data is still active.',
+          message: 'readiness.loadError',
         });
       } finally {
         if (!cancelled) setAuthLoading(false);
@@ -166,11 +187,24 @@ export function AppProvider({ children }) {
 
     const { data: authListener } = isSupabaseConfigured
       ? supabase.auth.onAuthStateChange((_event, session) => {
+          if (_event === 'SIGNED_OUT' && sessionAccount.current) {
+            try { clearChatStorage(sessionAccount.current); }
+            catch { setAuthError('readiness.storageFailed'); }
+          }
+          if (sessionAccount.current !== (session?.user?.id || null)) authVersion.current += 1;
+          sessionAccount.current = session?.user?.id || null;
           setAuthSession(session);
           if (session) setLocalDemoSession(false);
           if (!session) {
+            authVersion.current += 1;
+            setMyAnimals([]);
+            setSelectedAnimalId(null);
+            setCandidates([]);
+            setSavedAnimals([]);
+            setSkippedMatches({});
+            setRequestedConversation(null);
             setFosterApplications([]);
-            setConversations((current) => current.filter((conversation) => conversation.source === 'MATCH'));
+            setConversations([]);
           }
         })
       : { data: null };
@@ -193,6 +227,7 @@ export function AppProvider({ children }) {
 
       try {
         const result = await initializePushNotifications({
+          onOpenConversation: id => requestOpenConversation(id),
           onToken: async (tokenPayload) => {
             await registerSupabasePushToken(tokenPayload);
             if (!cancelled) {
@@ -229,10 +264,10 @@ export function AppProvider({ children }) {
       cancelled = true;
       cleanup?.();
     };
-  }, [authSession?.user?.id, dataSource]);
+  }, [authSession?.user?.id, dataSource, requestOpenConversation]);
 
   const handleLike = async (candidate) => {
-    if (!selectedAnimal) return;
+    if (!selectedAnimal) throw new Error('readiness.likeError');
 
     if (dataSource === 'supabase') {
       try {
@@ -242,17 +277,12 @@ export function AppProvider({ children }) {
             myAnimal: selectedAnimal,
             theirAnimal: candidate.animal,
             mode: candidate.mode,
+            conversationId: result.conversation_id,
           });
-          await refreshSupabaseData();
+          messaging.refreshInbox('MATCH').catch(() => {});
         }
-      } catch (error) {
-        setBackendStatus({
-          loading: false,
-          message: error.message || 'Match like could not be saved.',
-        });
-      } finally {
-        setCurrentCardIndex(i => i + 1);
-      }
+      } catch (error) { throw error; }
+      handlePass(candidate);
       return;
     }
 
@@ -261,6 +291,7 @@ export function AppProvider({ children }) {
         myAnimal: selectedAnimal,
         theirAnimal: candidate.animal,
         mode: candidate.mode,
+        conversationId: `conv-match-${candidate.animal.id}`,
       });
       const newConv = {
         id: `conv-match-${candidate.animal.id}`,
@@ -285,13 +316,18 @@ export function AppProvider({ children }) {
         return [newConv, ...prev];
       });
     }
-    setCurrentCardIndex(i => i + 1);
+    handlePass(candidate);
   };
 
-  const handlePass = () => setCurrentCardIndex(i => i + 1);
+  const handlePass = candidate => {
+    const key = `${selectedAnimalId}:${matchMode}`;
+    setSkippedMatches(current => ({ ...current, [key]: [...new Set([...(current[key] || []), candidate.animal.id])] }));
+  };
 
-  const handleSave = (candidate) => {
-    setSavedAnimals(prev => [...prev, candidate.animal.id]);
+  const handleSave = async candidate => {
+    const saved = !savedAnimals.includes(candidate.animal.id);
+    if (dataSource === 'supabase') await setAnimalSaved(candidate.animal.id, saved);
+    setSavedAnimals(current => saved ? [...new Set([...current, candidate.animal.id])] : current.filter(id => id !== candidate.animal.id));
   };
 
   const submitFosterApplication = async (caseId, formData) => {
@@ -526,28 +562,6 @@ export function AppProvider({ children }) {
     return newConv;
   };
 
-  const sendMessage = (convId, body) => {
-    if (dataSource === 'supabase') {
-      sendSupabaseConversationMessage(convId, body).catch((error) => {
-        setBackendStatus({
-          loading: false,
-          message: error.message || 'Message could not be sent to Supabase.',
-        });
-      });
-    }
-
-    setConversations(prev => prev.map(c => {
-      if (c.id !== convId) return c;
-      const msg = {
-        messageId: `m-${Date.now()}`,
-        senderDisplayName: 'You',
-        body,
-        createdAt: new Date().toISOString(),
-        isMine: true,
-      };
-      return { ...c, messages: [...c.messages, msg], lastMessage: body, lastMessageAt: msg.createdAt };
-    }));
-  };
 
   const reportConversation = async (convId, details = '') => {
     if (dataSource === 'supabase') {
@@ -598,9 +612,14 @@ export function AppProvider({ children }) {
     if (!isSupabaseConfigured) return null;
 
     setBackendStatus({ loading: true, message: null });
-    const data = await applySupabaseData();
-    setBackendStatus({ loading: false, message: null });
-    return data;
+    try {
+      const data = await applySupabaseData();
+      setBackendStatus({ loading: false, message: null });
+      return data;
+    } catch (error) {
+      setBackendStatus({ loading: false, message: 'readiness.loadError' });
+      throw error;
+    }
   }, [applySupabaseData]);
 
   const handlePaymentReturn = useCallback((url) => {
@@ -707,11 +726,15 @@ export function AppProvider({ children }) {
     setAuthLoading(true);
 
     try {
+      clearChatStorage(authSession?.user?.id || (localDemoSession ? 'demo' : null));
       await signOutOfSupabase();
       setAuthSession(null);
       setLocalDemoSession(false);
       setFosterApplications([]);
-      setConversations((current) => current.filter((conversation) => conversation.source === 'MATCH'));
+      setConversations([]);
+      setMyAnimals([]);
+      setSavedAnimals([]);
+      setSkippedMatches({});
       setPaymentSessions([]);
       setBackendStatus({ loading: false, message: null });
     } catch (error) {
@@ -731,6 +754,9 @@ export function AppProvider({ children }) {
     }
 
     setLocalDemoSession(true);
+    setUser(demoUser);
+    setMyAnimals(demoAnimals);
+    setSelectedAnimalId(demoAnimals[0]?.id || null);
     setDataSource('mock');
     setCandidates(demoMatchCandidates);
     setFosterCases(demoFosterCases);
@@ -846,7 +872,9 @@ export function AppProvider({ children }) {
       user, setUser, updateUserProfile,
       myAnimals, setMyAnimals, saveAnimalProfile, deleteAnimalProfile, selectedAnimalId, setSelectedAnimalId, selectedAnimal,
       matchMode, setMatchMode,
-      candidates, setCandidates, currentCardIndex, setCurrentCardIndex,
+      candidates, setCandidates,
+      skippedMatches, messaging, requestedConversation, setRequestedConversation, requestOpenConversation,
+      refreshSupabaseData,
       matchSuccess, setMatchSuccess,
       savedAnimals, handleLike, handlePass, handleSave,
       fosterCases, fosterHomeProfiles, fosterInvites, sendFosterInvite, openFosterInviteConversation, rateFosterHome,

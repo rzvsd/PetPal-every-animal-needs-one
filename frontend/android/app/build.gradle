@@ -86,6 +86,22 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
+def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
+    doLast {
+        def buildInfoFile = file('src/main/assets/public/petpal-build.json')
+        if (!buildInfoFile.exists()) {
+            throw new GradleException('Release blocked: run npm run build:production and cap sync android first.')
+        }
+        def buildInfo = new groovy.json.JsonSlurper().parse(buildInfoFile)
+        if (buildInfo.profile != 'production' || buildInfo.allowLocalDemo != false) {
+            throw new GradleException('Release blocked: production web assets must disable local demo.')
+        }
+    }
+}
+tasks.matching { it.name == 'mergeReleaseAssets' }.configureEach {
+    dependsOn verifyReleaseWebAssets
+}
+
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
