@@ -1,13 +1,14 @@
+import PlatformAdminEntry from '../components/PlatformAdmin';
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useBackHandler } from '../navigation/backNavigation';
 import {
   Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
-  VerificationBadge, Modal, PrimaryButton
+  Modal, PrimaryButton
 } from '../components/SharedComponents';
 import {
-  User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2, XCircle,
-  Clock, ChevronRight, Edit3, Plus, Settings, Bell, HelpCircle,
+  User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2,
+  ChevronRight, Edit3, Plus, Settings, Bell, HelpCircle,
   FileText, Trash2, EyeOff, Heart, Home, AlertTriangle, Languages, LogOut
 } from 'lucide-react';
 
@@ -23,7 +24,6 @@ function AnimalCard({
   const modeLabels = {
     PLAY: t('matches.play'),
     SOCIAL: t('matches.social'),
-    VERIFIED_MATE: t('matches.verifiedMate'),
   };
 
   return (
@@ -46,15 +46,14 @@ function AnimalCard({
                 {getSpeciesLabel(animal.species, t)} - {animal.breed} - {getSexLabel(animal.sex, t)} - {formatProfileAge(animal.ageMonths, t)}
               </p>
             </div>
-            <VerificationBadge status={animal.verificationStatus} label="" />
           </div>
           <div className="flex items-center gap-1.5">
             <span className={`text-xs font-semibold ${completenessColor}`}>{t('profile.profileComplete')}: {animal.profileCompleteness}%</span>
           </div>
           {showMatchDetails && (
             <div className="flex flex-wrap gap-1">
-              {(animal.activeMatchModes || []).map(m => (
-                <Badge key={m} variant={m === 'VERIFIED_MATE' ? 'sage' : 'default'}>
+              {(animal.activeMatchModes || []).filter(mode => mode !== 'VERIFIED_MATE').map(m => (
+                <Badge key={m} variant="default">
                   {modeLabels[m] || m}
                 </Badge>
               ))}
@@ -221,7 +220,7 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
             </div>
             <FormField label={t('profile.name')} value={draft.name} onChange={(value) => onChange({ name: value })} />
             <fieldset className="space-y-2"><legend className="font-semibold text-sm">{t('profile.matchSettings')}</legend>
-              {[['PLAY', 'matches.play'], ['SOCIAL', 'matches.social'], ['VERIFIED_MATE', 'matches.verifiedMate']].map(([mode, label]) =>
+              {[['PLAY', 'matches.play'], ['SOCIAL', 'matches.social']].map(([mode, label]) =>
                 <label key={mode} className="flex items-center gap-2 min-h-11 text-sm"><input type="checkbox" checked={draft.activeMatchModes?.includes(mode) || false}
                   onChange={event => onChange({ activeMatchModes: event.target.checked ? [...(draft.activeMatchModes || []), mode] : draft.activeMatchModes.filter(value => value !== mode) })} />{t(label)}</label>)}
             </fieldset>
@@ -341,62 +340,10 @@ function getRoleLabel(role, t) {
   return roleLabels[role] || role;
 }
 
-function VerificationSection({ user, animals, t, environment }) {
-  const mainAnimal = animals[0];
-  const sharedChecks = [
-    {
-      label: t('profile.ownerVerification'),
-      status: user.ownerVerificationStatus,
-    },
-    ...(environment === 'foster' ? [] : [{
-      label: t('profile.animalProfile'),
-      status: mainAnimal ? (mainAnimal.profileCompleteness >= 90 ? 'VERIFIED' : 'PENDING') : 'UNVERIFIED',
-      detail: mainAnimal ? `${mainAnimal.profileCompleteness}%` : null,
-    }]),
-  ];
-  const environmentChecks = environment === 'foster'
-    ? [
-      {
-        label: t('profile.rescuerAccess'),
-        status: user.rescuerAccessStatus,
-      },
-    ]
-    : [
-    {
-      label: t('profile.healthDocuments'),
-      status: mainAnimal?.healthDocumentStatus || 'UNVERIFIED',
-    },
-    {
-      label: t('profile.verifiedMateEligibility'),
-      status: mainAnimal?.adminMateApprovalStatus || 'UNVERIFIED',
-    },
-  ];
-  const checks = [...sharedChecks, ...environmentChecks];
-
-  return (
-    <div data-testid="verification-section" className="space-y-2">
-      {checks.map(c => (
-        <div key={c.label} className="flex items-center justify-between py-2.5 px-3 bg-white rounded-xl border border-[#E4E2DC]">
-          <div className="flex items-center gap-2.5">
-            {c.status === 'VERIFIED' ? (
-              <CheckCircle2 size={18} className="text-[#9BAE96]" />
-            ) : c.status === 'PENDING' ? (
-              <Clock size={18} className="text-[#C07E67]" />
-            ) : (
-              <XCircle size={18} className="text-[#CD7A7E]" />
-            )}
-            <span className="text-sm text-[#1F2924]">{c.label}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {c.detail && <span className="text-xs text-[#57645C]">{c.detail}</span>}
-            <Badge variant={c.status === 'VERIFIED' ? 'success' : c.status === 'PENDING' ? 'warning' : 'default'}>
-              {c.status === 'VERIFIED' ? t('common.yes') : c.status === 'PENDING' ? t('common.pending') : t('common.notVerified')}
-            </Badge>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+function VerificationSection({ t }) {
+  return <div className="space-y-3 p-4 bg-white rounded-xl border">
+    <p>{t('care.boundary')}</p><p>{t('care.matePaused')}</p>
+  </div>;
 }
 
 function PreferenceDetailScreen({ title, description, rows, notice, t, onBack }) {
@@ -636,7 +583,7 @@ export default function ProfileTab({ environment = 'match' }) {
     createDonationSession,
     paymentReturnNotice,
     clearPaymentReturnNotice,
-    activeScreen, screenParams, goBack,
+    activeScreen, screenParams, goBack, setActiveTab,
   } = useApp();
   const isFosterEnvironment = environment === 'foster';
   const [activeSection, setActiveSection] = useState(null);
@@ -1104,7 +1051,6 @@ export default function ProfileTab({ environment = 'match' }) {
           [t('profile.defaultMode'), t('matches.play')],
           [t('profile.species'), `${t('matches.dogs')}, ${t('matches.cats')}`],
           [t('profile.preferredArea'), `${user.city}${user.coarseArea ? ` / ${user.coarseArea}` : ''}`],
-          [t('profile.verifiedOnly'), t('common.yes')],
           [t('profile.mixedBreeds'), t('common.yes')],
         ]}
         notice={t('profile.matchPreferencesNotice')}
@@ -1174,7 +1120,6 @@ export default function ProfileTab({ environment = 'match' }) {
                 {user.roles.map(r => (
                   <Badge key={r} variant="sage">{getRoleLabel(r, t)}</Badge>
                 ))}
-                <VerificationBadge status={user.ownerVerificationStatus} label={t('profile.owner')} />
               </div>
             </div>
           </div>
@@ -1218,37 +1163,14 @@ export default function ProfileTab({ environment = 'match' }) {
           </div>
         )}
 
-        <div>
-          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.verification')}</h3>
-          <button
-            type="button"
-            data-testid="verification-overview"
-            onClick={() => setActiveSection('verification')}
-            className="w-full bg-white rounded-2xl p-4 border border-[#E4E2DC] shadow-sm hover:bg-[#FAFAF8] transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-[#1F2924]">{t('profile.verification')}</span>
-              <ChevronRight size={16} className="text-[#57645C]" />
-            </div>
-            <div className="flex gap-2">
-              <VerificationBadge status={user.ownerVerificationStatus} label={t('profile.owner')} />
-              {isFosterEnvironment ? (
-                <VerificationBadge status={user.rescuerAccessStatus || 'UNVERIFIED'} label={t('profile.rescuerAccess')} />
-              ) : (
-                <>
-                  <VerificationBadge status={myAnimals[0]?.healthDocumentStatus || 'UNVERIFIED'} label={t('profile.health')} />
-                  <VerificationBadge status={myAnimals[0]?.adminMateApprovalStatus || 'UNVERIFIED'} label={t('profile.mate')} />
-                </>
-              )}
-            </div>
-          </button>
-        </div>
+        <PlatformAdminEntry />
+        <VerificationSection t={t} />
 
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.preferences')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             {isFosterEnvironment ? (
-              <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => setActiveSection('fosterPreferences')} />
+              <SectionItem icon={Home} label={t('care.home')} onClick={() => setActiveTab('foster-home')} />
             ) : (
               <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => setActiveSection('matchPreferences')} />
             )}

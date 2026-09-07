@@ -131,7 +131,7 @@ function AppContent() {
   return (
     <div className="petpal-container">
       <div className="petpal-frame">
-        <div className="petpal-screen">
+        <div className={`petpal-screen ${environment === 'foster' ? 'foster-environment' : ''}`}>
           {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
           {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
             <div className="flex flex-1 items-center justify-center bg-[#F8F7F4] px-8 text-center">
@@ -151,7 +151,7 @@ function AppContent() {
             <>
               <EnvironmentHeader environment={environment} onBack={leaveEnvironment} />
               {activeTab === 'matches' && <MatchesTab />}
-              {activeTab === 'foster' && <FosterTab />}
+              {['foster', 'foster-home', 'foster-requests'].includes(activeTab) && <FosterTab />}
               {activeTab === 'messages' && (
                 <MessagesTab
                   key={environment}

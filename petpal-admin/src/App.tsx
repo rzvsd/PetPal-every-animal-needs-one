@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AdminQueueItem, AdminRoleInfo, AuditItem, QueueType } from './api/adminApi'
 import {
-  approveDocument,
   approveListing,
-  approveOrganization,
   closeSuspension,
   fetchAdminQueues,
   fetchAdminRole,
   fetchAuditTrail,
   getAdminEmail,
   pauseListing,
-  rejectDocument,
-  rejectOrganization,
   resolveReport,
   signInAdmin,
   signOutAdmin,
@@ -21,9 +17,7 @@ import { isSupabaseConfigured } from './lib/supabase'
 import './App.css'
 
 const queueLabels: Record<QueueType, string> = {
-  organization: 'Organization verification',
-  listing: 'Listing approval',
-  document: 'Document review',
+  listing: 'Listing moderation',
   report: 'Report review',
   suspension: 'Suspension review',
 }
@@ -44,7 +38,7 @@ const demoEmail = 'rescue@petpal.local'
 const demoPassword = 'petpal-demo-password'
 
 function App() {
-  const [activeQueue, setActiveQueue] = useState<QueueType>('organization')
+  const [activeQueue, setActiveQueue] = useState<QueueType>('report')
   const [queue, setQueue] = useState<AdminQueueItem[]>([])
   const [audit, setAudit] = useState<AuditItem[]>([])
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
@@ -68,7 +62,7 @@ function App() {
     try {
       const roleInfo = await fetchAdminRole()
 
-      if (!roleInfo) {
+      if (!roleInfo || roleInfo.role === 'DOCUMENT_REVIEWER') {
         setAdminRole(null)
         setAccessDenied(true)
         setQueue([])
@@ -117,7 +111,8 @@ function App() {
   }, [loadAdminData])
 
   const activeItems = queue.filter((item) => item.type === activeQueue)
-  const selectedItem = activeItems[0] ?? null
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selectedItem = activeItems.find(item => item.id === selectedId) ?? null
 
   const counts = useMemo(
     () =>
@@ -192,7 +187,7 @@ function App() {
         <section className="authPanel">
           <p className="eyebrow">PetPal Admin</p>
           <h1>Safety control room</h1>
-          <p className="heroCopy">Sign in with an admin account to load live verification, listing, report, and suspension queues.</p>
+          <p className="heroCopy">Platform moderation only. PetPal does not certify animals, homes, or capacity.</p>
           {canUseDemoLogin ? <span className="localBadge">Local demo login enabled</span> : null}
           <div className="loginGrid">
             <label>
@@ -238,7 +233,7 @@ function App() {
           <p className="eyebrow">PetPal Admin</p>
           <h1>Safety control room</h1>
           <p className="heroCopy">
-            Live Supabase queues for rescuers, listings, documents, reports, suspensions, and audit visibility.
+            Listings, reports, suspensions and audit history. Care decisions belong to participants.
           </p>
         </div>
         <div className="operatorCard">
@@ -266,6 +261,7 @@ function App() {
             key={item.type}
             onClick={() => {
               setActiveQueue(item.type)
+              setSelectedId(null)
               setActionNote('')
               setConfirmation(null)
             }}
@@ -287,14 +283,14 @@ function App() {
           <div className="itemList">
             {activeItems.length > 0 ? (
               activeItems.map((item) => (
-                <article className="reviewItem" key={item.id}>
+                <button type="button" className="reviewItem" key={item.id} aria-pressed={selectedId === item.id} onClick={() => { setSelectedId(item.id); setConfirmation(null); setActionNote('') }}>
                   <div>
                     <span className={`risk ${item.risk}`}>{item.risk} risk</span>
                     <h3>{item.title}</h3>
                     <p>{item.subtitle}</p>
                   </div>
                   <span className="status">{item.status}</span>
-                </article>
+                </button>
               ))
             ) : (
               <div className="empty">
@@ -404,46 +400,6 @@ function ActionBar({
   isActing: boolean
   requestConfirmation: (confirmation: ConfirmationState) => void
 }) {
-  if (item.type === 'organization') {
-    return (
-      <div className="actions">
-        <button
-          disabled={isActing}
-          onClick={() =>
-            requestConfirmation({
-              title: 'Approve organization',
-              body: 'This will mark the organization verification request as verified and allow trusted listing workflows.',
-              confirmLabel: 'Approve organization',
-              defaultNote: 'Approved from PetPal admin console after verification review.',
-              success: 'Organization approved.',
-              action: (note) => approveOrganization(item, note),
-            })
-          }
-          type="button"
-        >
-          Approve organization
-        </button>
-        <button
-          className="secondary"
-          disabled={isActing}
-          onClick={() =>
-            requestConfirmation({
-              title: 'Reject organization',
-              body: 'This will reject the verification request and keep the organization from trusted publishing workflows.',
-              confirmLabel: 'Reject organization',
-              defaultNote: 'Rejected from PetPal admin console pending stronger proof.',
-              success: 'Organization rejected.',
-              action: (note) => rejectOrganization(item, note),
-            })
-          }
-          type="button"
-        >
-          Reject
-        </button>
-      </div>
-    )
-  }
-
   if (item.type === 'listing') {
     return (
       <div className="actions">
@@ -451,17 +407,17 @@ function ActionBar({
           disabled={isActing}
           onClick={() =>
             requestConfirmation({
-              title: 'Approve listing',
-              body: 'This will publish the listing into the safe public discovery surface.',
-              confirmLabel: 'Approve listing',
-              defaultNote: 'Approved from PetPal admin console after public/private field review.',
-              success: 'Listing approved.',
+              title: 'Restore listing',
+              body: 'This restores listing visibility. It does not certify the animal or its participants.',
+              confirmLabel: 'Restore listing',
+              defaultNote: 'Listing visibility restored after platform moderation.',
+              success: 'Listing restored.',
               action: (note) => approveListing(item, note),
             })
           }
           type="button"
         >
-          Approve listing
+          Restore listing
         </button>
         <button
           className="secondary"
@@ -479,46 +435,6 @@ function ActionBar({
           type="button"
         >
           Pause
-        </button>
-      </div>
-    )
-  }
-
-  if (item.type === 'document') {
-    return (
-      <div className="actions">
-        <button
-          disabled={isActing}
-          onClick={() =>
-            requestConfirmation({
-              title: 'Approve document',
-              body: 'This will mark the private verification document as reviewed and accepted.',
-              confirmLabel: 'Approve document',
-              defaultNote: 'Approved from PetPal admin console after document review.',
-              success: 'Document approved.',
-              action: (note) => approveDocument(item, note),
-            })
-          }
-          type="button"
-        >
-          Approve document
-        </button>
-        <button
-          className="secondary"
-          disabled={isActing}
-          onClick={() =>
-            requestConfirmation({
-              title: 'Reject document',
-              body: 'This will mark the private verification document as rejected and preserve the reason in the audit trail.',
-              confirmLabel: 'Reject document',
-              defaultNote: 'Rejected from PetPal admin console because the document did not satisfy verification requirements.',
-              success: 'Document rejected.',
-              action: (note) => rejectDocument(item, note),
-            })
-          }
-          type="button"
-        >
-          Reject
         </button>
       </div>
     )
@@ -549,7 +465,7 @@ function ActionBar({
           onClick={() =>
             requestConfirmation({
               title: 'Suspend reported user',
-              body: 'This will suspend the reported profile and then close the report as resolved.',
+              body: 'This suspends the reported account. The report stays open for a separate resolution.',
               confirmLabel: 'Suspend user',
               defaultNote: 'Suspended from PetPal admin console after report review.',
               success: 'Reported profile suspended.',

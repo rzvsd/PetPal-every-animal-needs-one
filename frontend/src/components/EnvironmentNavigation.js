@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Heart, Home, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, Compass, ClipboardList, Heart, Home, MessageCircle, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AnimalSelector } from './SharedComponents';
 import {
@@ -20,7 +20,7 @@ export function EnvironmentHeader({ environment, onBack }) {
   </header>;
 
   return (
-    <header className="flex min-h-14 items-center gap-3 border-b border-[#E4E2DC]/70 bg-white/90 px-4 backdrop-blur-xl">
+    <header className={`flex min-h-14 items-center gap-3 border-b border-[#E4E2DC]/70 bg-white/90 px-4 backdrop-blur-xl ${isFoster ? 'foster-header' : ''}`}>
       <button
         type="button"
         data-testid="back-to-environments"
@@ -51,9 +51,11 @@ export function EnvironmentBottomTabs({ environment }) {
   const tabs = [
     {
       key: homeTab,
-      icon: isFoster ? Home : Heart,
-      label: isFoster ? t('tabs.foster') : t('readiness.discover'),
+      icon: isFoster ? Compass : Heart,
+      label: isFoster ? t('care.explore') : t('readiness.discover'),
     },
+    ...(isFoster ? [{ key: 'foster-home', icon: Home, label: t('care.home') },
+      { key: 'foster-requests', icon: ClipboardList, label: t('care.requests') }] : []),
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
@@ -61,7 +63,7 @@ export function EnvironmentBottomTabs({ environment }) {
     .reduce((total, conversation) => total + (conversation.unread || 0), 0);
 
   return (
-    <nav data-testid="bottom-tabs" aria-label="PetPal" className="petpal-bottom-tabs h-[68px] bg-white/95 backdrop-blur-xl border-t border-[#E4E2DC] flex justify-around items-center z-50 px-8">
+    <nav data-testid="bottom-tabs" aria-label="PetPal" className={`petpal-bottom-tabs h-[68px] bg-white/95 backdrop-blur-xl border-t border-[#E4E2DC] flex justify-around items-center z-50 px-8 ${isFoster ? 'foster-bottom-nav' : ''}`}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key;
         const Icon = tab.icon;

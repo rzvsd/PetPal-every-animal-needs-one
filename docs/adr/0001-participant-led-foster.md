@@ -1,0 +1,5 @@
+# Participant-led foster coordination, not platform certification
+
+PetPal facilitates cases, conversations and care records; individuals and organizations make placement decisions. The platform administrator moderates abuse and access but does not evaluate foster suitability, approve capacities or review verification dossiers. General verification badges and new Verified Mate operations are withdrawn; historical data is preserved. This replaces the verification workflow proposed in the September 7 Foster audit because that proposal assigned expertise and operational responsibility the platform owner does not have.
+
+Capacity is self-declared and excess occupancy requires an explicit participant acknowledgement, not administrator permission. Receipt is declared by the receiving foster; conflicting statements remain attributable to their authors. Documents for arrangements are handled outside PetPal. These product boundaries do not determine or waive legal obligations, and revised legal copy requires professional review before publication.

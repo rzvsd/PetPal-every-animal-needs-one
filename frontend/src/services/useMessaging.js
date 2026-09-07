@@ -134,6 +134,7 @@ export function useMessaging({ accountId, live, conversations, setConversations 
   const sendMessage = useCallback(async (conversationId, body, retryId) => {
     if (!body.trim() || [...body].length > 4000) throw new Error('readiness.messageLimit');
     const conversation = state.current.conversations.find(c => c.id === conversationId);
+    if (conversation?.fosterReadOnly) throw new Error('care.readOnlyChat');
     if (conversation?.socialRequestStatus && conversation.socialRequestStatus !== 'ACCEPTED') throw new Error('readiness.walkNotAccepted');
     const requestId = retryId || crypto.randomUUID();
     if (pendingSends.current.has(requestId)) return;

@@ -1,13 +1,13 @@
 # PetPal - every animal needs one
 
-PetPal is a trusted local adoption and foster platform for animals. The first public product focuses on verified shelters and rescuers, starting with dogs and cats in Bucharest / Ilfov.
+PetPal coordinates animal social contact and participant-led foster care, starting with dogs and cats in Bucharest / Ilfov. People and organizations can publish cases; PetPal does not certify animals, homes or capacity.
 
 This repository is the PetPal monorepo. It keeps the mobile app, admin app, shared contracts, Supabase backend, OSS notes, design docs, milestone proof, and QA evidence together in one GitHub repository.
 
 ## Workspace
 
 - `frontend`: active public mobile app. It is a React / Capacitor app and is the source for the Android app currently installed on the phone.
-- `petpal-admin`: internal React admin console for verification and moderation.
+- `petpal-admin`: internal React console for platform moderation.
 - `petpal-shared`: shared TypeScript enums, schemas, and product rules.
 - `petpal-supabase`: database migrations, policies, Edge Functions, seed data, and RLS tests.
 - `petpal-oss-references`: OSS dependency and license notes.
@@ -32,7 +32,8 @@ Current public product direction:
 - Romania-first pilot, starting with Bucharest / Ilfov
 - Application-first contact flow for foster
 - Mutual-match-only contact flow for matching
-- Play, Social, and Verified Mate remain visible product modes, with Verified Mate gated behind safety and verification
+- Play and Social remain available; new Verified Mate operations are postponed.
+- Foster: requests and chat before acceptance, reservations separate from declared receipt, shared mobile care registers with pagination, tasks and journals.
 
 Disabled or gated until production-safe:
 
@@ -44,15 +45,15 @@ Disabled or gated until production-safe:
 
 ## Safety Defaults
 
-- Listings start private until approved.
+- Participants publish their own cases. Moderators may hide abusive content; this is not certification.
 - Exact locations stay private.
-- Chat opens only after an accepted application.
+- Foster chat opens with a request or invitation; completed/cancelled requests retain read-only history.
 - Reports, blocks, audit logs, and admin moderation exist from day one.
 - Public discovery must read only safe public fields.
 
 ## Active Implementation Runbook
 
-The milestone implementation plan and command gates live in `docs/implementation/PETPAL_FULL_PRODUCT_PLAN.md`.
+The current Foster terminology and boundary are in `CONTEXT.md` and `docs/adr/0001-participant-led-foster.md`. Older milestone plans and QA reports remain historical evidence, not the current Foster approval model.
 
 ## Release Policy Drafts
 

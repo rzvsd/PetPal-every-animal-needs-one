@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 
-export type QueueType = 'organization' | 'listing' | 'document' | 'report' | 'suspension'
+export type QueueType = 'listing' | 'report' | 'suspension'
 export type QueueStatus = 'pending' | 'active' | 'open' | 'in_review'
 export type QueueRisk = 'low' | 'medium' | 'high'
 
@@ -33,42 +33,11 @@ export type AuditItem = {
   createdAt: string
 }
 
-type AdminQueueRow = {
-  queue_type: string
-  item_id: string
-  status: string
-  title: string
-  city: string | null
-  created_at: string
-  payload: Record<string, unknown> | null
-}
-
-type AdminDocumentRow = {
-  document_id: string
-  status: string
-  document_type: string
-  storage_path: string
-  profile_id: string | null
-  profile_display_name: string | null
-  organization_id: string | null
-  organization_name: string | null
-  city: string | null
-  created_at: string
-}
-
 type AdminRoleRow = {
   profile_id: string
   display_name: string
   role: AdminRoleInfo['role']
   admin_since: string
-}
-
-type SuspensionRow = {
-  id: string
-  profile_id: string
-  reason: string
-  starts_at: string
-  ends_at: string | null
 }
 
 type AuditRow = {
@@ -133,34 +102,24 @@ export async function fetchAdminRole() {
 
 export async function fetchAdminQueues() {
   const client = requireClient()
-
-  const { data: queueRows, error: queueError } = await client
-    .from('admin_moderation_queue')
-    .select('*')
-    .order('created_at', { ascending: true })
-
-  if (queueError) throw queueError
-
-  const { data: documentRows, error: documentError } = await client
-    .from('admin_document_queue')
-    .select('*')
-    .order('created_at', { ascending: true })
-
-  if (documentError) throw documentError
-
-  const { data: suspensions, error: suspensionError } = await client
-    .from('user_suspensions')
-    .select('id, profile_id, reason, starts_at, ends_at')
-    .is('ends_at', null)
-    .order('starts_at', { ascending: false })
-
-  if (suspensionError) throw suspensionError
-
-  return [
-    ...((queueRows as AdminQueueRow[] | null) ?? []).map(mapQueueRow),
-    ...((documentRows as AdminDocumentRow[] | null) ?? []).map(mapDocumentRow),
-    ...((suspensions as SuspensionRow[] | null) ?? []).map(mapSuspensionRow),
-  ]
+  const responses = await Promise.all([
+    client.from('reports').select('*').in('status', ['OPEN', 'IN_REVIEW']).order('created_at').limit(500),
+    client.from('platform_listings_view').select('*').in('status', ['ACTIVE', 'PAUSED']).order('updated_at').limit(500),
+    client.from('platform_accounts_view').select('*').eq('suspended', true).order('updated_at').limit(500),
+  ])
+  for (const response of responses) if (response.error) throw response.error
+  return responses.flatMap((response, index) => (response.data ?? []).map(row => ({
+    id: row.id,
+    type: (['report', 'listing', 'suspension'] as const)[index],
+    title: row.category || row.title || row.display_name,
+    subtitle: 'Platform moderation only',
+    owner: row.reported_profile_id || row.responsible_name || row.display_name,
+    status: mapStatus(row.status || 'ACTIVE'),
+    risk: 'medium' as const,
+    submittedAt: formatDate(row.created_at || row.updated_at),
+    details: row.details || row.city || '',
+    payload: { ...row, reportedProfileId: row.reported_profile_id, profileId: row.id },
+  })))
 }
 
 export async function fetchAuditTrail() {
@@ -177,166 +136,33 @@ export async function fetchAuditTrail() {
   return ((data as AuditRow[] | null) ?? []).map(mapAuditRow)
 }
 
-export async function approveOrganization(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_set_organization_verification_status', {
-    request_id_input: item.id,
-    target_status_input: 'VERIFIED',
-    reason_input: note,
+async function moderate(item: AdminQueueItem, kind: string, action: string, note: string) {
+  const { error } = await requireClient().rpc('moderate_platform', {
+    kind_input: kind, item_id_input: item.id, action_input: action,
+    expected_updated_at_input: item.payload.updated_at, reason_input: note,
   })
-
-  if (error) throw error
-}
-
-export async function rejectOrganization(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_set_organization_verification_status', {
-    request_id_input: item.id,
-    target_status_input: 'REJECTED',
-    reason_input: note,
-  })
-
   if (error) throw error
 }
 
 export async function approveListing(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_set_listing_review_status', {
-    listing_id_input: item.id,
-    target_status_input: 'ACTIVE',
-    reason_input: note,
-  })
-
-  if (error) throw error
+  await moderate(item, 'LISTING', 'RESTORE', note)
 }
-
 export async function pauseListing(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_set_listing_review_status', {
-    listing_id_input: item.id,
-    target_status_input: 'PAUSED',
-    reason_input: note,
-  })
-
-  if (error) throw error
+  await moderate(item, 'LISTING', 'PAUSE', note)
 }
-
-export async function approveDocument(item: AdminQueueItem, note: string) {
-  await reviewDocument(item, 'VERIFIED', note)
-}
-
-export async function rejectDocument(item: AdminQueueItem, note: string) {
-  await reviewDocument(item, 'REJECTED', note)
-}
-
 export async function resolveReport(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_resolve_report', {
-    report_id_input: item.id,
-    target_status_input: 'RESOLVED',
-    notes_input: note,
-  })
-
-  if (error) throw error
+  await moderate(item, 'REPORT', 'RESOLVED', note)
 }
-
 export async function suspendReportedProfile(item: AdminQueueItem, note: string) {
-  const profileId = item.payload.reportedProfileId
-
-  if (typeof profileId !== 'string') {
-    throw new Error('Report has no reported profile to suspend.')
-  }
-
-  await suspendProfile(profileId, note)
-  await resolveReport(item, `${note} Report resolved after suspension.`)
+  const id = item.payload.reportedProfileId
+  if (typeof id !== 'string') throw new Error('Report has no reported account.')
+  const { data, error } = await requireClient().from('platform_accounts_view').select('*').eq('id', id).single()
+  if (error) throw error
+  await moderate({ ...item, id, payload: data }, 'ACCOUNT', 'SUSPEND', note)
+  // Report remains open for an explicit independent resolution.
 }
-
 export async function closeSuspension(item: AdminQueueItem, note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_close_suspension', {
-    suspension_id_input: item.id,
-    notes_input: note,
-  })
-
-  if (error) throw error
-}
-
-async function reviewDocument(item: AdminQueueItem, targetStatus: 'VERIFIED' | 'REJECTED', note: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_review_verification_document', {
-    document_id_input: item.id,
-    target_status_input: targetStatus,
-    notes_input: note,
-  })
-
-  if (error) throw error
-}
-
-async function suspendProfile(profileId: string, reason: string) {
-  const client = requireClient()
-  const { error } = await client.rpc('admin_suspend_profile', {
-    profile_id_input: profileId,
-    reason_input: reason,
-    ends_at_input: null,
-  })
-
-  if (error) throw error
-}
-
-function mapQueueRow(row: AdminQueueRow): AdminQueueItem {
-  const type = mapQueueType(row.queue_type)
-  const payload = row.payload ?? {}
-
-  return {
-    id: row.item_id,
-    type,
-    title: row.title,
-    subtitle: subtitleFor(type),
-    owner: ownerFromPayload(payload),
-    status: mapStatus(row.status),
-    risk: riskFor(type),
-    submittedAt: formatDate(row.created_at),
-    details: detailsFor(row, payload),
-    payload,
-  }
-}
-
-function mapDocumentRow(row: AdminDocumentRow): AdminQueueItem {
-  const owner = row.organization_name ?? row.profile_display_name ?? row.organization_id ?? row.profile_id ?? 'PetPal verification'
-
-  return {
-    id: row.document_id,
-    type: 'document',
-    title: row.document_type.replaceAll('_', ' ').toLowerCase(),
-    subtitle: 'Document review',
-    owner,
-    status: mapStatus(row.status),
-    risk: 'medium',
-    submittedAt: formatDate(row.created_at),
-    details: `${owner} uploaded ${row.document_type} for verification. Review the private storage path and linked request before approving.`,
-    payload: {
-      documentType: row.document_type,
-      storagePath: row.storage_path,
-      profileId: row.profile_id,
-      organizationId: row.organization_id,
-      city: row.city,
-    },
-  }
-}
-
-function mapSuspensionRow(row: SuspensionRow): AdminQueueItem {
-  return {
-    id: row.id,
-    type: 'suspension',
-    title: 'Active user suspension',
-    subtitle: 'Suspension review',
-    owner: row.profile_id,
-    status: 'active',
-    risk: 'high',
-    submittedAt: formatDate(row.starts_at),
-    details: row.reason,
-    payload: { profileId: row.profile_id, endsAt: row.ends_at },
-  }
+  await moderate(item, 'ACCOUNT', 'RESTORE', note)
 }
 
 function mapAuditRow(row: AuditRow): AuditItem {
@@ -350,57 +176,11 @@ function mapAuditRow(row: AuditRow): AuditItem {
   }
 }
 
-function mapQueueType(value: string): QueueType {
-  if (value === 'ORGANIZATION_VERIFICATION') return 'organization'
-  if (value === 'LISTING_REVIEW') return 'listing'
-  if (value === 'REPORT') return 'report'
-  return 'report'
-}
-
 function mapStatus(value: string): QueueStatus {
   if (value === 'OPEN') return 'open'
   if (value === 'IN_REVIEW') return 'in_review'
   if (value === 'PENDING' || value === 'PENDING_REVIEW') return 'pending'
   return 'active'
-}
-
-function subtitleFor(type: QueueType) {
-  if (type === 'organization') return 'Organization verification'
-  if (type === 'listing') return 'Listing approval'
-  if (type === 'document') return 'Document review'
-  if (type === 'report') return 'Open report'
-  return 'Suspension review'
-}
-
-function ownerFromPayload(payload: Record<string, unknown>) {
-  const representative = payload.representativeName
-  const email = payload.contactEmail
-  const reportedProfileId = payload.reportedProfileId
-  const organizationId = payload.organizationId
-
-  if (typeof representative === 'string') return representative
-  if (typeof email === 'string') return email
-  if (typeof reportedProfileId === 'string') return reportedProfileId
-  if (typeof organizationId === 'string') return organizationId
-  return 'PetPal moderation'
-}
-
-function riskFor(type: QueueType): QueueRisk {
-  if (type === 'report' || type === 'suspension') return 'high'
-  if (type === 'organization' || type === 'document') return 'medium'
-  return 'low'
-}
-
-function detailsFor(row: AdminQueueRow, payload: Record<string, unknown>) {
-  if (row.queue_type === 'ORGANIZATION_VERIFICATION') {
-    return `${payload.organizationType ?? 'Rescue'} request in ${row.city ?? 'the pilot region'} with contact ${payload.contactEmail ?? 'pending'}.`
-  }
-
-  if (row.queue_type === 'LISTING_REVIEW') {
-    return `${payload.mode ?? 'Adopt/Foster'} listing in ${row.city ?? 'the pilot region'} awaiting public/private field review.`
-  }
-
-  return `Report category ${row.title}. Review reporter, reported profile, linked message, and linked listing before resolution.`
 }
 
 function noteFromMetadata(metadata: Record<string, unknown> | null) {

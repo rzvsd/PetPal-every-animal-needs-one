@@ -1,12 +1,12 @@
 # PetPal Privacy Policy Draft
 
-Last updated: 2026-05-04
+Last updated: 2026-09-07 (product-alignment draft; legal review still required)
 
 This draft describes the intended PetPal privacy rules for the production mobile app. It must be reviewed before public launch.
 
 ## What PetPal Collects
 
-PetPal collects account details, animal profile details, foster application details, foster home profile details, messages, safety reports, verification documents, push notification tokens, and payment-session records for donations or sponsorships.
+PetPal uses account and animal details, foster requests, homes, team membership, care records, messages, safety reports, notification tokens and payment-session records. New verification dossiers are disabled. Historical verification data is retained pending a separately reviewed retention policy.
 
 ## Why PetPal Uses Data
 
@@ -15,8 +15,8 @@ PetPal uses data to:
 - authenticate users and keep sessions secure;
 - show safe animal matching and foster discovery surfaces;
 - keep exact locations private while showing coarse city or area information;
-- unlock chat only after a mutual match, accepted foster application, or accepted foster invite;
-- support animal welfare, moderation, reports, blocks, and verification;
+- open contextual chat for mutual matches, social requests and foster requests/invitations;
+- support care coordination, platform moderation, reports and blocks;
 - process donations or sponsorships through backend-created payment sessions;
 - send safety, message, foster, and moderation notifications.
 
@@ -26,7 +26,7 @@ Exact location is never public in PetPal. Public discovery can show only coarse 
 
 ## Animal Photos And Documents
 
-Public animal photos may be shown through safe public URLs. Private verification documents and health documents must stay separate from public animal photos and are reviewed only by authorized moderation or document-review roles.
+Animal photos may be public. Users must not upload documents or personal data as animal photos. New verification document submission and review operations are disabled; existing private records are not republished or automatically deleted.
 
 ## Payments
 

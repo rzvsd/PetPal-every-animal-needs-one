@@ -42,7 +42,9 @@ function loadTranslations() {
   const moduleShim = { exports: {} };
   const readinessSource = read(path.join(root, 'src', 'i18n', 'matchReadiness.js'));
   const readiness = Function(readinessSource.replace('export const matchReadiness =', 'const matchReadiness =') + '\nreturn matchReadiness;')();
-  Function('module', 'matchReadiness', normalized)(moduleShim, readiness);
+  const fosterSource = read(path.join(root, 'src', 'i18n', 'fosterCoordination.js'));
+  const foster = Function(fosterSource.replace('export const fosterCoordination =', 'const fosterCoordination =') + '\nreturn fosterCoordination;')();
+  Function('module', 'matchReadiness', 'fosterCoordination', normalized)(moduleShim, readiness, foster);
   return moduleShim.exports;
 }
 

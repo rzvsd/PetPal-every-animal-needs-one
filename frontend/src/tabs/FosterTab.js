@@ -1,1549 +1,262 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Bookmark, BookmarkCheck, Cat, ChevronRight, Dog, Home, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
-import { formatDuration } from '../data/mockData';
-import {
-  Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState,
-  PrivacyNote, UrgencyBadge, CoverageChips, FilterSheet, DemoBanner, Modal
-} from '../components/SharedComponents';
-import {
-  Clock, MapPin, ShieldCheck, CheckCircle2, XCircle,
-  AlertTriangle, Bookmark, ChevronRight, Dog, Cat, Filter, FileText,
-  Home, Briefcase, Calendar, Users, ClipboardList, Plus, Eye, Star, Send
-} from 'lucide-react';
-
-const ROMANIAN_COUNTIES = [
-  'Alba',
-  'Arad',
-  'Arges',
-  'Bacau',
-  'Bihor',
-  'Bistrita-Nasaud',
-  'Botosani',
-  'Braila',
-  'Brasov',
-  'Bucuresti',
-  'Buzau',
-  'Calarasi',
-  'Caras-Severin',
-  'Cluj',
-  'Constanta',
-  'Covasna',
-  'Dambovita',
-  'Dolj',
-  'Galati',
-  'Giurgiu',
-  'Gorj',
-  'Harghita',
-  'Hunedoara',
-  'Ialomita',
-  'Iasi',
-  'Ilfov',
-  'Maramures',
-  'Mehedinti',
-  'Mures',
-  'Neamt',
-  'Olt',
-  'Prahova',
-  'Salaj',
-  'Satu Mare',
-  'Sibiu',
-  'Suceava',
-  'Teleorman',
-  'Timis',
-  'Tulcea',
-  'Valcea',
-  'Vaslui',
-  'Vrancea',
-];
-
-function getCaseCounty(fcase) {
-  const city = (fcase.city || '').toLowerCase();
-  const area = (fcase.coarseArea || '').toLowerCase();
-
-  if (city.includes('bucharest') || city.includes('bucuresti') || area.includes('sector')) return 'Bucuresti';
-  if (city.includes('cluj')) return 'Cluj';
-  if (city.includes('timisoara')) return 'Timis';
-  if (city.includes('ilfov')) return 'Ilfov';
-  return fcase.county || null;
-}
-
-function getSizeLabel(size, t) {
-  if (size === 'SMALL') return t('common.small');
-  if (size === 'MEDIUM') return t('common.medium');
-  if (size === 'LARGE') return t('common.large');
-  return size || t('common.unknown');
-}
-
-function formatFosterAge(months, t) {
-  if (!months) return t('common.unknown');
-  if (months < 12) {
-    return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
-  }
-
-  const years = Math.floor(months / 12);
-  const remainingMonths = months % 12;
-  const yearLabel = years === 1 ? t('common.year') : t('common.years');
-
-  if (remainingMonths > 0) {
-    return `${years} ${yearLabel} ${remainingMonths} ${remainingMonths === 1 ? t('common.month') : t('common.months')}`;
-  }
-
-  return `${years} ${yearLabel}`;
-}
-
-function FosterCaseCard({ fcase, onView, onSave, t, lang }) {
-  return (
-    <div data-testid={`foster-card-${fcase.id}`} className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden shadow-sm">
-      <div className="flex">
-        <img
-          src={fcase.photoUrl || 'https://images.unsplash.com/photo-1699727314431-36ab60fcc3e1?w=300&h=300&fit=crop'}
-          alt={fcase.animalName}
-          className="w-28 h-full object-cover flex-shrink-0"
-        />
-        <div className="flex-1 p-3.5 space-y-2">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-[#1F2924] font-heading">{fcase.animalName}</h3>
-              <p className="text-xs text-[#57645C]">
-                {fcase.species === 'DOG' ? t('common.dog') : t('common.cat')} - {formatFosterAge(fcase.ageMonths, t)} - {getSizeLabel(fcase.sizeLabel, t)}
-              </p>
-            </div>
-            <UrgencyBadge urgency={fcase.urgency} />
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
-            <Clock size={12} className="text-[#C07E67]" />
-            <span>{formatDuration(fcase.duration, lang)}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
-            <MapPin size={12} className="text-[#9BAE96]" />
-            <span>{fcase.city}{fcase.coarseArea ? ` / ${fcase.coarseArea}` : ''}</span>
-          </div>
-
-          <CoverageChips food={fcase.foodCovered} vet={fcase.vetCovered} transport={fcase.transportAvailable} />
-
-          {fcase.rescuerVerified && (
-            <div className="flex items-center gap-1 text-xs text-[#2C402B]">
-              <ShieldCheck size={12} />
-              <span className="font-medium">{fcase.rescuerName}</span>
-            </div>
-          )}
-
-          <div className="flex gap-2 pt-1">
-            <PrimaryButton onClick={onView} className="flex-1 !py-2 !text-sm">{t('foster.viewCase')}</PrimaryButton>
-            <button
-              type="button"
-              data-testid={`foster-save-${fcase.id}`}
-              onClick={onSave}
-              aria-label={t('foster.saveCase')}
-              className="p-2 rounded-xl border border-[#E4E2DC] text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
-            >
-              <Bookmark size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FosterCaseDetail({ fcase, onClose, onApply, t, lang }) {
-  return (
-    <div data-testid="foster-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader title={fcase.animalName} onBack={onClose} />
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="relative h-56">
-          <img
-            src={fcase.photoUrl || 'https://images.unsplash.com/photo-1699727314431-36ab60fcc3e1?w=600&h=400&fit=crop'}
-            alt={fcase.animalName}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#F8F7F4] via-transparent to-transparent" />
-        </div>
-
-        <div className="px-5 -mt-8 relative space-y-4 pb-32">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{fcase.animalName}</h1>
-            <p className="text-sm text-[#57645C] mt-1">
-              {fcase.species === 'DOG' ? t('common.dog') : t('common.cat')} - {formatFosterAge(fcase.ageMonths, t)} - {getSizeLabel(fcase.sizeLabel, t)}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <UrgencyBadge urgency={fcase.urgency} />
-            <Badge variant="sky"><Clock size={11} />{formatDuration(fcase.duration, lang)}</Badge>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-3">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.covered')}</h3>
-            <CoverageChips food={fcase.foodCovered} vet={fcase.vetCovered} transport={fcase.transportAvailable} />
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.homeFit')}</h3>
-            <p className="text-sm text-[#57645C]">{fcase.homeFit}</p>
-            <div className="flex gap-2">
-              {fcase.goodWithChildren !== null && (
-                <Badge variant={fcase.goodWithChildren ? 'sage' : 'default'}>
-                  {fcase.goodWithChildren ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-                  {t('foster.goodWithChildren')}
-                </Badge>
-              )}
-              {fcase.goodWithOtherAnimals !== null && (
-                <Badge variant={fcase.goodWithOtherAnimals ? 'sage' : 'default'}>
-                  {fcase.goodWithOtherAnimals ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-                  {t('foster.goodWithAnimals')}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {fcase.medicalNeeds && (
-            <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-              <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.medicalNeeds')}</h3>
-              <p className="text-sm text-[#57645C]">{fcase.medicalNeeds}</p>
-            </div>
-          )}
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.rescuer')}</h3>
-            <div className="flex items-center gap-2">
-              {fcase.rescuerVerified && <ShieldCheck size={16} className="text-[#9BAE96]" />}
-              <span className="text-sm font-medium text-[#1F2924]">{fcase.rescuerName}</span>
-              {fcase.rescuerVerified && <Badge variant="success">{t('foster.verifiedRescuer')}</Badge>}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <div className="flex items-center gap-1.5 text-sm text-[#57645C]">
-              <MapPin size={14} className="text-[#9BAE96]" />
-              <span>{fcase.city}{fcase.coarseArea ? ` / ${fcase.coarseArea}` : ''}</span>
-            </div>
-            <PrivacyNote text={t('matches.locationPrivate')} />
-          </div>
-
-          <div className="bg-[#E3ECE4]/40 rounded-2xl p-4 border border-[#E3ECE4] space-y-2.5">
-            <h3 className="text-sm font-semibold text-[#2C402B]">{t('foster.whatHappens')}</h3>
-            <div className="space-y-2">
-              {[t('foster.step1'), t('foster.step2'), t('foster.step3')].map((step, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-[#2C402B] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-semibold">{i + 1}</div>
-                  <span className="text-sm text-[#57645C]">{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
-        <PrimaryButton onClick={onApply} icon={FileText}>{t('foster.applyFoster')}</PrimaryButton>
-      </div>
-    </div>
-  );
-}
-
-function ApplicationFlow({ fcase, onClose, onSubmit, t }) {
-  const steps = [
-    { key: 'home', label: t('foster.home'), icon: Home },
-    { key: 'experience', label: t('foster.experience'), icon: Briefcase },
-    { key: 'availability', label: t('foster.availability'), icon: Calendar },
-    { key: 'household', label: t('foster.household'), icon: Users },
-    { key: 'review', label: t('foster.review'), icon: ClipboardList },
-  ];
-
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
-    housingType: '', experience: '', availability: '', otherPets: '',
-    childrenInHome: '', canTransport: null, canHandleMedicalNeeds: null, motivation: '',
-  });
-  const [error, setError] = useState('');
-
-  const update = (key, val) => {
-    setForm(prev => ({ ...prev, [key]: val }));
-    setError('');
-  };
-
-  const isStepValid = () => {
-    if (step === 0) return !!form.housingType;
-    if (step === 1) return form.experience.trim().length >= 20;
-    if (step === 2) return !!form.availability && form.canTransport !== null && form.canHandleMedicalNeeds !== null;
-    if (step === 3) return form.otherPets.trim().length > 0 && form.childrenInHome.trim().length > 0 && form.motivation.trim().length >= 20;
-    return true;
-  };
-
-  const validationMessage = () => {
-    if (step === 0) return t('foster.validationHousing');
-    if (step === 1) return t('foster.validationExperience');
-    if (step === 2) return t('foster.validationAvailability');
-    if (step === 3) return t('foster.validationHousehold');
-    return t('foster.validationRequired');
-  };
-
-  const goNext = () => {
-    if (!isStepValid()) {
-      setError(validationMessage());
-      return;
-    }
-    setStep(s => s + 1);
-    setError('');
-  };
-
-  const submit = () => {
-    if (!isStepValid()) {
-      setError(validationMessage());
-      return;
-    }
-    onSubmit(form);
-  };
-
-  const inputClass = "w-full bg-white border border-[#E4E2DC] rounded-xl px-4 py-3 text-[#1F2924] text-sm placeholder:text-[#57645C]/50 focus:outline-none focus:ring-2 focus:ring-[#9BAE96] transition-all";
-  const labelClass = "text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-1.5 block";
-  const toggleClass = (active) => `flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${active ? 'bg-[#2C402B] text-white border-[#2C402B]' : 'bg-white text-[#57645C] border-[#E4E2DC]'}`;
-
-  return (
-    <div data-testid="foster-application-flow" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader
-        title={`${t('foster.applyFoster')} - ${fcase.animalName}`}
-        onBack={step === 0 ? onClose : () => setStep(s => s - 1)}
-      />
-
-      <div className="px-5 py-3">
-        <div className="flex gap-1.5">
-          {steps.map((s, i) => (
-            <div key={s.key} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? 'bg-[#9BAE96]' : 'bg-[#E4E2DC]'}`} />
-          ))}
-        </div>
-        <div className="flex items-center gap-2 mt-3">
-          {React.createElement(steps[step].icon, { size: 16, className: 'text-[#9BAE96]' })}
-          <span className="text-sm font-semibold text-[#1F2924]">{steps[step].label}</span>
-          <span className="text-xs text-[#57645C] ml-auto">{step + 1}/{steps.length}</span>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-5 pb-32 no-scrollbar">
-        {step === 0 && (
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className={labelClass}>{t('foster.housingType')}</label>
-              <select value={form.housingType} onChange={e => update('housingType', e.target.value)} className={inputClass}>
-                <option value="">{t('foster.select')}</option>
-                <option value="apartment">{t('foster.apartment')}</option>
-                <option value="house_yard">{t('foster.houseWithYard')}</option>
-                <option value="house_no_yard">{t('foster.houseNoYard')}</option>
-                <option value="rural">{t('foster.ruralProperty')}</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className={labelClass}>{t('foster.animalExperience')}</label>
-              <textarea
-                value={form.experience}
-                onChange={e => update('experience', e.target.value)}
-                placeholder={t('foster.experiencePlaceholder')}
-                className={`${inputClass} min-h-[100px] resize-none`}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className={labelClass}>{t('foster.availabilityField')}</label>
-              <select value={form.availability} onChange={e => update('availability', e.target.value)} className={inputClass}>
-                <option value="">{t('foster.select')}</option>
-                <option value="few_days">{t('foster.fewDays')}</option>
-                <option value="1-2_weeks">{t('foster.oneTwoWeeks')}</option>
-                <option value="1_month">{t('foster.oneMonth')}</option>
-                <option value="until_adoption">{t('foster.untilAdoption')}</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>{t('foster.canTransport')}</label>
-              <div className="flex gap-3">
-                <button type="button" className={toggleClass(form.canTransport === true)} onClick={() => update('canTransport', true)}>{t('common.yes')}</button>
-                <button type="button" className={toggleClass(form.canTransport === false)} onClick={() => update('canTransport', false)}>{t('common.no')}</button>
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>{t('foster.canHandleMedical')}</label>
-              <div className="flex gap-3">
-                <button type="button" className={toggleClass(form.canHandleMedicalNeeds === true)} onClick={() => update('canHandleMedicalNeeds', true)}>{t('common.yes')}</button>
-                <button type="button" className={toggleClass(form.canHandleMedicalNeeds === false)} onClick={() => update('canHandleMedicalNeeds', false)}>{t('common.no')}</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className={labelClass}>{t('foster.otherPets')}</label>
-              <input
-                value={form.otherPets}
-                onChange={e => update('otherPets', e.target.value)}
-                placeholder={t('foster.otherPetsPlaceholder')}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>{t('foster.childrenInHome')}</label>
-              <input
-                value={form.childrenInHome}
-                onChange={e => update('childrenInHome', e.target.value)}
-                placeholder={t('foster.childrenPlaceholder')}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>{t('foster.motivation')}</label>
-              <textarea
-                value={form.motivation}
-                onChange={e => update('motivation', e.target.value)}
-                placeholder={t('foster.motivationPlaceholder')}
-                className={`${inputClass} min-h-[100px] resize-none`}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-3 mt-2">
-            <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-              <h4 className="text-sm font-semibold text-[#1F2924]">{t('foster.applicationSummary')}</h4>
-              {[
-                [t('foster.housingType'), form.housingType || '-'],
-                [t('foster.animalExperience'), form.experience || '-'],
-                [t('foster.availabilityField'), form.availability || '-'],
-                [t('foster.canTransport'), form.canTransport === true ? t('common.yes') : form.canTransport === false ? t('common.no') : '-'],
-                [t('foster.canHandleMedical'), form.canHandleMedicalNeeds === true ? t('common.yes') : form.canHandleMedicalNeeds === false ? t('common.no') : '-'],
-                [t('foster.otherPets'), form.otherPets || '-'],
-                [t('foster.childrenInHome'), form.childrenInHome || '-'],
-                [t('foster.motivation'), form.motivation || '-'],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between py-1.5 border-b border-[#E4E2DC]/50 last:border-0">
-                  <span className="text-xs text-[#57645C]">{label}</span>
-                  <span className="text-xs font-medium text-[#1F2924] text-right max-w-[55%]">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
-        {error && <p className="mb-2 text-xs font-medium text-[#8B4C2F] bg-[#F5DDD0] border border-[#E8C3AF] rounded-xl px-3 py-2">{error}</p>}
-        {step < 4 ? (
-          <PrimaryButton onClick={goNext} disabled={!isStepValid()}>{t('foster.next')}</PrimaryButton>
-        ) : (
-          <PrimaryButton onClick={submit} icon={FileText}>{t('foster.submit')}</PrimaryButton>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function InviteFlow({ profile, fosterCases, onClose, onSubmit, t }) {
-  const activeCases = fosterCases.filter((item) => item.status === 'ACTIVE');
-  const [selectedCaseId, setSelectedCaseId] = useState(activeCases[0]?.id || '');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const selectedCase = activeCases.find((item) => item.id === selectedCaseId);
-
-  const submit = async () => {
-    if (!selectedCaseId) {
-      setError(t('foster.selectCaseForInvite'));
-      return;
-    }
-
-    setError('');
-    try {
-      await onSubmit({
-        fosterCaseId: selectedCaseId,
-        fosterHomeProfileId: profile.id,
-        message,
-      });
-    } catch (submitError) {
-      setError(submitError.message || t('foster.inviteSendFailed'));
-    }
-  };
-
-  return (
-    <div data-testid="foster-invite-flow" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader title={t('foster.inviteToFoster')} onBack={onClose} />
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-32 space-y-4">
-        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 space-y-1">
-          <p className="text-sm font-semibold text-[#1F2924]">{profile.displayName}</p>
-          <p className="text-sm text-[#57645C]">{t('foster.inviteIntro')}</p>
-          <PrivacyNote text={t('foster.noDirectChat')} />
-        </div>
-
-        <label className="block space-y-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('foster.chooseAnimalCase')}</span>
-          <select
-            value={selectedCaseId}
-            onChange={(event) => {
-              setSelectedCaseId(event.target.value);
-              setError('');
-            }}
-            className="w-full rounded-xl border border-[#E4E2DC] bg-white px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96]"
-          >
-            {activeCases.map((item) => (
-              <option key={item.id} value={item.id}>{item.animalName} - {item.city}{item.coarseArea ? ` / ${item.coarseArea}` : ''}</option>
-            ))}
-          </select>
-        </label>
-
-        {selectedCase && (
-          <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 space-y-2">
-            <div className="flex items-center gap-3">
-              <img src={selectedCase.photoUrl} alt={selectedCase.animalName} className="h-14 w-14 rounded-xl object-cover" />
-              <div>
-                <p className="text-sm font-semibold text-[#1F2924]">{selectedCase.animalName}</p>
-                <p className="text-xs text-[#57645C]">{formatFosterAge(selectedCase.ageMonths, t)} - {getSizeLabel(selectedCase.sizeLabel, t)}</p>
-              </div>
-            </div>
-            <CoverageChips food={selectedCase.foodCovered} vet={selectedCase.vetCovered} transport={selectedCase.transportAvailable} />
-          </div>
-        )}
-
-        <label className="block space-y-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('foster.inviteMessage')}</span>
-          <textarea
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder={t('foster.inviteMessagePlaceholder')}
-            className="min-h-[110px] w-full resize-none rounded-xl border border-[#E4E2DC] bg-white px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors placeholder:text-[#57645C]/50 focus:border-[#9BAE96]"
-          />
-        </label>
-
-        {error && <p className="text-xs font-medium text-[#8B4C2F] bg-[#F5DDD0] border border-[#E8C3AF] rounded-xl px-3 py-2">{error}</p>}
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
-        <PrimaryButton onClick={submit} icon={Send}>{t('foster.sendInvite')}</PrimaryButton>
-      </div>
-    </div>
-  );
-}
-
-function ApplicationCard({ app, t, onOpenMessages }) {
-  const statusMap = {
-    DRAFT: { label: t('common.draft'), variant: 'default' },
-    SUBMITTED: { label: t('common.submitted'), variant: 'sky' },
-    IN_REVIEW: { label: t('common.inReview'), variant: 'warning' },
-    ACCEPTED: { label: t('common.accepted'), variant: 'success' },
-    REJECTED: { label: t('common.rejected'), variant: 'rose' },
-    WITHDRAWN: { label: t('common.withdrawn'), variant: 'default' },
-    COMPLETED: { label: t('common.completed'), variant: 'sage' },
-  };
-  const s = statusMap[app.status] || statusMap.DRAFT;
-
-  return (
-    <div data-testid={`application-card-${app.id}`} className="bg-white rounded-2xl p-4 border border-[#E4E2DC] shadow-sm space-y-2.5">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-[#1F2924] font-heading">{app.animalName}</h3>
-          <p className="text-xs text-[#57645C]">{t('messages.foster')} - {app.rescuerName}</p>
-        </div>
-        <Badge variant={s.variant}>{s.label}</Badge>
-      </div>
-      {app.status === 'ACCEPTED' && (
-        <PrimaryButton onClick={() => onOpenMessages(app)} className="!py-2 !text-sm">{t('matches.openMessages')}</PrimaryButton>
-      )}
-    </div>
-  );
-}
-
-function getFosterHomeCounty(profile) {
-  const city = (profile.city || '').toLowerCase();
-  const area = (profile.coarseArea || '').toLowerCase();
-
-  if (city.includes('bucharest') || city.includes('bucuresti') || area.includes('sector')) return 'Bucuresti';
-  if (city.includes('cluj')) return 'Cluj';
-  if (city.includes('timisoara')) return 'Timis';
-  if (city.includes('ilfov')) return 'Ilfov';
-  return profile.county || null;
-}
-
-function getAvailabilityLabel(status, t) {
-  if (status === 'AVAILABLE') return t('foster.available');
-  if (status === 'LIMITED') return t('foster.limited');
-  if (status === 'UNAVAILABLE') return t('foster.unavailable');
-  return t('common.unknown');
-}
-
-function FosterHomeCard({ profile, onView, onInvite, onSave, t, lang }) {
-  const species = profile.acceptsSpecies.map((item) => item === 'DOG' ? t('common.dog') : t('common.cat')).join(', ');
-  const sizes = profile.acceptsSizes.map((size) => getSizeLabel(size, t)).join(', ');
-
-  return (
-    <div data-testid={`foster-home-card-${profile.id}`} className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden shadow-sm">
-      <div className="flex">
-        <img
-          src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=300&h=300&fit=crop'}
-          alt={profile.displayName}
-          className="w-28 h-full object-cover flex-shrink-0"
-        />
-        <div className="flex-1 p-3.5 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h3 className="text-base font-semibold text-[#1F2924] font-heading">{profile.displayName}</h3>
-              <p className="text-xs text-[#57645C]">{species} - {sizes}</p>
-            </div>
-            {profile.verifiedStatus === 'VERIFIED' && <Badge variant="success">{t('foster.verifiedHome')}</Badge>}
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-[#57645C]">
-            <MapPin size={12} className="text-[#9BAE96]" />
-            <span>{profile.city}{profile.coarseArea ? ` / ${profile.coarseArea}` : ''}</span>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            <Badge variant={profile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(profile.availabilityStatus, t)}</Badge>
-            <Badge variant="sky"><Clock size={11} />{formatDuration(profile.preferredDuration, lang)}</Badge>
-            {profile.canHandleMedicalNeeds && <Badge variant="sage">{t('foster.medicalCare')}</Badge>}
-          </div>
-
-          <div className="flex items-center gap-2 text-xs text-[#57645C]">
-            <Star size={12} className="text-[#C07E67]" />
-            <span>{profile.ratingAverage ? `${profile.ratingAverage} - ${profile.reviewCount} ${t('foster.reviews')}` : t('foster.noReviews')}</span>
-          </div>
-
-          <p className="line-clamp-2 text-xs leading-relaxed text-[#57645C]">{profile.bio}</p>
-
-          <div className="flex gap-2 pt-1">
-            <PrimaryButton onClick={onView} className="flex-1 !py-2 !text-sm">{t('foster.viewProfile')}</PrimaryButton>
-            <button
-              type="button"
-              onClick={onInvite}
-              aria-label={t('foster.inviteToFoster')}
-              className="p-2 rounded-xl border border-[#E4E2DC] text-[#2C402B] hover:bg-[#F8F7F4] transition-colors"
-            >
-              <Send size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={onSave}
-              aria-label={t('foster.saveFosterHome')}
-              className="p-2 rounded-xl border border-[#E4E2DC] text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
-            >
-              <Bookmark size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FosterHomeDetail({ profile, onClose, onInvite, onSave, onRatingSaved, t, lang }) {
-  const species = profile.acceptsSpecies.map((item) => item === 'DOG' ? t('common.dog') : t('common.cat')).join(', ');
-  const sizes = profile.acceptsSizes.map((size) => getSizeLabel(size, t)).join(', ');
-  const [ratingOpen, setRatingOpen] = useState(false);
-  const [ratingValue, setRatingValue] = useState(5);
-
-  const submitRating = () => {
-    setRatingOpen(false);
-    onRatingSaved?.(ratingValue);
-  };
-
-  return (
-    <div data-testid="foster-home-detail-screen" className="absolute inset-0 z-[60] bg-[#F8F7F4] flex flex-col">
-      <ScreenHeader title={profile.displayName} onBack={onClose} />
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="relative h-52">
-          <img
-            src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=600&h=400&fit=crop'}
-            alt={profile.displayName}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#F8F7F4] via-transparent to-transparent" />
-        </div>
-
-        <div className="px-5 -mt-8 relative space-y-4 pb-32">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1F2924] font-heading">{profile.displayName}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              {profile.verifiedStatus === 'VERIFIED' && <Badge variant="success"><ShieldCheck size={11} />{t('foster.verifiedHome')}</Badge>}
-              <Badge variant={profile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(profile.availabilityStatus, t)}</Badge>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <div className="flex items-center gap-1.5 text-sm text-[#57645C]">
-              <MapPin size={14} className="text-[#9BAE96]" />
-              <span>{profile.city}{profile.coarseArea ? ` / ${profile.coarseArea}` : ''}</span>
-            </div>
-            <PrivacyNote text={t('matches.locationPrivate')} />
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-3">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.canFoster')}</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="sage">{species}</Badge>
-              <Badge variant="sky">{sizes}</Badge>
-              <Badge variant="default">{t('foster.capacity')}: {profile.maxAnimalsAtOnce}</Badge>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.availability')}</h3>
-            <p className="text-sm text-[#57645C]">{profile.availableFrom ? `${t('foster.availableFrom')} ${profile.availableFrom}` : t('foster.availableNow')}</p>
-            <Badge variant="sky"><Clock size={11} />{formatDuration(profile.preferredDuration, lang)}</Badge>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.home')}</h3>
-            <p className="text-sm text-[#57645C]">{profile.housingType}</p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant={profile.hasSeparateRoom ? 'sage' : 'default'}>
-                {profile.hasSeparateRoom ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-                {t('foster.separateRoom')}
-              </Badge>
-              <Badge variant="default">{profile.otherPets}</Badge>
-              <Badge variant="default">{profile.childrenInHome}</Badge>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.experience')}</h3>
-            <p className="text-sm text-[#57645C]">{profile.experienceSummary}</p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="sage">{profile.previousFosterCount} {t('foster.previousFosters')}</Badge>
-              <Badge variant={profile.canTransport ? 'sage' : 'default'}>{t('foster.transportAvailable')}</Badge>
-              <Badge variant={profile.canHandleMedicalNeeds ? 'sage' : 'default'}>{t('foster.medicalCare')}</Badge>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.reviews')}</h3>
-            <div className="flex items-center gap-2 text-sm text-[#57645C]">
-              <Star size={15} className="text-[#C07E67]" />
-              <span>{profile.ratingAverage ? `${profile.ratingAverage} / 5 - ${profile.reviewCount} ${t('foster.reviews')}` : t('foster.noReviews')}</span>
-            </div>
-            {profile.responseTimeLabel && <p className="text-xs text-[#57645C]">{profile.responseTimeLabel}</p>}
-            <button
-              type="button"
-              onClick={() => setRatingOpen(true)}
-              className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3 py-2 text-xs font-semibold text-[#2C402B] transition-colors hover:bg-[#EFEDE8]"
-            >
-              <Star size={13} />
-              {t('foster.rateFoster')}
-            </button>
-          </div>
-
-          {profile.pastFosters?.length > 0 && (
-            <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-              <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.pastFosters')}</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.pastFosters.map((name) => (
-                  <Badge key={name} variant="default">{name}</Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white rounded-2xl p-4 border border-[#E4E2DC] space-y-2">
-            <h3 className="text-sm font-semibold text-[#1F2924] uppercase tracking-wider">{t('foster.safetyVocabulary')}</h3>
-            <div className="space-y-1.5 text-xs leading-relaxed text-[#57645C]">
-              <p><span className="font-semibold text-[#1F2924]">{t('foster.fosterCaseTerm')}:</span> {t('foster.fosterCaseDefinition')}</p>
-              <p><span className="font-semibold text-[#1F2924]">{t('foster.fosterHomeTerm')}:</span> {t('foster.fosterHomeDefinition')}</p>
-              <p><span className="font-semibold text-[#1F2924]">{t('foster.fosterPlacementTerm')}:</span> {t('foster.fosterPlacementDefinition')}</p>
-            </div>
-          </div>
-
-          <div className="bg-[#E3ECE4]/40 rounded-2xl p-4 border border-[#E3ECE4] space-y-2.5">
-            <h3 className="text-sm font-semibold text-[#2C402B]">{t('foster.whatHappensInvite')}</h3>
-            {[t('foster.inviteStep1'), t('foster.inviteStep2'), t('foster.inviteStep3')].map((step, i) => (
-              <div key={step} className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-[#2C402B] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-semibold">{i + 1}</div>
-                <span className="text-sm text-[#57645C]">{step}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 grid grid-cols-[1fr_auto] gap-3 p-5 pb-6 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4] to-transparent">
-        <PrimaryButton onClick={onInvite} icon={Send}>{t('foster.inviteToFoster')}</PrimaryButton>
-        <button
-          type="button"
-          onClick={onSave}
-          aria-label={t('foster.saveFosterHome')}
-          className="p-3 rounded-xl border border-[#E4E2DC] bg-white text-[#57645C] hover:bg-[#F8F7F4] transition-colors"
-        >
-          <Bookmark size={18} />
-        </button>
-      </div>
-
-      <Modal open={ratingOpen} onClose={() => setRatingOpen(false)}>
-        <div className="p-5 space-y-4">
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-[#1F2924] font-heading">{t('foster.rateFosterTitle')}</h3>
-            <p className="text-sm text-[#57645C]">{t('foster.rateFosterDesc')}</p>
-          </div>
-
-          <div className="flex justify-center gap-1.5 py-2" role="radiogroup" aria-label={t('foster.rateFoster')}>
-            {[1, 2, 3, 4, 5].map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={ratingValue === value}
-                onClick={() => setRatingValue(value)}
-                className={`rounded-xl p-2 transition-colors ${
-                  value <= ratingValue ? 'text-[#C07E67] bg-[#F5DDD0]' : 'text-[#B9B4AA] bg-[#F8F7F4]'
-                }`}
-              >
-                <Star size={24} fill={value <= ratingValue ? 'currentColor' : 'none'} />
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <SecondaryButton onClick={() => setRatingOpen(false)}>{t('common.cancel')}</SecondaryButton>
-            <PrimaryButton onClick={submitRating}>{t('common.save')}</PrimaryButton>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-}
-
-function InviteCard({ invite, fosterCase, fosterHome, t, onOpenMessages }) {
-  const statusMap = {
-    SENT: { label: t('common.submitted'), variant: 'sky' },
-    ACCEPTED: { label: t('common.accepted'), variant: 'success' },
-    DECLINED: { label: t('common.rejected'), variant: 'rose' },
-    EXPIRED: { label: t('common.withdrawn'), variant: 'default' },
-  };
-  const status = statusMap[invite.status] || statusMap.SENT;
-
-  return (
-    <div data-testid={`foster-invite-card-${invite.id}`} className="bg-white rounded-2xl p-4 border border-[#E4E2DC] shadow-sm space-y-2.5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-[#1F2924] font-heading">{fosterCase?.animalName || t('messages.foster')}</h3>
-          <p className="text-xs text-[#57645C]">{t('foster.invitedHome')}: {fosterHome?.displayName || t('foster.fosterHome')}</p>
-        </div>
-        <Badge variant={status.variant}>{status.label}</Badge>
-      </div>
-      {invite.message && <p className="text-xs leading-relaxed text-[#57645C]">{invite.message}</p>}
-      {invite.status === 'ACCEPTED' && (
-        <PrimaryButton onClick={() => onOpenMessages(invite)} className="!py-2 !text-sm">{t('matches.openMessages')}</PrimaryButton>
-      )}
-    </div>
-  );
-}
-
-function MyFosterDashboard({
-  t,
-  lang,
-  user,
-  fosterHomeProfiles,
-  fosterApplications,
-  fosterInvites,
-  fosterCases,
-  canManageFoster,
-  rescuerAccessState,
-  accessLoading,
-  accessError,
-  onRequestAccess,
-  onDemoPreview,
-  onOpenApplicationMessages,
-  onOpenInviteMessages,
-  onEditProfile,
-  onPostCase,
-}) {
-  const myProfile = fosterHomeProfiles[0];
-  const acceptedApplications = fosterApplications.filter((item) => item.status === 'ACCEPTED');
-  const sentInvites = fosterInvites.filter((item) => item.sentByUserId === user.id || item.status === 'SENT' || item.status === 'ACCEPTED');
-  const profileCompletion = 78;
-
-  return (
-    <div data-testid="my-foster-dashboard" className="px-5 pt-3 pb-8 space-y-4">
-      <p className="text-sm leading-relaxed text-[#57645C]">{t('foster.myFosterSubtitle')}</p>
-
-      <section className="space-y-3">
-        <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.asFosterVolunteer')}</h3>
-
-        {myProfile && (
-          <div className="bg-white rounded-2xl border border-[#E4E2DC] p-4 shadow-sm space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.myFosterProfile')}</h3>
-                <p className="text-sm text-[#57645C]">{myProfile.displayName} - {myProfile.city}{myProfile.coarseArea ? ` / ${myProfile.coarseArea}` : ''}</p>
-              </div>
-              <Badge variant={myProfile.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning'}>{getAvailabilityLabel(myProfile.availabilityStatus, t)}</Badge>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                [t('foster.applications'), fosterApplications.length],
-                [t('foster.acceptedFosters'), acceptedApplications.length],
-                [t('foster.pastFosters'), myProfile.previousFosterCount],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-xl bg-[#F8F7F4] p-3 text-center">
-                  <div className="text-lg font-bold text-[#1F2924] font-heading">{value}</div>
-                  <div className="text-[11px] font-medium text-[#57645C]">{label}</div>
-                </div>
-              ))}
-            </div>
-            <SecondaryButton icon={EditFallbackIcon} onClick={onEditProfile}>{t('foster.editFosterProfile')}</SecondaryButton>
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl border border-[#E4E2DC] p-4 shadow-sm space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.profileCompletion')}</h3>
-              <p className="text-sm text-[#57645C]">{t('foster.profileCompletionDesc')}</p>
-            </div>
-            <div className="text-lg font-bold text-[#2C402B] font-heading">{profileCompletion}%</div>
-          </div>
-          <div className="h-2 rounded-full bg-[#EFEDE8] overflow-hidden">
-            <div className="h-full rounded-full bg-[#9BAE96]" style={{ width: `${profileCompletion}%` }} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[t('foster.completionAvailability'), t('foster.completionHomePhotos'), t('foster.completionAnimalTypes'), t('foster.completionMedicalCare')].map((item) => (
-              <div key={item} className="flex items-center gap-1.5 rounded-xl bg-[#F8F7F4] px-2.5 py-2 text-[11px] font-medium text-[#57645C]">
-                <CheckCircle2 size={12} className="text-[#9BAE96]" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.myApplications')}</h3>
-          {fosterApplications.length === 0 ? (
-            <EmptyState icon={FileText} title={t('foster.noRequests')} description={t('foster.noRequestsDesc')} />
-          ) : (
-            fosterApplications.map((app) => <ApplicationCard key={app.id} app={app} t={t} onOpenMessages={onOpenApplicationMessages} />)
-          )}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.asRescuerOwner')}</h3>
-
-        {canManageFoster ? (
-          <>
-            <button
-              type="button"
-              onClick={onPostCase}
-              className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#E3ECE4] flex items-center justify-center">
-                <Plus size={18} className="text-[#2C402B]" />
-              </div>
-              <span className="text-sm font-medium text-[#1F2924]">{t('foster.postAnimalCase')}</span>
-              <ChevronRight size={16} className="text-[#57645C] ml-auto" />
-            </button>
-
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('foster.invitesSent')}</h3>
-              {sentInvites.length === 0 ? (
-                <EmptyState icon={Send} title={t('foster.noInvites')} description={t('foster.noInvitesDesc')} />
-              ) : (
-                sentInvites.map((invite) => (
-                  <InviteCard
-                    key={invite.id}
-                    invite={invite}
-                    fosterCase={fosterCases.find((item) => item.id === invite.fosterCaseId)}
-                    fosterHome={fosterHomeProfiles.find((item) => item.id === invite.fosterHomeProfileId)}
-                    t={t}
-                    onOpenMessages={onOpenInviteMessages}
-                  />
-                ))
-              )}
-            </div>
-
-            <ManageDashboard
-              t={t}
-              isDemoMode={rescuerAccessState === 'demo_preview'}
-              fosterCases={fosterCases}
-              applications={fosterApplications}
-              invites={fosterInvites}
-              onPostCase={onPostCase}
-            />
-          </>
-        ) : (
-          <RescuerAccessCard
-            state={rescuerAccessState}
-            loading={accessLoading}
-            error={accessError}
-            onRequestAccess={onRequestAccess}
-            onDemoPreview={onDemoPreview}
-            t={t}
-          />
-        )}
-      </section>
-    </div>
-  );
-}
-
-function EditFallbackIcon(props) {
-  return <ClipboardList {...props} />;
-}
-
-function ManageDashboard({ t, isDemoMode, fosterCases, applications, invites = [], onPostCase }) {
-  const activeCases = fosterCases.filter(item => item.status === 'ACTIVE').length;
-  const newApplications = applications.filter(item => item.status === 'SUBMITTED' || item.status === 'IN_REVIEW').length;
-  const urgentCases = fosterCases.filter(item => item.status === 'ACTIVE' && item.urgency === 'HIGH').length;
-  const activeInvites = invites.filter(item => item.status === 'SENT').length;
-
-  return (
-    <div data-testid="foster-manage-dashboard" className="space-y-4">
-      {isDemoMode && <DemoBanner text={t('foster.demoBanner')} />}
-
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: t('foster.activeCases'), value: activeCases, color: 'bg-[#E3ECE4] text-[#2C402B]' },
-          { label: t('foster.newApplications'), value: newApplications, color: 'bg-[#D8EAF0] text-[#3A7080]' },
-          { label: t('foster.urgentCases'), value: urgentCases, color: 'bg-[#F5DDD0] text-[#8B4C2F]' },
-          { label: t('foster.invitesSent'), value: activeInvites, color: 'bg-[#EFEDE8] text-[#57645C]' },
-        ].map(s => (
-          <div key={s.label} className={`${s.color} rounded-2xl p-3 text-center`}>
-            <div className="text-2xl font-bold font-heading">{s.value}</div>
-            <div className="text-xs font-medium mt-0.5">{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-2">
-        {[
-          { label: t('foster.addCase'), icon: Plus, onClick: onPostCase },
-          { label: t('foster.reviewApps'), icon: ClipboardList, onClick: undefined },
-        ].map(item => (
-          <button type="button" key={item.label} onClick={item.onClick} className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors">
-            <div className="w-10 h-10 rounded-xl bg-[#E3ECE4] flex items-center justify-center">
-              <item.icon size={18} className="text-[#2C402B]" />
-            </div>
-            <span className="text-sm font-medium text-[#1F2924]">{item.label}</span>
-            <ChevronRight size={16} className="text-[#57645C] ml-auto" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FilterGroup({ title, children }) {
-  return (
-    <div>
-      <h4 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{title}</h4>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
-  );
-}
-
-function FilterPill({ active, children, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={Boolean(active)}
-      className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-        active
-          ? 'bg-[#2C402B] text-white border-[#2C402B]'
-          : 'bg-[#F8F7F4] text-[#57645C] border-[#E4E2DC] hover:bg-[#EFEDE8]'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function FilterSelect({ label, value, onChange, options, emptyLabel }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
-      <select
-        value={value || ''}
-        onChange={(event) => onChange(event.target.value || null)}
-        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
-      >
-        <option value="">{emptyLabel}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>{option}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function FilterInput({ label, value, onChange, placeholder }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wider text-[#57645C]">{label}</span>
-      <input
-        value={value || ''}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors placeholder:text-[#57645C]/50 focus:border-[#9BAE96] focus:bg-white"
-      />
-    </label>
-  );
-}
-
-function RescuerAccessCard({ state, loading, error, onRequestAccess, onDemoPreview, t }) {
-  if (state === 'request_sent' || state === 'rejected') {
-    return (
-      <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
-        <div className="w-14 h-14 rounded-2xl bg-[#D8EAF0] flex items-center justify-center mx-auto">
-          <Clock size={26} className="text-[#3A7080]" />
-        </div>
-        <h3 className="text-base font-semibold text-[#1F2924] font-heading">
-          {state === 'rejected' ? t('foster.requestRejected') : t('foster.requestSent')}
-        </h3>
-        <p className="text-sm text-[#57645C]">
-          {state === 'rejected' ? t('foster.requestRejectedDesc') : t('foster.requestSentDesc')}
-        </p>
-        {error && <p className="text-xs font-medium text-[#8B4C2F]">{error}</p>}
-        <SecondaryButton onClick={onDemoPreview} icon={Eye}>{t('foster.demoPreview')}</SecondaryButton>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-[#E4E2DC] text-center space-y-3">
-      <div className="w-14 h-14 rounded-2xl bg-[#E3ECE4] flex items-center justify-center mx-auto">
-        <ShieldCheck size={26} className="text-[#2C402B]" />
-      </div>
-      <h3 className="text-base font-semibold text-[#1F2924] font-heading">{t('foster.rescuerAccess')}</h3>
-      <p className="text-sm text-[#57645C]">{t('foster.rescuerAccessDesc')}</p>
-      {error && <p className="text-xs font-medium text-[#8B4C2F]">{error}</p>}
-      <PrimaryButton onClick={onRequestAccess} disabled={loading}>
-        {loading ? t('auth.working') : t('foster.requestAccess')}
-      </PrimaryButton>
-    </div>
-  );
-}
+import { fosterRpc, loadFosterOverview, loadFosterDirectory, loadFosterRegistry, loadFosterHomeDetails,
+  loadFosterRequests, loadRequestHistory, saveFosterItem } from '../services/fosterApi';
+import { FosterInfo, FosterPager, FosterPhoto, FosterScreen, FosterSelect, FosterStatus } from '../components/FosterComponents';
+import { FosterCaseForm, FosterHomeForm, FosterRegisterForm, FosterReportForm, FosterRequestForm, FosterReasonForm } from '../components/FosterForms';
+import FosterCare, { FosterTeam } from '../components/FosterCare';
+import '../foster.css';
+
+const emptyPage = { rows: [], count: 0, loading: false, error: '' };
+const emptyRegistryFilters = { query: '', species: '', status: '', spaceId: '', carerId: '', careState: '' };
 
 export default function FosterTab() {
-  const {
-    t,
-    lang,
-    user,
-    fosterCases,
-    fosterHomeProfiles,
-    fosterInvites,
-    fosterApplications,
-    submitFosterApplication,
-    openFosterConversation,
-    sendFosterInvite,
-    openFosterInviteConversation,
-    rateFosterHome,
-    rescuerAccessState,
-    setRescuerAccessState,
-    requestRescuerAccess,
-  } = useApp();
+  const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation } = useApp();
+  const [overview, setOverview] = useState({ homes: [], team: [], saved: [], organizations: [], spaces: [] });
+  const [overviewError, setOverviewError] = useState('');
+  const [homeId, setHomeId] = useState('');
+  const [homeDetails, setHomeDetails] = useState({ spaces: [], dogs: 0, cats: 0, overdue: 0 });
+  const [revision, setRevision] = useState(0);
+  const [screen, setScreen] = useState(null);
+  const [notice, setNotice] = useState('');
+  const [directoryType, setDirectoryType] = useState('animals');
+  const [directoryQuery, setDirectoryQuery] = useState('');
+  const [directorySpecies, setDirectorySpecies] = useState('');
+  const [urgent, setUrgent] = useState(false);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [directoryPage, setDirectoryPage] = useState(0);
+  const [directory, setDirectory] = useState(emptyPage);
+  const [registryFilters, setRegistryFilters] = useState(emptyRegistryFilters);
+  const [registryPage, setRegistryPage] = useState(0);
+  const [registry, setRegistry] = useState(emptyPage);
+  const [direction, setDirection] = useState('incoming');
+  const [requestPage, setRequestPage] = useState(0);
+  const [requests, setRequests] = useState(emptyPage);
+  const saving = useRef(false);
+  const live = dataSource === 'supabase';
+  const selectedHome = overview.homes.find(h => h.id === homeId);
+  const ownHomes = overview.homes.filter(h => h.my_role === 'OWNER');
+  const changed = useCallback(() => { setRevision(value => value + 1); }, []);
+  const saved = useCallback(() => { setNotice(t('care.done')); changed(); }, [changed, t]);
+  useEffect(() => { setScreen(null); }, [activeTab]);
+  useEffect(() => {
+    if (!live) return undefined;
+    let cancelled = false;
+    loadFosterOverview(user.id).then(value => {
+      if (cancelled) return;
+      setOverview(value); setOverviewError('');
+      setHomeId(current => value.homes.some(h => h.id === current) ? current : value.homes[0]?.id || '');
+    }).catch(error => { if (!cancelled) setOverviewError(error.message); });
+    return () => { cancelled = true; };
+  }, [live, user.id, revision]);
+  useEffect(() => {
+    if (!live) return undefined;
+    const focus = () => { if (document.visibilityState !== 'hidden') changed(); };
+    window.addEventListener('focus', focus); document.addEventListener('visibilitychange', focus);
+    return () => { window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', focus); };
+  }, [live, changed]);
+  useEffect(() => {
+    if (!live || activeTab !== 'foster') return undefined;
+    let cancelled = false;
+    setDirectory(current => ({ ...current, loading: true, error: '' }));
+    const savedIds = savedOnly ? overview.saved.map(item => directoryType === 'homes' ? item.home_id : item.case_id).filter(Boolean) : undefined;
+    const timer = setTimeout(() => {
+      loadFosterDirectory({ type: directoryType === 'myCases' ? 'animals' : directoryType, query: directoryQuery,
+        species: directorySpecies, urgent, page: directoryPage, savedIds, ownerId: directoryType === 'myCases' ? user.id : undefined })
+        .then(value => { if (!cancelled) setDirectory({ ...value, loading: false, error: '' }); })
+        .catch(error => { if (!cancelled) setDirectory({ ...emptyPage, error: error.message }); });
+    }, 180);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [live, activeTab, directoryType, directoryQuery, directorySpecies, urgent, savedOnly, directoryPage, overview.saved, user.id, revision]);
+  useEffect(() => {
+    if (!live || !homeId) return undefined;
+    let cancelled = false;
+    loadFosterHomeDetails(homeId).then(value => { if (!cancelled) setHomeDetails(value); })
+      .catch(error => { if (!cancelled) setOverviewError(error.message); });
+    return () => { cancelled = true; };
+  }, [live, homeId, revision]);
+  useEffect(() => {
+    if (!live || !homeId || activeTab !== 'foster-home') return undefined;
+    let cancelled = false;
+    setRegistry(current => ({ ...current, loading: true, error: '' }));
+    const timer = setTimeout(() => loadFosterRegistry({ homeId, ...registryFilters, page: registryPage })
+      .then(value => { if (!cancelled) setRegistry({ ...value, loading: false, error: '' }); })
+      .catch(error => { if (!cancelled) setRegistry({ ...emptyPage, error: error.message }); }), 180);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [live, homeId, activeTab, registryFilters, registryPage, revision]);
+  useEffect(() => {
+    if (!live || activeTab !== 'foster-requests') return undefined;
+    let cancelled = false;
+    setRequests(current => ({ ...current, loading: true, error: '' }));
+    loadFosterRequests(user.id, direction, requestPage).then(value => { if (!cancelled) setRequests({ ...value, loading: false, error: '' }); })
+      .catch(error => { if (!cancelled) setRequests({ ...emptyPage, error: error.message }); });
+    return () => { cancelled = true; };
+  }, [live, activeTab, user.id, direction, requestPage, revision]);
 
-  const [section, setSection] = useState('animals');
-  const [viewCase, setViewCase] = useState(null);
-  const [viewHome, setViewHome] = useState(null);
-  const [applyCase, setApplyCase] = useState(null);
-  const [inviteHome, setInviteHome] = useState(null);
-  const [applicationSuccess, setApplicationSuccess] = useState(false);
-  const [applicationError, setApplicationError] = useState('');
-  const [fosterNotice, setFosterNotice] = useState('');
-  const [speciesFilter, setSpeciesFilter] = useState(null);
-  const [urgencyFilter, setUrgencyFilter] = useState(false);
-  const [homeSpeciesFilter, setHomeSpeciesFilter] = useState(null);
-  const [availableOnly, setAvailableOnly] = useState(false);
-  const [medicalCareOnly, setMedicalCareOnly] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [accessLoading, setAccessLoading] = useState(false);
-  const [accessError, setAccessError] = useState('');
-  const [fosterFilters, setFosterFilters] = useState({
-    county: null,
-    citySearch: '',
-    size: null,
-    ageRange: null,
-    breed: null,
-  });
-
-  const canManageFoster = rescuerAccessState === 'verified' || rescuerAccessState === 'demo_preview';
-
-  const handleRequestAccess = async () => {
-    setAccessLoading(true);
-    setAccessError('');
-
-    try {
-      await requestRescuerAccess();
-    } catch (error) {
-      setAccessError(error.message || t('foster.requestAccessFailed'));
-    } finally {
-      setAccessLoading(false);
-    }
+  const setFilter = (key, value) => { setRegistryFilters(current => ({ ...current, [key]: value })); setRegistryPage(0); };
+  const changeHome = value => { setHomeId(value); setRegistryPage(0); setRegistryFilters(emptyRegistryFilters); };
+  const isSaved = (type, id) => overview.saved.some(item => item[type === 'homes' ? 'home_id' : 'case_id'] === id);
+  const toggleSave = async (type, id) => {
+    if (saving.current) return;
+    saving.current = true;
+    try { await saveFosterItem(type, id, !isSaved(type, id)); changed(); }
+    catch (error) { setNotice(error.message); }
+    finally { saving.current = false; }
   };
+  const openApply = item => ownHomes.length ? setScreen({ type: 'request', kind: 'APPLICATION', item }) : setScreen({ type: 'homeForm' });
+  const requestAction = (item, action, title, reason = false) => setScreen({ type: 'requestAction', item, action, title, reason });
+  const pageState = page => page.loading ? <p role="status" className="foster-muted">{t('care.loading')}</p>
+    : page.error ? <div role="alert" className="foster-alert">{page.error}<button type="button" className="foster-secondary" onClick={changed}>{t('care.retry')}</button></div>
+      : !page.rows.length ? <div className="foster-empty"><Home size={32} /><h2>{t('care.noResults')}</h2><p className="foster-muted">{t('care.noResultsHint')}</p></div> : null;
+  const close = () => setScreen(null);
+  const sectionTitle = activeTab === 'foster-home' ? 'care.home' : activeTab === 'foster-requests' ? 'care.requests' : 'care.title';
 
-  const setChoiceFilter = (key, value) => {
-    setFosterFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
-  };
-
-  const resetFilters = () => {
-    setSpeciesFilter(null);
-    setUrgencyFilter(false);
-    setFosterFilters({
-      county: null,
-      citySearch: '',
-      size: null,
-      ageRange: null,
-      breed: null,
-    });
-  };
-
-  const advancedFilterActive = Object.values(fosterFilters).some(value => Boolean(value));
-  const fosterBreedOptions = speciesFilter === 'CAT'
-    ? CAT_BREEDS
-    : speciesFilter === 'DOG'
-      ? DOG_BREEDS
-      : Array.from(new Set([...DOG_BREEDS, ...CAT_BREEDS])).sort((a, b) => a.localeCompare(b));
-
-  const filteredCases = fosterCases.filter(c => {
-    if (speciesFilter && c.species !== speciesFilter) return false;
-    if (urgencyFilter && c.urgency !== 'HIGH') return false;
-    if (fosterFilters.size && c.sizeLabel !== fosterFilters.size) return false;
-    if (fosterFilters.county && getCaseCounty(c) !== fosterFilters.county) return false;
-    if (fosterFilters.breed && c.breed !== fosterFilters.breed) return false;
-    if (fosterFilters.citySearch.trim()) {
-      const search = fosterFilters.citySearch.trim().toLowerCase();
-      const searchableLocation = `${c.city || ''} ${c.coarseArea || ''}`.toLowerCase();
-      if (!searchableLocation.includes(search)) return false;
-    }
-    if (fosterFilters.ageRange === 'YOUNG' && c.ageMonths > 24) return false;
-    if (fosterFilters.ageRange === 'ADULT' && (c.ageMonths < 24 || c.ageMonths > 84)) return false;
-    if (fosterFilters.ageRange === 'SENIOR' && c.ageMonths < 84) return false;
-    return c.status === 'ACTIVE';
-  });
-
-  const filteredHomes = fosterHomeProfiles.filter((profile) => {
-    if (homeSpeciesFilter && !profile.acceptsSpecies.includes(homeSpeciesFilter)) return false;
-    if (availableOnly && profile.availabilityStatus !== 'AVAILABLE') return false;
-    if (medicalCareOnly && !profile.canHandleMedicalNeeds) return false;
-    if (fosterFilters.county && getFosterHomeCounty(profile) !== fosterFilters.county) return false;
-    if (fosterFilters.citySearch.trim()) {
-      const search = fosterFilters.citySearch.trim().toLowerCase();
-      const searchableLocation = `${profile.city || ''} ${profile.coarseArea || ''}`.toLowerCase();
-      if (!searchableLocation.includes(search)) return false;
-    }
-    if (fosterFilters.size && !profile.acceptsSizes.includes(fosterFilters.size)) return false;
-    return true;
-  });
-
-  const sections = [
-    { key: 'animals', label: t('foster.animals') },
-    { key: 'homes', label: t('foster.fosterHomes') },
-    { key: 'myFoster', label: t('foster.myFoster') },
-  ];
-
-  if (viewCase && !applyCase) {
-    return (
-      <FosterCaseDetail
-        fcase={viewCase}
-        onClose={() => setViewCase(null)}
-        onApply={() => setApplyCase(viewCase)}
-        t={t}
-        lang={lang}
-      />
-    );
-  }
-
-  if (viewHome && !inviteHome) {
-    return (
-      <FosterHomeDetail
-        profile={viewHome}
-        onClose={() => setViewHome(null)}
-        onInvite={() => setInviteHome(viewHome)}
-        onSave={() => {
-          setFosterNotice(t('foster.savedFosterHome'));
-          setTimeout(() => setFosterNotice(''), 2000);
-        }}
-        onRatingSaved={async (rating) => {
-          try {
-            await rateFosterHome({ fosterHomeProfileId: viewHome.id, rating });
-            setFosterNotice(t('foster.ratingSaved'));
-            setTimeout(() => setFosterNotice(''), 2500);
-          } catch (error) {
-            setFosterNotice(error.message || t('foster.ratingSaveFailed'));
-          }
-        }}
-        t={t}
-        lang={lang}
-      />
-    );
-  }
-
-  if (applyCase) {
-    return (
-      <ApplicationFlow
-        fcase={applyCase}
-        onClose={() => setApplyCase(null)}
-        onSubmit={async (formData) => {
-          try {
-            await submitFosterApplication(applyCase.id, formData);
-            setApplicationError('');
-            setApplyCase(null);
-            setViewCase(null);
-            setApplicationSuccess(true);
-            setTimeout(() => setApplicationSuccess(false), 3000);
-            setSection('myFoster');
-          } catch (error) {
-            setApplicationError(error.message || t('foster.validationRequired'));
-            setApplyCase(null);
-            setViewCase(null);
-            setSection('myFoster');
-          }
-        }}
-        t={t}
-      />
-    );
-  }
-
-  if (inviteHome) {
-    return (
-      <InviteFlow
-        profile={inviteHome}
-        fosterCases={fosterCases}
-        onClose={() => setInviteHome(null)}
-        onSubmit={async ({ fosterCaseId, fosterHomeProfileId, message }) => {
-          try {
-            await sendFosterInvite({ fosterCaseId, fosterHomeProfileId, message });
-            setInviteHome(null);
-            setViewHome(null);
-            setFosterNotice(t('foster.inviteSent'));
-            setTimeout(() => setFosterNotice(''), 3000);
-            setSection('myFoster');
-          } catch (error) {
-            setFosterNotice(error.message || t('foster.inviteSendFailed'));
-            throw error;
-          }
-        }}
-        t={t}
-      />
-    );
-  }
-
-  return (
-    <div data-testid="foster-tab" className="flex-1 flex flex-col relative">
-      <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
-        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading mb-1">{t('foster.title')}</h1>
-        <div className="mb-3 rounded-2xl border border-[#E4E2DC] bg-white/80 p-3.5 shadow-sm">
-          <h2 className="text-sm font-semibold text-[#1F2924] font-heading">{t('foster.networkTitle')}</h2>
-          <p className="mt-1 text-xs leading-relaxed text-[#57645C]">{t('foster.networkAnimalsLine')}</p>
-          <p className="text-xs leading-relaxed text-[#57645C]">{t('foster.networkHomesLine')}</p>
-          <p className="mt-2 text-xs font-semibold text-[#2C402B]">{t('foster.chooseNeed')}</p>
-        </div>
-
-        <div className="flex gap-1 bg-[#EFEDE8] rounded-xl p-1">
-          {sections.map(s => (
-            <button
-              type="button"
-              key={s.key}
-              data-testid={`foster-section-${s.key}`}
-              onClick={() => setSection(s.key)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                section === s.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
-        {section === 'animals' && (
-          <div className="px-5 pt-3 space-y-3">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-[#1F2924]">{t('foster.animalsNeedHelp')}</p>
-              <p className="text-sm leading-relaxed text-[#57645C]">{t('foster.animalsSubtitle')}</p>
-              <p className="text-xs font-medium text-[#2C402B]">{t('foster.animalsRule')}</p>
-            </div>
-
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              <Chip label={t('matches.dogs')} active={speciesFilter === 'DOG'} onClick={() => setSpeciesFilter(speciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
-              <Chip label={t('matches.cats')} active={speciesFilter === 'CAT'} onClick={() => setSpeciesFilter(speciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
-              <Chip label={t('foster.urgent')} active={urgencyFilter} onClick={() => setUrgencyFilter(!urgencyFilter)} icon={AlertTriangle} />
-              <Chip label={t('matches.filters')} active={advancedFilterActive} onClick={() => setShowFilters(true)} icon={Filter} />
-            </div>
-
-            {fosterNotice && (
-              <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {filteredCases.map(fc => (
-                <FosterCaseCard
-                  key={fc.id}
-                  fcase={fc}
-                  onView={() => setViewCase(fc)}
-                  onSave={() => {
-                    setFosterNotice(t('foster.savedCase'));
-                    setTimeout(() => setFosterNotice(''), 2000);
-                  }}
-                  t={t}
-                  lang={lang}
-                />
-              ))}
-            </div>
+  return <div className="foster-shell" data-testid="foster-tab">
+    <div className="foster-scroll" hidden={Boolean(screen)}>
+      <header className="foster-hero"><div className="foster-hero-row"><h1>{t(sectionTitle)}</h1>
+        {live && <button type="button" onClick={changed} aria-label={t('care.refresh')}><RefreshCw size={18} /></button>}</div>
+        <p>{activeTab === 'foster' ? t('care.subtitle') : t('care.facts')}</p></header>
+      {!live ? <div className="foster-card"><p>{t('care.liveRequired')}</p></div> : <>
+        {overviewError && <div role="alert" className="foster-alert">{overviewError}<button type="button" className="foster-secondary" onClick={changed}>{t('care.retry')}</button></div>}
+        {notice && <div role="status" className="foster-success"><div className="foster-row foster-between"><p>{notice}</p><button type="button" className="foster-secondary" onClick={() => setNotice('')}>{t('care.close')}</button></div></div>}
+        {activeTab === 'foster' && <>
+          <div className="foster-tabs">{['animals', 'homes', 'myCases'].map(type => <button type="button" key={type} aria-pressed={directoryType === type}
+            onClick={() => { setDirectoryType(type); setDirectoryPage(0); setSavedOnly(false); }}>{t(`care.${type}`)}</button>)}</div>
+          <div className="foster-search"><Search size={19} /><input aria-label={t('care.search')} placeholder={t('care.search')} value={directoryQuery}
+            onChange={event => { setDirectoryQuery(event.target.value); setDirectoryPage(0); }} /></div>
+          <div className="foster-chips">
+            <button type="button" aria-pressed={directorySpecies === 'DOG'} onClick={() => { setDirectorySpecies(value => value === 'DOG' ? '' : 'DOG'); setDirectoryPage(0); }}><Dog size={16} />{t('care.dogs')}</button>
+            <button type="button" aria-pressed={directorySpecies === 'CAT'} onClick={() => { setDirectorySpecies(value => value === 'CAT' ? '' : 'CAT'); setDirectoryPage(0); }}><Cat size={16} />{t('care.cats')}</button>
+            {directoryType !== 'homes' && <button type="button" aria-pressed={urgent} onClick={() => { setUrgent(!urgent); setDirectoryPage(0); }}>{t('care.urgent')}</button>}
+            {directoryType !== 'myCases' && <button type="button" aria-pressed={savedOnly} onClick={() => { setSavedOnly(!savedOnly); setDirectoryPage(0); }}><Bookmark size={16} />{t('care.saved')}</button>}
           </div>
-        )}
+          {directoryType === 'myCases' && <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm' })}><Plus size={17} />{t('care.postCase')}</button>}
+          <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
+          {pageState(directory)}
+          {!directory.loading && directory.rows.map(item => <article className="foster-card" key={item.id}>
+            <div className="foster-row"><FosterPhoto key={item.photo || item.photos?.[0]} src={item.photo || item.photos?.[0]} name={item.name} species={item.species} />
+              <div style={{ minWidth: 0, flex: 1 }}><h2>{item.name}</h2><p className="foster-muted">{item.city}{item.area ? ` · ${item.area}` : ''}</p>
+                {directoryType === 'homes' ? <FosterStatus value={item.availability} /> : <span className="foster-muted">{t(item.species === 'DOG' ? 'care.dogs' : 'care.cats')} · {t(`care.${item.duration || 'UNKNOWN'}`)}</span>}</div>
+              <button type="button" className="foster-secondary" aria-label={t('care.saved')} aria-pressed={isSaved(directoryType, item.id)} onClick={() => toggleSave(directoryType, item.id)}>
+                {isSaved(directoryType, item.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}</button></div>
+            {directoryType !== 'homes' && <p className="foster-muted">{item.responsible_name}{item.organization_name ? ` · ${item.organization_name}` : ''}</p>}
+            <div className="foster-actions"><button type="button" className="foster-secondary" onClick={() => setScreen({ type: directoryType === 'homes' ? 'homeDetail' : 'caseDetail', item })}>{t('care.details')}<ChevronRight size={16} /></button>
+              {directoryType !== 'homes' && item.responsible_id === user.id ? <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm', item })}>{t('care.editCase')}</button>
+                : directoryType !== 'homes' ? <button type="button" className="foster-primary" onClick={() => openApply(item)}>{t('care.apply')}</button> : null}</div>
+          </article>)}
+          <FosterPager page={directoryPage} count={directory.count} onChange={setDirectoryPage} disabled={directory.loading} />
+        </>}
 
-        {section === 'homes' && (
-          <div className="px-5 pt-3 space-y-3">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-[#1F2924]">{t('foster.fosterHomes')}</p>
-              <p className="text-sm leading-relaxed text-[#57645C]">{t('foster.homesSubtitle')}</p>
-              <p className="text-xs font-medium text-[#2C402B]">{t('foster.homesRule')}</p>
+        {activeTab === 'foster-home' && <>
+          {overview.team.filter(member => member.profile_id === user.id && member.status === 'INVITED').map(member => <div className="foster-card" key={member.home_id}>
+            <h3>{t('care.teamInvites')}</h3><p>{member.home_name} · {t(`care.${member.role}`)}</p><div className="foster-actions">
+              {['ACCEPT', 'DECLINE'].map(action => <button type="button" key={action} className="foster-secondary" onClick={() => setScreen({ type: 'memberResponse', member, action })}>{t(action === 'ACCEPT' ? 'care.accept' : 'care.decline')}</button>)}</div></div>)}
+          {!selectedHome ? <div className="foster-empty"><Home size={36} /><h2>{t('care.noHome')}</h2><p className="foster-muted">{t('care.noHomeHint')}</p>
+            <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'homeForm' })}>{t('care.addHome')}</button>
+            <p className="foster-muted">{t('care.accountId')}</p><p className="foster-id">{user.id}</p></div> : <>
+            <FosterSelect label={t('care.chooseHome')} value={homeId} onChange={changeHome} options={overview.homes.map(home => [home.id, home.name])} />
+            <div className="foster-card" style={{ marginTop: 12 }}><div className="foster-row foster-between"><h2>{selectedHome.name}</h2><FosterStatus value={selectedHome.availability} /></div>
+              <div className="foster-metric">{selectedHome.occupied} <small>/ {selectedHome.capacity}</small></div>
+              <p className="foster-muted">{t('care.occupied')} / {t('care.declared')} · {selectedHome.reserved} {t('care.reserved')}</p>
+              <div className={`foster-capacity-bar ${selectedHome.occupied + selectedHome.reserved > selectedHome.capacity ? 'over' : ''}`}><span style={{ width: `${Math.min(100, selectedHome.capacity ? (selectedHome.occupied + selectedHome.reserved) / selectedHome.capacity * 100 : selectedHome.occupied + selectedHome.reserved ? 100 : 0)}%` }} /></div>
+              {selectedHome.occupied + selectedHome.reserved > selectedHome.capacity && <p className="foster-alert">{t('care.overCapacity')}</p>}
+              <div className="foster-counts"><button type="button" onClick={() => setFilter('species', registryFilters.species === 'DOG' ? '' : 'DOG')}><Dog size={28} /><span>{t('care.dogs')}<strong>{homeDetails.dogs}</strong></span></button>
+                <button type="button" onClick={() => setFilter('species', registryFilters.species === 'CAT' ? '' : 'CAT')}><Cat size={27} /><span>{t('care.cats')}<strong>{homeDetails.cats}</strong></span></button></div>
+              <FosterInfo title={t('care.capacity')}>{t('care.capacityInfo')}</FosterInfo>
+              {homeDetails.overdue > 0 && <p className="foster-alert">{homeDetails.overdue} {t('care.overdue')}</p>}
+              <div className="foster-actions">{selectedHome.my_role === 'OWNER' && <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'homeForm', item: selectedHome })}>{t('care.editHome')}</button>}
+                <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'team' })}><Users size={17} />{t('care.team')}</button></div>
+              <FosterInfo title={`${t('care.completion')}: ${Math.round([selectedHome.name, selectedHome.city, selectedHome.bio, selectedHome.housing_type, selectedHome.experience, selectedHome.photos?.[0]].filter(Boolean).length / 6 * 100)}%`}>{t('care.completionInfo')}</FosterInfo>
             </div>
+            {selectedHome.my_role === 'OWNER' && <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'register' })}><Plus size={17} />{t('care.registerAnimal')}</button>}
+            <div className="foster-search"><Search size={19} /><input aria-label={t('care.searchAnimal')} placeholder={t('care.searchAnimal')} value={registryFilters.query} onChange={event => setFilter('query', event.target.value)} /></div>
+            <div className="foster-chips">{[['', 'all'], ['DOG', 'dogs'], ['CAT', 'cats']].map(([key, label]) => <button type="button" key={key} aria-pressed={registryFilters.species === key} onClick={() => setFilter('species', key)}>{t(`care.${label}`)}</button>)}</div>
+            <details className="foster-card"><summary className="foster-check">{t('care.filters')}</summary><div className="foster-stack">
+              <FosterSelect label={t('care.caseStatus')} value={registryFilters.status} onChange={value => setFilter('status', value)} empty={t('care.all')} options={['IN_CARE', 'RESERVED', 'COMPLETED', 'CANCELLED'].map(value => [value, t(`care.${value}`)])} />
+              <FosterSelect label={t('care.space')} value={registryFilters.spaceId} onChange={value => setFilter('spaceId', value)} empty={t('care.all')} options={homeDetails.spaces.map(space => [space.id, space.name])} />
+              <FosterSelect label={t('care.carer')} value={registryFilters.carerId} onChange={value => setFilter('carerId', value)} empty={t('care.all')} options={overview.team.filter(m => m.home_id === homeId && m.status === 'ACTIVE').map(m => [m.profile_id, m.display_name])} />
+              <FosterSelect label={t('care.careState')} value={registryFilters.careState} onChange={value => setFilter('careState', value)} empty={t('care.all')} options={['NORMAL', 'ISOLATION', 'MEDICAL'].map(value => [value, t(`care.${value}`)])} />
+              <button type="button" className="foster-secondary" onClick={() => { setRegistryFilters(emptyRegistryFilters); setRegistryPage(0); }}>{t('care.reset')}</button>
+            </div></details>
+            {pageState(registry)}
+            {!registry.loading && registry.rows.map(animal => <button type="button" className="foster-animal-row" key={animal.id} onClick={() => setScreen({ type: 'placement', id: animal.id })}>
+              <FosterPhoto src={animal.photo} name={animal.name} species={animal.species} /><div className="foster-animal-info"><strong>{animal.name}</strong>
+                <span className="foster-id">{animal.animal_code}</span><div className="foster-animal-meta"><span className="foster-muted">{t(animal.species === 'DOG' ? 'care.dogs' : 'care.cats')}</span>
+                  <FosterStatus value={animal.care_state !== 'NORMAL' ? animal.care_state : animal.status} /></div>
+                {animal.discrepancy && <span className="foster-muted">{t('care.discrepancy')}</span>}</div><ChevronRight size={17} /></button>)}
+            <FosterPager page={registryPage} count={registry.count} onChange={setRegistryPage} disabled={registry.loading} />
+            <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'homeForm' })}>{t('care.addHome')}</button>
+          </>}
+        </>}
 
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              <Chip label={t('matches.dogs')} active={homeSpeciesFilter === 'DOG'} onClick={() => setHomeSpeciesFilter(homeSpeciesFilter === 'DOG' ? null : 'DOG')} icon={Dog} />
-              <Chip label={t('matches.cats')} active={homeSpeciesFilter === 'CAT'} onClick={() => setHomeSpeciesFilter(homeSpeciesFilter === 'CAT' ? null : 'CAT')} icon={Cat} />
-              <Chip label={t('foster.available')} active={availableOnly} onClick={() => setAvailableOnly(!availableOnly)} icon={CheckCircle2} />
-              <Chip label={t('foster.medicalCare')} active={medicalCareOnly} onClick={() => setMedicalCareOnly(!medicalCareOnly)} icon={ShieldCheck} />
-            </div>
-
-            {fosterNotice && (
-              <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {filteredHomes.map((profile) => (
-                <FosterHomeCard
-                  key={profile.id}
-                  profile={profile}
-                  onView={() => setViewHome(profile)}
-                  onInvite={() => setInviteHome(profile)}
-                  onSave={() => {
-                    setFosterNotice(t('foster.savedFosterHome'));
-                    setTimeout(() => setFosterNotice(''), 2000);
-                  }}
-                  t={t}
-                  lang={lang}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {section === 'myFoster' && (
-          <>
-            {(applicationError || applicationSuccess || fosterNotice) && (
-              <div className="px-5 pt-3 space-y-2">
-                {applicationError && (
-                  <div className="bg-[#F5DDD0] rounded-2xl p-4 border border-[#E8C3AF] animate-scaleIn">
-                    <p className="text-sm font-semibold text-[#8B4C2F]">{applicationError}</p>
-                  </div>
-                )}
-                {applicationSuccess && (
-                  <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                    <p className="text-sm font-semibold text-[#2C5E3F]">{t('foster.applicationSent')}</p>
-                    <p className="text-xs text-[#2C5E3F]/80 mt-1">{t('foster.applicationSentDesc')}</p>
-                  </div>
-                )}
-                {fosterNotice && (
-                  <div className="bg-[#D4EDDA] rounded-2xl p-4 border border-[#C3E6CB] animate-scaleIn">
-                    <p className="text-sm font-semibold text-[#2C5E3F]">{fosterNotice}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            <MyFosterDashboard
-              t={t}
-              lang={lang}
-              user={user}
-              fosterHomeProfiles={fosterHomeProfiles}
-              fosterApplications={fosterApplications}
-              fosterInvites={fosterInvites}
-              fosterCases={fosterCases}
-              canManageFoster={canManageFoster}
-              rescuerAccessState={rescuerAccessState}
-              accessLoading={accessLoading}
-              accessError={accessError}
-              onRequestAccess={handleRequestAccess}
-              onDemoPreview={() => {
-                setRescuerAccessState('demo_preview');
-                setSection('myFoster');
-              }}
-              onOpenApplicationMessages={openFosterConversation}
-              onOpenInviteMessages={openFosterInviteConversation}
-              onEditProfile={() => {
-                setFosterNotice(t('foster.editFosterProfileNotice'));
-                setTimeout(() => setFosterNotice(''), 2500);
-              }}
-              onPostCase={() => {
-                setFosterNotice(t('foster.postCaseNotice'));
-                setTimeout(() => setFosterNotice(''), 2500);
-              }}
-            />
-          </>
-        )}
-      </div>
-
-      <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('matches.filters')}>
-        <FilterSelect
-          label={t('foster.county')}
-          value={fosterFilters.county}
-          onChange={(value) => setChoiceFilter('county', value)}
-          options={ROMANIAN_COUNTIES}
-          emptyLabel={t('foster.anyCounty')}
-        />
-
-        <FilterInput
-          label={t('foster.city')}
-          value={fosterFilters.citySearch}
-          onChange={(value) => setFosterFilters(prev => ({ ...prev, citySearch: value }))}
-          placeholder={t('foster.cityPlaceholder')}
-        />
-
-        <FilterGroup title={t('matches.age')}>
-          {[
-            ['YOUNG', t('foster.young')],
-            ['ADULT', t('foster.adult')],
-            ['SENIOR', t('foster.senior')],
-          ].map(([value, label]) => (
-            <FilterPill key={value} active={fosterFilters.ageRange === value} onClick={() => setChoiceFilter('ageRange', value)}>
-              {label}
-            </FilterPill>
-          ))}
-        </FilterGroup>
-
-        <FilterGroup title={t('matches.size')}>
-          {['SMALL', 'MEDIUM', 'LARGE'].map(size => (
-            <FilterPill key={size} active={fosterFilters.size === size} onClick={() => setChoiceFilter('size', size)}>
-              {getSizeLabel(size, t)}
-            </FilterPill>
-          ))}
-        </FilterGroup>
-
-        <FilterSelect
-          label={t('matches.breed')}
-          value={fosterFilters.breed}
-          onChange={(value) => setChoiceFilter('breed', value)}
-          options={fosterBreedOptions}
-          emptyLabel={t('matches.anyBreed')}
-        />
-
-        <div className="flex gap-3 pt-2">
-          <SecondaryButton onClick={resetFilters}>{t('foster.reset')}</SecondaryButton>
-          <PrimaryButton onClick={() => setShowFilters(false)}>{t('foster.saveFilters')}</PrimaryButton>
-        </div>
-      </FilterSheet>
+        {activeTab === 'foster-requests' && <>
+          <div className="foster-tabs">{['incoming', 'outgoing'].map(value => <button type="button" key={value} aria-pressed={direction === value} onClick={() => { setDirection(value); setRequestPage(0); }}>{t(`care.${value}`)}</button>)}</div>
+          <FosterInfo title={t('care.requests')}>{t('care.requestHint')}</FosterInfo>
+          {pageState(requests)}
+          {!requests.loading && requests.rows.map(item => <article className="foster-card" key={item.id}><div className="foster-row foster-between"><h2>{item.animal_name}</h2><FosterStatus value={item.status} /></div>
+            <p className="foster-muted">{t(`care.${item.kind}`)} · {item.home_name}</p><p className="foster-muted">{item.sender_name} → {item.recipient_name}</p>
+            <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 14 }}>{item.message}</p>
+            <div className="foster-actions"><button type="button" className="foster-primary" onClick={() => requestOpenConversation(item.conversation_id, 'FOSTER')}>{t('care.openConversation')}</button>
+              <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'history', item })}>{t('care.history')}</button></div>
+            {item.status === 'PENDING' && <div className="foster-actions">{item.recipient_id === user.id ? <>
+              <button type="button" className="foster-primary" onClick={() => requestAction(item, 'ACCEPT', 'care.accept')}>{t('care.accept')}</button>
+              <button type="button" className="foster-secondary" onClick={() => requestAction(item, 'DECLINE', 'care.decline')}>{t('care.decline')}</button></>
+              : <button type="button" className="foster-secondary" onClick={() => requestAction(item, 'WITHDRAW', 'care.withdraw')}>{t('care.withdraw')}</button>}</div>}
+            {item.status === 'ACCEPTED' && !item.placement_id && <button type="button" className="foster-secondary" onClick={() => requestAction(item, 'ACCEPT', 'care.reconcile')}>{t('care.reconcile')}</button>}
+            {item.status === 'ACCEPTED' && (!item.placement_id || item.placement_status === 'RESERVED') && <button type="button" className="foster-danger" onClick={() => requestAction(item, 'CANCEL', 'care.cancelReservation', true)}>{t('care.cancelReservation')}</button>}
+            {item.placement_id && <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'placement', id: item.placement_id })}>{t('care.viewPlacement')}</button>}
+          </article>)}
+          <FosterPager page={requestPage} count={requests.count} onChange={setRequestPage} disabled={requests.loading} />
+        </>}
+      </>}
     </div>
-  );
+    {screen?.type === 'homeForm' && <FosterHomeForm home={screen.item} onClose={close} onSaved={id => { setHomeId(id); saved(); setActiveTab('foster-home'); }} />}
+    {screen?.type === 'caseForm' && <FosterCaseForm item={screen.item} transfer={screen.transfer} organizations={overview.organizations} onClose={close} onSaved={() => { saved(); setDirectoryType('myCases'); setActiveTab('foster'); }} />}
+    {screen?.type === 'register' && <FosterRegisterForm homeId={homeId} onClose={close} onSaved={saved} />}
+    {screen?.type === 'team' && selectedHome && <FosterTeam home={selectedHome} members={overview.team} spaces={homeDetails.spaces} onClose={close} onChanged={changed} />}
+    {screen?.type === 'placement' && <FosterCare id={screen.id} homes={overview.homes} team={overview.team} spaces={overview.spaces || homeDetails.spaces}
+      onClose={close} onChanged={changed} onTransfer={placement => setScreen({ type: 'caseForm', transfer: placement })} />}
+    {screen?.type === 'request' && <FosterRequestForm item={screen.item} kind={screen.kind} homes={ownHomes} onClose={close}
+      onSaved={() => { saved(); setDirection('outgoing'); setActiveTab('foster-requests'); }} />}
+    {screen?.type === 'requestAction' && <FosterReasonForm title={t(screen.title)} submitLabel={screen.title} description={t('care.requestHint')} requireReason={screen.reason} onClose={close} onSaved={saved}
+      onSave={(body, ack) => fosterRpc('respond_foster_request', { request_id_input: screen.item.id, action_input: screen.action,
+        expected_updated_at_input: screen.item.updated_at, acknowledge_capacity_input: ack, reason_input: body })} />}
+    {screen?.type === 'memberResponse' && <FosterReasonForm title={t(screen.action === 'ACCEPT' ? 'care.accept' : 'care.decline')} description={screen.member.home_name} requireReason={false}
+      onClose={close} onSaved={saved} onSave={() => fosterRpc('manage_foster_member', { home_id_input: screen.member.home_id, profile_id_input: user.id, action_input: screen.action })} />}
+    {screen?.type === 'report' && <FosterReportForm profileId={screen.profileId} listingId={screen.listingId} onClose={close} onSaved={() => setNotice(t('care.reportSent'))} />}
+    {screen?.type === 'history' && <RequestHistory item={screen.item} onClose={close} />}
+    {screen?.type === 'caseDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
+      <FosterPhoto src={screen.item.photo} name={screen.item.name} species={screen.item.species} large />
+      <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.responsible_name}</p>
+        <p style={{ whiteSpace: 'pre-wrap' }}>{screen.item.description}</p><p className="foster-muted">{t('care.duration')}: {t(`care.${screen.item.duration || 'UNKNOWN'}`)}</p>
+        {[['food_covered', 'food'], ['vet_covered', 'vet'], ['transport_available', 'transport']].filter(([key]) => screen.item[key]).map(([key, label]) => <p key={key}>{t(`care.${label}`)}</p>)}
+        <p className="foster-muted">{screen.item.medical_needs}</p><p className="foster-muted">{screen.item.home_fit}</p>
+        <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
+        <div className="foster-actions">{screen.item.responsible_id === user.id ? <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm', item: screen.item })}>{t('care.editCase')}</button>
+          : <><button type="button" className="foster-primary" onClick={() => openApply(screen.item)}>{t('care.apply')}</button>
+            <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.responsible_id, listingId: screen.item.id })}>{t('care.report')}</button></>}</div>
+      </div></div></FosterScreen>}
+    {screen?.type === 'homeDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
+      <FosterPhoto src={screen.item.photos?.[0]} name={screen.item.name} large />
+      <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.area}</p><FosterStatus value={screen.item.availability} />
+        <p>{screen.item.bio}</p><p className="foster-muted">{screen.item.experience}</p><p className="foster-muted">{screen.item.capacity} {t('care.declared')} · {screen.item.occupied} {t('care.occupied')}</p>
+        <p className="foster-muted">{screen.item.completed_placements} {t('care.COMPLETED')} · {screen.item.review_count} {t('care.reviews')}{screen.item.rating ? ` · ${screen.item.rating}/5` : ''}</p>
+        <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
+        {screen.item.profile_id !== user.id && <div className="foster-actions"><button type="button" className="foster-primary" onClick={() => setScreen({ type: 'request', kind: 'INVITE', item: screen.item })}>{t('care.invite')}</button>
+          <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.profile_id })}>{t('care.report')}</button></div>}
+      </div></div></FosterScreen>}
+  </div>;
+}
+
+function RequestHistory({ item, onClose }) {
+  const { t, lang } = useApp();
+  const [rows, setRows] = useState([]);
+  const [error, setError] = useState('');
+  useEffect(() => { let cancelled = false; loadRequestHistory(item.id).then(data => { if (!cancelled) setRows(data); })
+    .catch(failure => { if (!cancelled) setError(failure.message); }); return () => { cancelled = true; }; }, [item.id]);
+  return <FosterScreen title={t('care.history')} onClose={onClose}><div className="foster-detail-body"><h3>{item.animal_name}</h3>
+    {error && <p role="alert" className="foster-alert">{error}</p>}<div className="foster-timeline">{rows.map(row => <article key={row.id}>
+      <strong>{row.actor_name}</strong><div className="foster-muted">{new Date(row.created_at).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB')}</div><p>{row.body}</p>
+    </article>)}</div></div></FosterScreen>;
 }

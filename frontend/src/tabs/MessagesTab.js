@@ -69,7 +69,7 @@ function ConversationThread({ conv, onBack, t }) {
   const olderAnchor = useRef(null);
   const sending = useRef(false);
   const isMatch = conv.source === 'MATCH';
-  const canWrite = !conv.blocked && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
+  const canWrite = !conv.blocked && !conv.fosterReadOnly && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
   const application = fosterApplications.find(item => item.id === conv.fosterApplicationId || item.fosterCaseId === conv.fosterCaseId);
   const pending = conv.blocked ? [] : outbox.filter(message => message.conversationId === conv.id
     && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId));
@@ -164,6 +164,7 @@ function ConversationThread({ conv, onBack, t }) {
       </div>
     </details>
     {conv.blocked && <p role="status" className="px-4 py-2 text-sm bg-[#F5DDD0]">{t('readiness.blockedChat')}</p>}
+    {conv.fosterReadOnly && <p role="status" className="px-4 py-2 text-sm bg-[#EAF2ED]">{t('care.readOnlyChat')}</p>}
     {notice && <p role="status" className="px-4 py-2 text-sm">{notice}</p>}
     {dataSource === 'supabase' && !realtimeReady && <p role="status" className="px-4 text-xs text-[#57645C]">{t('readiness.refreshing')}</p>}
     {chatError && <div role="alert" className="px-4 text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="underline min-h-11" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button></div>}
@@ -226,7 +227,7 @@ function ConversationThread({ conv, onBack, t }) {
 
 function getConversationSubtitle(conv, t) {
   if (conv.source === 'FOSTER') {
-    return conv.fosterStatus === 'ACCEPTED' ? t('messages.applicationAccepted') : (conv.subtitle || t('messages.foster'));
+    return conv.fosterRequestId ? t(`care.${conv.fosterStatus}`) : (conv.subtitle || t('messages.foster'));
   }
 
   const modeLabels = {

@@ -1,19 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Heart, MessageCircle, X, Bookmark, BookmarkCheck, Info, ShieldCheck, MapPin, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat } from 'lucide-react';
+import { Heart, MessageCircle, X, Bookmark, BookmarkCheck, MapPin, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
 import { Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote, FilterSheet, Modal } from '../components/SharedComponents';
 import { loadMatchCandidates, findSocialWalkConversation, requestSocialWalk } from '../services/supabaseApi';
 import { useBackHandler } from '../navigation/backNavigation';
 
-export const emptyMatchFilters = { species: '', verifiedOnly: false, breed: '', sex: '', size: '', area: '' };
+export const emptyMatchFilters = { species: '', breed: '', sex: '', size: '', area: '' };
 
 export function matchesPreferences(candidate, mode, filters) {
   const a = candidate.animal;
   return a.activeMatchModes?.includes(mode)
-    && (mode !== 'VERIFIED_MATE' || (a.healthDocumentStatus === 'VERIFIED' && a.adminMateApprovalStatus === 'VERIFIED'))
+    && ['PLAY', 'SOCIAL'].includes(mode)
     && (!filters.species || a.species === filters.species)
-    && (!filters.verifiedOnly || candidate.ownerVerificationStatus === 'VERIFIED')
     && (!filters.breed || a.breed === filters.breed)
     && (!filters.sex || a.sex === filters.sex)
     && (!filters.size || a.sizeLabel === filters.size)
@@ -26,15 +25,12 @@ function ageLabel(months, t) {
   return years ? `${years} ${t(years === 1 ? 'common.year' : 'common.years')}` : `${months} ${t(months === 1 ? 'common.month' : 'common.months')}`;
 }
 
-function AnimalFacts({ candidate, t, detailed = false, onVerification }) {
-  const { animal, ownerVerificationStatus } = candidate;
+function AnimalFacts({ candidate, t, detailed = false }) {
+  const { animal } = candidate;
   return <>
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0"><h2 className="font-heading text-2xl font-bold break-words">{animal.name}</h2>
         <p className="text-sm text-[#57645C]">{animal.breed} · {ageLabel(animal.ageMonths, t)}</p></div>
-      {ownerVerificationStatus === 'VERIFIED' && <button type="button" onClick={onVerification} aria-label={t('readiness.verificationInfo')} className="verification-info">
-        <ShieldCheck size={15} /><span>{t('readiness.ownerVerified')}</span><Info size={14} />
-      </button>}
     </div>
     <p className="flex gap-1.5 items-center text-sm text-[#57645C]"><MapPin size={15} className="shrink-0" />
       {[animal.city, animal.coarseArea].filter(Boolean).join(' · ') || t('common.unknown')}</p>
@@ -44,8 +40,8 @@ function AnimalFacts({ candidate, t, detailed = false, onVerification }) {
       <div className="space-y-2 border-t pt-3">
         <h3 className="font-semibold">{t('matches.health')}</h3>
         {animal.vaccineStatus === 'UP_TO_DATE' && <p className="text-sm">{t('readiness.vaccineReported')}</p>}
-        <p className="text-sm">{t(animal.healthDocumentStatus === 'VERIFIED' ? 'readiness.documentsVerified' : 'readiness.healthUnverified')}</p>
-        <p className="text-xs text-[#57645C]">{t('readiness.verificationInfo')}</p>
+        <p className="text-sm">{t('care.facts')}</p>
+        <p className="text-xs text-[#57645C]">{t('care.boundary')}</p>
       </div><PrivacyNote text={t('matches.locationPrivate')} />
     </>}
   </>;
@@ -74,7 +70,6 @@ export default function MatchesTab() {
   const [draft, setDraft] = useState(emptyMatchFilters);
   const [showFilters, setShowFilters] = useState(false);
   const [detail, setDetail] = useState(null);
-  const [verification, setVerification] = useState(false);
   const [page, setPage] = useState({ rows: [], hasMore: false, cursor: null, loading: false, error: '' });
   const [actionError, setActionError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -113,13 +108,10 @@ export default function MatchesTab() {
     if (!hasCandidate && page.hasMore && !page.loading && !page.error) loadPage();
   }, [hasCandidate, page.hasMore, page.loading, page.error, loadPage]);
   useBackHandler(Boolean(detail), () => setDetail(null));
-  const modes = [['PLAY', 'matches.play', Play], ['SOCIAL', 'matches.social', Users], ['VERIFIED_MATE', 'matches.verifiedMate', ShieldCheck]];
+  useEffect(() => { if (matchMode === 'VERIFIED_MATE') setMatchMode('PLAY'); }, [matchMode, setMatchMode]);
+  const modes = [['PLAY', 'matches.play', Play], ['SOCIAL', 'matches.social', Users]];
   const checks = [
     ['readiness.modeEnabled', selectedAnimal?.activeMatchModes?.includes(matchMode), 'animals'],
-    ...(matchMode === 'VERIFIED_MATE' ? [
-      ['readiness.documentsVerified', selectedAnimal?.healthDocumentStatus === 'VERIFIED', 'verification'],
-      ['matches.adminApproval', selectedAnimal?.adminMateApprovalStatus === 'VERIFIED', 'verification'],
-    ] : []),
   ];
   const eligible = checks.every(([, ok]) => ok);
   const openProfile = section => { navigate(section === 'verification' ? 'verification' : 'editAnimal', { animalId: selectedAnimalId }); setActiveTab('profile'); };
@@ -173,8 +165,7 @@ export default function MatchesTab() {
         </div>
       </div>
       {!eligible ? <div data-testid="verified-mate-locked" className="m-4 p-5 rounded-2xl bg-white border space-y-4">
-        <h2 className="text-lg font-semibold">{t(matchMode === 'VERIFIED_MATE' ? 'matches.verifiedMate' : 'readiness.modeDisabled')}</h2>
-        {matchMode === 'VERIFIED_MATE' && <p className="text-sm">{t('readiness.verificationRequired')}</p>}
+        <h2 className="text-lg font-semibold">{t('readiness.modeDisabled')}</h2>
         {checks.map(([label, ok, section]) => <div key={label} className="flex items-center gap-2 text-sm">
           {ok ? <CheckCircle2 size={18} /> : <XCircle size={18} />}<span>{t(label)} · {t(ok ? 'readiness.ready' : 'readiness.missing')}</span>
           {!ok && <button type="button" className="ml-auto underline min-h-11" onClick={() => openProfile(section)}>{t('readiness.reviewChecks')}</button>}
@@ -183,7 +174,7 @@ export default function MatchesTab() {
         : page.error ? <div role="alert" className="p-5 space-y-3"><p>{page.error}</p><SecondaryButton onClick={() => loadPage(true)}>{t('readiness.retry')}</SecondaryButton></div>
         : current ? <article data-testid="match-card" className="match-card">
           <img src={current.animal.photoUrls?.[0]} alt={current.animal.name} className="match-photo" />
-          <div className="match-card-info"><AnimalFacts candidate={current} t={t} onVerification={() => setVerification(true)} />
+          <div className="match-card-info"><AnimalFacts candidate={current} t={t} />
             <button type="button" data-testid="match-details-btn" onClick={() => setDetail(current)} className="about-animal">{t('readiness.about')} {current.animal.name} <span aria-hidden="true">›</span></button>
             {actions(current)}
           </div>
@@ -207,12 +198,9 @@ export default function MatchesTab() {
     {detail && <section data-testid="match-detail-screen" className="petpal-fullscreen">
       <ScreenHeader title={`${t('readiness.about')} ${detail.animal.name}`} onBack={() => setDetail(null)} />
       <div className="min-h-0 flex-1 overflow-y-auto"><img src={detail.animal.photoUrls?.[0]} alt={detail.animal.name} className="w-full h-64 object-cover" />
-        <div className="p-5 space-y-3"><AnimalFacts candidate={detail} detailed t={t} onVerification={() => setVerification(true)} /></div>
+        <div className="p-5 space-y-3"><AnimalFacts candidate={detail} detailed t={t} /></div>
       </div><footer className="shrink-0 p-4 border-t bg-white">{actions(detail)}</footer>
     </section>}
-    <Modal open={verification} onClose={() => setVerification(false)}><div className="p-5 space-y-4">
-      <h2 className="font-semibold">{t('profile.verification')}</h2><p>{t('readiness.verificationInfo')}</p>
-      <PrimaryButton onClick={() => setVerification(false)}>{t('common.close')}</PrimaryButton></div></Modal>
     <Modal open={Boolean(matchSuccess)} onClose={() => setMatchSuccess(null)}><div className="p-6 text-center space-y-4">
       <Heart className="mx-auto text-[#2C402B]" size={40} /><h2 className="text-2xl font-heading font-bold">{t('matches.matchSuccess')}</h2>
       <p>{matchSuccess?.myAnimal?.name} + {matchSuccess?.theirAnimal?.name}</p><p>{t('matches.matchSuccessDesc')}</p>
@@ -225,7 +213,6 @@ export default function MatchesTab() {
       <fieldset><legend className="mb-2 font-semibold">{t('matches.showMe')}</legend><div className="flex flex-wrap gap-2">
         <Chip label={t('matches.dogs')} icon={Dog} active={draft.species === 'DOG'} onClick={() => { toggleDraft('species', 'DOG'); setDraft(d => ({ ...d, breed: '' })); }} />
         <Chip label={t('matches.cats')} icon={Cat} active={draft.species === 'CAT'} onClick={() => { toggleDraft('species', 'CAT'); setDraft(d => ({ ...d, breed: '' })); }} /></div></fieldset>
-      <Chip label={t('matches.verifiedOwnersOnly')} active={draft.verifiedOnly} icon={ShieldCheck} onClick={() => toggleDraft('verifiedOnly', true)} />
       <label className="block space-y-2"><span className="font-semibold">{t('matches.breed')}</span><select value={draft.breed} onChange={event => setDraft(d => ({ ...d, breed: event.target.value }))} className="w-full border rounded-xl p-3">
         <option value="">{t('matches.anyBreed')}</option>{breeds.map(breed => <option key={breed}>{breed}</option>)}</select></label>
       <fieldset><legend className="mb-2 font-semibold">{t('matches.sex')}</legend><div className="flex flex-wrap gap-2">

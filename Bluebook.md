@@ -1,6 +1,6 @@
 PetPal Codex Bluebook 🐾
 UI/UX Rebuild Plan, Strict Implementation Manual
-Use this as the source of truth for Codex.
+Historical design reference. The 2026-09-07 participant-led Foster decision in CONTEXT.md and docs/adr/0001-participant-led-foster.md supersedes the approval, verification, chat-gating and four-tab Foster rules below. The current Foster mobile navigation is Explore, My home, Requests, Messages, Profile. Verified Mate is postponed. Preserve this document as historical context, not as instructions to restore certification workflows.
 The goal is to stop Codex from improvising and force it to build PetPal as a clean, structured mobile app with four clear tabs:
 TAB 1: MatchesTAB 2: FosterTAB 3: MessagesTAB 4: Profile
 OpenAI’s Codex use cases include frontend work from design inputs, Figma selections, screenshots, and visual checks, so this bluebook should be treated as Codex’s design-and-build contract, not just a casual prompt. 

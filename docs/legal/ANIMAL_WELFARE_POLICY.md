@@ -1,6 +1,6 @@
 # PetPal Animal Welfare Policy Draft
 
-Last updated: 2026-05-04
+Last updated: 2026-09-07 (product-alignment draft; legal review still required)
 
 PetPal exists to help animals safely find compatible social contact, temporary foster care, and responsible human support. Product decisions should prefer welfare and safety over engagement, speed, or monetization.
 
@@ -10,13 +10,13 @@ PetPal exists to help animals safely find compatible social contact, temporary f
 - Exact locations stay private until users choose safe handover details.
 - Emergency, reporting, blocking, and welfare flows are never paywalled.
 - PetPal should avoid incentives that reward irresponsible breeding, rushed foster placement, or unsafe handovers.
-- Verification and moderation should be clear, auditable, and human-readable.
+- Platform moderation should be auditable and explainable; it does not certify animals or homes.
 
 ## Matches
 
-Play and social matching should prioritize compatibility, temperament, size, age, vaccination status, energy level, location privacy, and owner verification.
+Play and social matching use participant-provided animal information and protect location privacy. Health statements are not platform certifications.
 
-Verified Mate must be restricted to verified, complete, welfare-appropriate profiles. It must not be promoted as open breeding, stud listing, animal sales, or uncontrolled marketplace behavior.
+Verified Mate is postponed. New operations and document dossiers are disabled; historical data is retained.
 
 ## Foster
 
@@ -28,8 +28,8 @@ Foster placements should clearly show:
 - home fit;
 - medical needs;
 - child and other-animal compatibility;
-- rescuer or shelter verification;
-- what happens before chat opens.
+- the person or organization responsible for the case;
+- that chat starts at request/invitation, before acceptance.
 
 Foster homes should be able to describe capacity, availability, housing, separate-room access, experience, transport ability, medical-care ability, support needs, reviews, and past foster history.
 
@@ -39,7 +39,7 @@ Chats must remain context-aware. Users should never have to guess whether a conv
 
 ## Moderation
 
-PetPal should review reports, suspicious profiles, verification documents, organization access, foster complaints, and welfare concerns. Audit logs should preserve admin decisions and reasons.
+PetPal moderates reports, abuse, accounts and listing visibility. Participants decide care, declare capacity, record receipt and resolve discrepancies. PetPal does not approve animals, homes or placements. Audit logs preserve platform decisions and reasons.
 
 ## Monetization Boundary
 

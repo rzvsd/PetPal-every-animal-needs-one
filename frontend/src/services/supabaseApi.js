@@ -221,7 +221,6 @@ function mapConversation(row, messages) {
 
   const source = row.source === 'MATCH' ? 'MATCH' : 'FOSTER';
   const isMatch = source === 'MATCH';
-  const isInvite = row.source === 'FOSTER_INVITE';
 
   return {
     id: row.conversation_id,
@@ -233,24 +232,24 @@ function mapConversation(row, messages) {
     matchId: row.match_id,
     socialRequestStatus: row.social_request_status,
     socialRequestIsMine: Boolean(row.social_request_is_mine),
+    fosterRequestId: row.foster_request_id,
+    fosterReadOnly: Boolean(row.foster_read_only),
     fosterCaseId: row.listing_id,
     fosterApplicationId: row.application_id,
     fosterInviteId: row.foster_invite_id,
     title: isMatch ? `${row.animal_name} + ${row.related_animal_name}` : row.animal_name,
-    subtitle: isMatch ? row.match_mode : isInvite ? 'Foster invite accepted' : 'Application accepted',
+    subtitle: isMatch ? row.match_mode : row.application_status,
     contextLabel: isMatch
       ? 'This chat opened after a mutual match.'
-      : isInvite
-        ? 'This chat opened after the foster invite was accepted.'
-        : 'This chat opened after the foster request was accepted.',
+      : 'Participants discuss a foster request. Receipt is declared separately.',
     privacyLabel: 'Exact location stays private.',
     animalName: row.animal_name,
     relatedAnimalName: row.related_animal_name,
     mode: row.match_mode,
     fosterStatus: row.application_status,
     organizationName: row.organization_name,
-    organizationVerified: row.organization_verification_status === 'VERIFIED',
-    ownerVerified: row.organization_verification_status === 'VERIFIED',
+    organizationVerified: false,
+    ownerVerified: false,
     city: row.city || '',
     coarseArea: row.coarse_area || '',
     otherParticipantIds: row.other_participant_ids || [],

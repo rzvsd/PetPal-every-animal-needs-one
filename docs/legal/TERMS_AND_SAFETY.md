@@ -1,6 +1,6 @@
 # PetPal Terms And Safety Draft
 
-Last updated: 2026-05-04
+Last updated: 2026-09-07 (product-alignment draft; legal review still required)
 
 This draft defines the product safety rules PetPal should enforce before public launch. It is not final legal text.
 
@@ -10,23 +10,20 @@ This draft defines the product safety rules PetPal should enforce before public 
 - Open animal sales are not allowed.
 - Ungated direct messages from public cards are not allowed.
 - Exact location should not be public.
-- Users must provide truthful animal, foster, and verification information.
+- Users must provide truthful animal and foster information. PetPal does not certify animals, homes, capacity or participant suitability.
 - Users must follow local animal welfare laws and veterinary guidance.
 
 ## Matching
 
 Match chat opens only after a mutual animal match. Compatibility scores help ranking and context, but they must not automatically unlock chat.
 
-Verified Mate is a gated safety mode. It must never become an open breeding marketplace. Eligibility depends on profile completeness, owner verification, animal age and welfare checks, sex and sterilization status, vaccine status, health documents, and admin approval where required.
+Verified Mate is postponed. Historical records remain, but no new Verified Mate operations or certification dossiers are accepted.
 
 ## Foster
 
-Foster chat opens only after:
+Foster chat opens when a request or invitation is sent, before acceptance. Acceptance reserves a place; only the receiving foster declares receipt. Participants agree care and resolve discrepancies. Capacity is self-declared, with a warning and explicit acknowledgement for reservations beyond the declaration.
 
-- a foster application is accepted; or
-- a foster invite is accepted.
-
-Animal foster cases and foster home profiles must clearly explain duration, urgency, support coverage, medical needs, home fit, city or coarse area, and verification status.
+Animal foster cases and homes describe duration, urgency, support coverage, care needs, home fit, city or coarse area. These are participant statements, not platform approvals. Closed arrangements retain read-only chat history.
 
 ## Messages
 
