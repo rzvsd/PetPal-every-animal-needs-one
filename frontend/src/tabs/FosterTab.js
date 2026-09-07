@@ -457,17 +457,22 @@ function InviteFlow({ profile, fosterCases, onClose, onSubmit, t }) {
   const [error, setError] = useState('');
   const selectedCase = activeCases.find((item) => item.id === selectedCaseId);
 
-  const submit = () => {
+  const submit = async () => {
     if (!selectedCaseId) {
       setError(t('foster.selectCaseForInvite'));
       return;
     }
 
-    onSubmit({
-      fosterCaseId: selectedCaseId,
-      fosterHomeProfileId: profile.id,
-      message,
-    });
+    setError('');
+    try {
+      await onSubmit({
+        fosterCaseId: selectedCaseId,
+        fosterHomeProfileId: profile.id,
+        message,
+      });
+    } catch (submitError) {
+      setError(submitError.message || t('foster.inviteSendFailed'));
+    }
   };
 
   return (
@@ -1136,6 +1141,7 @@ export default function FosterTab() {
     openFosterConversation,
     sendFosterInvite,
     openFosterInviteConversation,
+    rateFosterHome,
     rescuerAccessState,
     setRescuerAccessState,
     requestRescuerAccess,
@@ -1262,9 +1268,14 @@ export default function FosterTab() {
           setFosterNotice(t('foster.savedFosterHome'));
           setTimeout(() => setFosterNotice(''), 2000);
         }}
-        onRatingSaved={() => {
-          setFosterNotice(t('foster.ratingSaved'));
-          setTimeout(() => setFosterNotice(''), 2500);
+        onRatingSaved={async (rating) => {
+          try {
+            await rateFosterHome({ fosterHomeProfileId: viewHome.id, rating });
+            setFosterNotice(t('foster.ratingSaved'));
+            setTimeout(() => setFosterNotice(''), 2500);
+          } catch (error) {
+            setFosterNotice(error.message || t('foster.ratingSaveFailed'));
+          }
         }}
         t={t}
         lang={lang}
@@ -1304,13 +1315,18 @@ export default function FosterTab() {
         profile={inviteHome}
         fosterCases={fosterCases}
         onClose={() => setInviteHome(null)}
-        onSubmit={({ fosterCaseId, fosterHomeProfileId, message }) => {
-          sendFosterInvite({ fosterCaseId, fosterHomeProfileId, message });
-          setInviteHome(null);
-          setViewHome(null);
-          setFosterNotice(t('foster.inviteSent'));
-          setTimeout(() => setFosterNotice(''), 3000);
-          setSection('myFoster');
+        onSubmit={async ({ fosterCaseId, fosterHomeProfileId, message }) => {
+          try {
+            await sendFosterInvite({ fosterCaseId, fosterHomeProfileId, message });
+            setInviteHome(null);
+            setViewHome(null);
+            setFosterNotice(t('foster.inviteSent'));
+            setTimeout(() => setFosterNotice(''), 3000);
+            setSection('myFoster');
+          } catch (error) {
+            setFosterNotice(error.message || t('foster.inviteSendFailed'));
+            throw error;
+          }
         }}
         t={t}
       />

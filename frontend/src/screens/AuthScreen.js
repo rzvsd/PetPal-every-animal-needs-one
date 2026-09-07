@@ -30,6 +30,7 @@ export default function AuthScreen() {
     signInDemo,
     continueLocalDemo,
     authConfigured,
+    localDemoAvailable,
     demoSupabaseLoginAvailable,
   } = useApp();
   const [mode, setMode] = useState('login');
@@ -190,9 +191,11 @@ export default function AuthScreen() {
                 {t('auth.useDemoAccount')}
               </SecondaryButton>
             )}
-            <SecondaryButton onClick={continueLocalDemo} disabled={authLoading}>
-              {t('auth.continueLocalDemo')}
-            </SecondaryButton>
+            {localDemoAvailable && (
+              <SecondaryButton onClick={continueLocalDemo} disabled={authLoading}>
+                {t('auth.continueLocalDemo')}
+              </SecondaryButton>
+            )}
           </div>
         </div>
       </div>

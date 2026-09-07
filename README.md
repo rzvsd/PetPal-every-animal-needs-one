@@ -6,11 +6,12 @@ This repository is the PetPal monorepo. It keeps the mobile app, admin app, shar
 
 ## Workspace
 
-- `PetPalMobileBuild`: Expo / React Native public mobile app and Android build workspace.
+- `frontend`: active public mobile app. It is a React / Capacitor app and is the source for the Android app currently installed on the phone.
 - `petpal-admin`: internal React admin console for verification and moderation.
 - `petpal-shared`: shared TypeScript enums, schemas, and product rules.
 - `petpal-supabase`: database migrations, policies, Edge Functions, seed data, and RLS tests.
 - `petpal-oss-references`: OSS dependency and license notes.
+- `Archive/old-ui/PetPalMobileBuild`: archived Expo / React Native prototype. Do not use it for current product work.
 
 ## Design System
 
@@ -21,22 +22,25 @@ This repository is the PetPal monorepo. It keeps the mobile app, admin app, shar
 
 ## Product Boundary
 
-Public v1:
+Current public product direction:
 
-- Adopt
+- Matches
 - Foster
+- Messages
+- Profile
 - Dogs and cats only
-- Bucharest / Ilfov pilot region
-- Application-first contact flow
+- Romania-first pilot, starting with Bucharest / Ilfov
+- Application-first contact flow for foster
+- Mutual-match-only contact flow for matching
+- Play, Social, and Verified Mate remain visible product modes, with Verified Mate gated behind safety and verification
 
-Disabled for public v1:
+Disabled or gated until production-safe:
 
-- Mate
-- Play
 - Services marketplace
 - Open community posting
 - Animal sales
 - Breeding offers
+- Ungated Verified Mate or breeding-style marketplace behavior
 
 ## Safety Defaults
 
@@ -45,6 +49,32 @@ Disabled for public v1:
 - Chat opens only after an accepted application.
 - Reports, blocks, audit logs, and admin moderation exist from day one.
 - Public discovery must read only safe public fields.
+
+## Active Implementation Runbook
+
+The milestone implementation plan and command gates live in `docs/implementation/PETPAL_FULL_PRODUCT_PLAN.md`.
+
+## Release Policy Drafts
+
+- `docs/legal/PRIVACY_POLICY.md`
+- `docs/legal/TERMS_AND_SAFETY.md`
+- `docs/legal/ANIMAL_WELFARE_POLICY.md`
+
+Core local checks:
+
+```powershell
+cd petpal-supabase
+pnpm run db:reset
+pnpm run db:test
+
+cd ..\frontend
+npm run build
+npm test -- --watchAll=false --passWithNoTests
+npm run audit:copy-a11y
+npx cap sync android
+```
+
+Android debug install uses the Capacitor project under `frontend/android`.
 
 ## Milestone Proof
 

@@ -20,17 +20,31 @@ body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   background: #E4E2DC;
   color: #1F2924;
-  overflow: hidden;
-  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100dvh;
   width: 100vw;
 }
 
 #root {
-  height: 100dvh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+@media (min-width: 768px) {
+  body {
+    overflow: hidden;
+    height: 100dvh;
+  }
+
+  #root {
+    height: 100dvh;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .font-heading {
@@ -89,7 +103,7 @@ button {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 44px;
   min-width: 44px;
-  touch-action: manipulation;
+  touch-action: pan-y manipulation;
 }
 
 button:focus-visible,
@@ -108,6 +122,14 @@ button:disabled {
 
 .petpal-screen {
   overflow-wrap: break-word;
+  touch-action: pan-y;
+}
+
+.petpal-screen .overflow-y-auto {
+  overflow-y: scroll !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .petpal-screen h1,

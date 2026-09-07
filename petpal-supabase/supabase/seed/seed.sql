@@ -73,6 +73,81 @@ values
     '{"display_name":"Demo Adopter"}',
     now(),
     now()
+  ),
+  (
+    '10000000-0000-4000-8000-000000000003',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'ana.foster@petpal.local',
+    crypt('petpal-demo-password', gen_salt('bf')),
+    now(),
+    '',
+    '',
+    '',
+    '',
+    null,
+    '',
+    '',
+    '',
+    0,
+    '',
+    false,
+    false,
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Ana Popescu"}',
+    now(),
+    now()
+  ),
+  (
+    '10000000-0000-4000-8000-000000000004',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'luna.owner@petpal.local',
+    crypt('petpal-demo-password', gen_salt('bf')),
+    now(),
+    '',
+    '',
+    '',
+    '',
+    null,
+    '',
+    '',
+    '',
+    0,
+    '',
+    false,
+    false,
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Luna Owner"}',
+    now(),
+    now()
+  ),
+  (
+    '10000000-0000-4000-8000-000000000005',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'rocky.owner@petpal.local',
+    crypt('petpal-demo-password', gen_salt('bf')),
+    now(),
+    '',
+    '',
+    '',
+    '',
+    null,
+    '',
+    '',
+    '',
+    0,
+    '',
+    false,
+    false,
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"Rocky Owner"}',
+    now(),
+    now()
   )
 on conflict (id) do nothing;
 
@@ -122,7 +197,10 @@ insert into public.profiles (
 )
 values
   ('10000000-0000-4000-8000-000000000001', 'PetPal Rescue Demo', 'Bucharest', 'Sector 3', 'VERIFIED', true, now()),
-  ('10000000-0000-4000-8000-000000000002', 'Demo Adopter', 'Bucharest', 'Sector 6', 'UNVERIFIED', true, now())
+  ('10000000-0000-4000-8000-000000000002', 'Demo Adopter', 'Bucharest', 'Sector 6', 'UNVERIFIED', true, now()),
+  ('10000000-0000-4000-8000-000000000003', 'Ana Popescu', 'Bucharest', 'Sector 3', 'VERIFIED', true, now()),
+  ('10000000-0000-4000-8000-000000000004', 'Luna Owner', 'Bucharest', 'Sector 3', 'VERIFIED', true, now()),
+  ('10000000-0000-4000-8000-000000000005', 'Rocky Owner', 'Bucharest', 'Sector 6', 'VERIFIED', true, now())
 on conflict (id) do update
 set display_name = excluded.display_name,
     city = excluded.city,
@@ -137,7 +215,10 @@ values
   ('10000000-0000-4000-8000-000000000001', 'RESCUER'),
   ('10000000-0000-4000-8000-000000000001', 'SHELTER_MEMBER'),
   ('10000000-0000-4000-8000-000000000002', 'ADOPTER'),
-  ('10000000-0000-4000-8000-000000000002', 'FOSTER')
+  ('10000000-0000-4000-8000-000000000002', 'FOSTER'),
+  ('10000000-0000-4000-8000-000000000003', 'FOSTER'),
+  ('10000000-0000-4000-8000-000000000004', 'ADOPTER'),
+  ('10000000-0000-4000-8000-000000000005', 'ADOPTER')
 on conflict do nothing;
 
 insert into public.owner_animal_profiles (
@@ -221,6 +302,60 @@ values
     array['SOCIAL'],
     100,
     'VERIFIED'
+  ),
+  (
+    '50000000-0000-4000-8000-000000000003',
+    '10000000-0000-4000-8000-000000000004',
+    'Luna',
+    'DOG',
+    'Golden Retriever',
+    false,
+    26,
+    'FEMALE',
+    'LARGE',
+    27,
+    'NO',
+    'UP_TO_DATE',
+    'VERIFIED',
+    'VERIFIED',
+    array['calm', 'social', 'used to other dogs'],
+    'MEDIUM',
+    true,
+    true,
+    true,
+    'Bucharest',
+    'Sector 3',
+    array['https://images.unsplash.com/photo-1768676758489-851bb9ea865a?w=600&h=800&fit=crop'],
+    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    100,
+    'VERIFIED'
+  ),
+  (
+    '50000000-0000-4000-8000-000000000004',
+    '10000000-0000-4000-8000-000000000005',
+    'Rocky',
+    'DOG',
+    'German Shepherd',
+    false,
+    48,
+    'MALE',
+    'LARGE',
+    35,
+    'NO',
+    'UP_TO_DATE',
+    'VERIFIED',
+    'VERIFIED',
+    array['loyal', 'protective', 'trainable'],
+    'HIGH',
+    true,
+    false,
+    true,
+    'Bucharest',
+    'Sector 6',
+    array['https://images.unsplash.com/photo-1743997182218-30d0e9c3b0f1?w=600&h=800&fit=crop'],
+    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    100,
+    'VERIFIED'
   )
 on conflict (id) do update
 set name = excluded.name,
@@ -235,6 +370,76 @@ set name = excluded.name,
     photo_urls = excluded.photo_urls,
     active_match_modes = excluded.active_match_modes,
     profile_completeness = excluded.profile_completeness,
+    updated_at = now();
+
+insert into public.animal_match_likes (
+  my_animal_id,
+  target_animal_id,
+  liker_id,
+  mode
+)
+values
+  (
+    '50000000-0000-4000-8000-000000000003',
+    '50000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000004',
+    'PLAY'
+  )
+on conflict (my_animal_id, target_animal_id, mode) do nothing;
+
+insert into public.foster_home_profiles (
+  id,
+  profile_id,
+  verified_status,
+  accepts_species,
+  accepts_sizes,
+  max_animals_at_once,
+  availability_status,
+  available_from,
+  preferred_duration,
+  housing_type,
+  has_separate_room,
+  other_pets,
+  children_in_home,
+  experience_summary,
+  previous_foster_count,
+  can_transport,
+  can_handle_medical_needs,
+  needs_food_covered,
+  needs_vet_covered,
+  response_time_label,
+  bio,
+  photos,
+  past_fosters
+)
+values (
+  '60000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000003',
+  'VERIFIED',
+  array['CAT', 'DOG']::public.species[],
+  array['SMALL', 'MEDIUM'],
+  1,
+  'AVAILABLE',
+  current_date + 1,
+  'ONE_TWO_WEEKS',
+  'Apartment with a quiet separate room',
+  true,
+  'One calm adult cat',
+  'No children',
+  'Three previous fosters, comfortable with shy cats and small dogs.',
+  3,
+  true,
+  true,
+  true,
+  true,
+  'Usually responds within 1 day',
+  'Quiet home with a separate room and flexible schedule for short-term foster cases.',
+  array['https://images.unsplash.com/photo-1763569586525-251849dce054?w=600&h=800&fit=crop'],
+  array['Iris', 'Rex', 'Mimi']
+)
+on conflict (id) do update
+set availability_status = excluded.availability_status,
+    bio = excluded.bio,
     updated_at = now();
 
 insert into public.admin_roles (profile_id, role)

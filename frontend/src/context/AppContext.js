@@ -13,13 +13,17 @@ import {
   deleteSupabaseAnimalProfile,
   uploadSupabaseAnimalPhoto,
   submitSupabaseFosterApplication,
+  likeSupabaseMatchCandidate,
+  sendSupabaseFosterInvite,
+  rateSupabaseFosterHome,
+  createSupabasePaymentSession,
   sendSupabaseConversationMessage,
   reportSupabaseConversation,
   blockSupabaseConversation,
   requestSupabaseRescuerAccess,
   registerSupabasePushToken,
 } from '../services/supabaseApi';
-import { demoSupabaseCredentials, isSupabaseConfigured, supabase } from '../services/supabaseClient';
+import { allowLocalDemo, demoSupabaseCredentials, isSupabaseConfigured, supabase } from '../services/supabaseClient';
 import { initializePushNotifications } from '../services/pushNotifications';
 
 const AppContext = createContext();
@@ -36,16 +40,18 @@ export function AppProvider({ children }) {
   const [matchSuccess, setMatchSuccess] = useState(null);
   const [savedAnimals, setSavedAnimals] = useState([]);
   const [fosterCases, setFosterCases] = useState(demoFosterCases);
-  const [fosterHomeProfiles] = useState(demoFosterHomeProfiles);
+  const [fosterHomeProfiles, setFosterHomeProfiles] = useState(demoFosterHomeProfiles);
   const [fosterInvites, setFosterInvites] = useState(demoFosterInvites);
   const [fosterApplications, setFosterApplications] = useState(demoFosterApplications);
   const [conversations, setConversations] = useState(demoConversations);
+  const [paymentSessions, setPaymentSessions] = useState([]);
   const [dataSource, setDataSource] = useState('mock');
   const [backendStatus, setBackendStatus] = useState({ loading: false, message: null });
   const [authSession, setAuthSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
   const [authError, setAuthError] = useState('');
   const [authNotice, setAuthNotice] = useState('');
+  const [paymentReturnNotice, setPaymentReturnNotice] = useState('');
   const [localDemoSession, setLocalDemoSession] = useState(false);
   const [pushStatus, setPushStatus] = useState({ status: 'idle', message: null });
   const [rescuerAccessState, setRescuerAccessState] = useState('not_requested');
@@ -64,7 +70,8 @@ export function AppProvider({ children }) {
   const toggleLang = () => setLang(l => l === 'en' ? 'ro' : 'en');
 
   const selectedAnimal = myAnimals.find(a => a.id === selectedAnimalId);
-  const demoSupabaseLoginAvailable = Boolean(demoSupabaseCredentials.email && demoSupabaseCredentials.password);
+  const localDemoAvailable = allowLocalDemo;
+  const demoSupabaseLoginAvailable = localDemoAvailable && Boolean(demoSupabaseCredentials.email && demoSupabaseCredentials.password);
 
   const mapUserRolesToSupabase = (roles = []) => {
     const roleMap = {
@@ -103,13 +110,15 @@ export function AppProvider({ children }) {
       }));
     }
 
-    if (data.fosterCases?.length > 0) {
-      setFosterCases(data.fosterCases);
-    }
+    setFosterCases(data.fosterCases || []);
 
     if (data.session) {
       setLocalDemoSession(false);
       setMyAnimals(data.myAnimals || []);
+      setCandidates(data.matchCandidates || []);
+      setFosterHomeProfiles(data.fosterHomeProfiles || []);
+      setFosterInvites(data.fosterInvites || []);
+      setPaymentSessions(data.paymentSessions || []);
       setSelectedAnimalId((current) => {
         if (current && (data.myAnimals || []).some((animal) => animal.id === current)) return current;
         return data.myAnimals?.[0]?.id || null;
@@ -117,10 +126,7 @@ export function AppProvider({ children }) {
     }
 
     setFosterApplications(data.session ? (data.fosterApplications || []) : []);
-    setConversations((current) => [
-      ...current.filter((conversation) => conversation.source === 'MATCH'),
-      ...(data.session ? (data.conversations || []) : []),
-    ]);
+    setConversations(data.session ? (data.conversations || []) : []);
     setDataSource('supabase');
     setBackendStatus({ loading: false, message: null });
     return data;
@@ -225,7 +231,31 @@ export function AppProvider({ children }) {
     };
   }, [authSession?.user?.id, dataSource]);
 
-  const handleLike = (candidate) => {
+  const handleLike = async (candidate) => {
+    if (!selectedAnimal) return;
+
+    if (dataSource === 'supabase') {
+      try {
+        const result = await likeSupabaseMatchCandidate(selectedAnimal.id, candidate.animal.id, candidate.mode);
+        if (result?.matched) {
+          setMatchSuccess({
+            myAnimal: selectedAnimal,
+            theirAnimal: candidate.animal,
+            mode: candidate.mode,
+          });
+          await refreshSupabaseData();
+        }
+      } catch (error) {
+        setBackendStatus({
+          loading: false,
+          message: error.message || 'Match like could not be saved.',
+        });
+      } finally {
+        setCurrentCardIndex(i => i + 1);
+      }
+      return;
+    }
+
     if (candidate.hasLikedBack) {
       setMatchSuccess({
         myAnimal: selectedAnimal,
@@ -352,7 +382,30 @@ export function AppProvider({ children }) {
     return newConv;
   };
 
-  const sendFosterInvite = ({ fosterCaseId, fosterHomeProfileId, message = '' }) => {
+  const sendFosterInvite = async ({ fosterCaseId, fosterHomeProfileId, message = '' }) => {
+    if (dataSource === 'supabase') {
+      try {
+        const inviteId = await sendSupabaseFosterInvite({ fosterCaseId, fosterHomeProfileId, message });
+        const invite = {
+          id: inviteId,
+          fosterCaseId,
+          fosterHomeProfileId,
+          sentByUserId: user.id,
+          status: 'SENT',
+          message,
+          createdAt: new Date().toISOString(),
+        };
+        setFosterInvites((current) => [invite, ...current.filter((item) => item.id !== inviteId)]);
+        return invite;
+      } catch (error) {
+        setBackendStatus({
+          loading: false,
+          message: error.message || 'Foster invite could not be sent.',
+        });
+        throw error;
+      }
+    }
+
     const invite = {
       id: `invite-${Date.now()}`,
       fosterCaseId,
@@ -365,6 +418,56 @@ export function AppProvider({ children }) {
 
     setFosterInvites((current) => [invite, ...current]);
     return invite;
+  };
+
+  const rateFosterHome = async ({ fosterHomeProfileId, fosterCaseId = null, rating, comment = '' }) => {
+    if (dataSource === 'supabase') {
+      await rateSupabaseFosterHome({ fosterHomeProfileId, fosterCaseId, rating, comment });
+      await refreshSupabaseData();
+      return;
+    }
+
+    setFosterHomeProfiles((current) => current.map((profile) => {
+      if (profile.id !== fosterHomeProfileId) return profile;
+      const nextReviewCount = (profile.reviewCount || 0) + 1;
+      const currentTotal = (profile.ratingAverage || rating) * (profile.reviewCount || 0);
+      return {
+        ...profile,
+        ratingAverage: Number(((currentTotal + rating) / nextReviewCount).toFixed(1)),
+        reviewCount: nextReviewCount,
+      };
+    }));
+  };
+
+  const createDonationSession = async ({ amountCents, currency = 'RON' }) => {
+    if (dataSource === 'supabase') {
+      const session = await createSupabasePaymentSession({
+        provider: 'STRIPE',
+        purpose: 'DONATION',
+        amountCents,
+        currency,
+        metadata: {
+          app: 'petpal-mobile',
+          source: 'profile-support',
+        },
+      });
+      setPaymentSessions((current) => [session, ...current.filter((item) => item.id !== session.id)].slice(0, 10));
+      return session;
+    }
+
+    const localSession = {
+      id: `local-payment-${Date.now()}`,
+      provider: 'STRIPE',
+      purpose: 'DONATION',
+      amountCents,
+      currency,
+      status: 'CREATED',
+      checkoutUrl: `petpal://payments/local-demo/${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setPaymentSessions((current) => [localSession, ...current].slice(0, 10));
+    return localSession;
   };
 
   const openFosterInviteConversation = (invite) => {
@@ -491,14 +594,46 @@ export function AppProvider({ children }) {
     setScreenParams(null);
   };
 
-  const refreshSupabaseData = async () => {
+  const refreshSupabaseData = useCallback(async () => {
     if (!isSupabaseConfigured) return null;
 
     setBackendStatus({ loading: true, message: null });
     const data = await applySupabaseData();
     setBackendStatus({ loading: false, message: null });
     return data;
-  };
+  }, [applySupabaseData]);
+
+  const handlePaymentReturn = useCallback((url) => {
+    if (!url) return false;
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      return false;
+    }
+
+    if (parsedUrl.protocol !== 'petpal:' || parsedUrl.hostname !== 'payments') {
+      return false;
+    }
+
+    const paymentStatus = parsedUrl.pathname.replace('/', '');
+    if (paymentStatus === 'success') {
+      setPaymentReturnNotice(t('profile.paymentReturnSuccess'));
+      refreshSupabaseData().catch(() => undefined);
+    } else if (paymentStatus === 'cancel') {
+      setPaymentReturnNotice(t('profile.paymentReturnCanceled'));
+    } else {
+      setPaymentReturnNotice(t('profile.paymentReturnUnknown'));
+    }
+
+    setActiveTab('profile');
+    setActiveScreen(null);
+    setScreenParams(null);
+    return true;
+  }, [t, refreshSupabaseData]);
+
+  const clearPaymentReturnNotice = () => setPaymentReturnNotice('');
 
   const signIn = async ({ email, password }) => {
     setAuthError('');
@@ -546,6 +681,12 @@ export function AppProvider({ children }) {
   const signInDemo = async () => {
     setAuthError('');
     setAuthNotice('');
+
+    if (!localDemoAvailable) {
+      setAuthError(t('auth.localDemoDisabled'));
+      return;
+    }
+
     setAuthLoading(true);
 
     try {
@@ -571,6 +712,7 @@ export function AppProvider({ children }) {
       setLocalDemoSession(false);
       setFosterApplications([]);
       setConversations((current) => current.filter((conversation) => conversation.source === 'MATCH'));
+      setPaymentSessions([]);
       setBackendStatus({ loading: false, message: null });
     } catch (error) {
       setAuthError(error.message || t('auth.signOutError'));
@@ -582,12 +724,21 @@ export function AppProvider({ children }) {
   const continueLocalDemo = () => {
     setAuthError('');
     setAuthNotice('');
+
+    if (!localDemoAvailable) {
+      setAuthError(t('auth.localDemoDisabled'));
+      return;
+    }
+
     setLocalDemoSession(true);
     setDataSource('mock');
+    setCandidates(demoMatchCandidates);
     setFosterCases(demoFosterCases);
+    setFosterHomeProfiles(demoFosterHomeProfiles);
     setFosterApplications(demoFosterApplications);
     setFosterInvites(demoFosterInvites);
     setConversations(demoConversations);
+    setPaymentSessions([]);
     setBackendStatus({ loading: false, message: null });
     setActiveTab('matches');
   };
@@ -698,9 +849,10 @@ export function AppProvider({ children }) {
       candidates, setCandidates, currentCardIndex, setCurrentCardIndex,
       matchSuccess, setMatchSuccess,
       savedAnimals, handleLike, handlePass, handleSave,
-      fosterCases, fosterHomeProfiles, fosterInvites, sendFosterInvite, openFosterInviteConversation,
+      fosterCases, fosterHomeProfiles, fosterInvites, sendFosterInvite, openFosterInviteConversation, rateFosterHome,
       fosterApplications, submitFosterApplication, openFosterConversation,
       conversations, sendMessage, reportConversation, blockConversation,
+      paymentSessions, createDonationSession,
       dataSource, backendStatus,
       pushStatus,
       authConfigured: isSupabaseConfigured,
@@ -709,11 +861,15 @@ export function AppProvider({ children }) {
       authLoading,
       authError,
       authNotice,
+      paymentReturnNotice,
+      handlePaymentReturn,
+      clearPaymentReturnNotice,
       signIn,
       signUp,
       signInDemo,
       continueLocalDemo,
       signOut,
+      localDemoAvailable,
       demoSupabaseLoginAvailable,
       rescuerAccessState, setRescuerAccessState, requestRescuerAccess,
       activeScreen, screenParams, navigate, goBack,

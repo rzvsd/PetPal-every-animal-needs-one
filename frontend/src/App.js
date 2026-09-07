@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { AppProvider, useApp } from './context/AppContext';
@@ -7,73 +7,50 @@ import FosterTab from './tabs/FosterTab';
 import MessagesTab from './tabs/MessagesTab';
 import ProfileTab from './tabs/ProfileTab';
 import AuthScreen from './screens/AuthScreen';
-import { Heart, Home, MessageCircle, User } from 'lucide-react';
+import EnvironmentChooser from './screens/EnvironmentChooser';
+import { EnvironmentBottomTabs, EnvironmentHeader } from './components/EnvironmentNavigation';
+import {
+  getEnvironmentConversationSource,
+  getEnvironmentHomeTab,
+} from './navigation/environments';
 import './App.css';
 
-function BottomTabs() {
-  const { activeTab, setActiveTab, t, conversations } = useApp();
-
-  const tabs = [
-    { key: 'matches', icon: Heart, label: t('tabs.matches') },
-    { key: 'foster', icon: Home, label: t('tabs.foster') },
-    { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
-    { key: 'profile', icon: User, label: t('tabs.profile') },
-  ];
-
-  const unreadCount = conversations.reduce((acc, c) => acc + (c.unread || 0), 0);
-
-  return (
-    <nav data-testid="bottom-tabs" aria-label="PetPal" className="absolute bottom-0 left-0 right-0 h-[68px] bg-white/95 backdrop-blur-xl border-t border-[#E4E2DC] flex justify-around items-center z-50 px-2">
-      {tabs.map(tab => {
-        const isActive = activeTab === tab.key;
-        const Icon = tab.icon;
-        const showBadge = tab.key === 'messages' && unreadCount > 0;
-
-        return (
-          <button
-            type="button"
-            key={tab.key}
-            data-testid={`tab-${tab.key}`}
-            onClick={() => setActiveTab(tab.key)}
-            aria-label={tab.label}
-            aria-current={isActive ? 'page' : undefined}
-            className={`flex flex-col items-center justify-center w-16 h-full relative transition-all duration-200 ${
-              isActive ? 'text-[#2C402B]' : 'text-[#57645C]'
-            }`}
-          >
-            <div className="relative">
-              <Icon
-                size={22}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                className={`transition-all duration-200 ${isActive ? 'text-[#2C402B]' : 'text-[#57645C]'}`}
-                fill={isActive ? (tab.key === 'matches' ? '#9BAE96' : 'none') : 'none'}
-              />
-              {showBadge && (
-                <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-[#8B4C2F] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            <span className={`text-[10px] mt-1 font-semibold tracking-wide ${isActive ? 'text-[#2C402B]' : 'text-[#57645C]'}`}>
-              {tab.label}
-            </span>
-            {isActive && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-[#9BAE96] rounded-b-full" />
-            )}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 function AppContent() {
-  const { activeTab, setActiveTab, authLoading, authRequired, t } = useApp();
-  const backStateRef = useRef({ activeTab, authLoading, authRequired });
+  const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn } = useApp();
+  const [environment, setEnvironment] = useState(null);
+  const backStateRef = useRef({ activeTab, authLoading, authRequired, environment });
 
   useEffect(() => {
-    backStateRef.current = { activeTab, authLoading, authRequired };
-  }, [activeTab, authLoading, authRequired]);
+    backStateRef.current = { activeTab, authLoading, authRequired, environment };
+  }, [activeTab, authLoading, authRequired, environment]);
+
+  useEffect(() => {
+    if (authRequired) {
+      setEnvironment(null);
+    }
+  }, [authRequired]);
+
+  const enterEnvironment = (nextEnvironment) => {
+    setEnvironment(nextEnvironment);
+    setActiveTab(getEnvironmentHomeTab(nextEnvironment));
+  };
+
+  const leaveEnvironment = () => {
+    setEnvironment(null);
+  };
+
+  const handleAppBack = useCallback(() => {
+    const current = backStateRef.current;
+    if (current.authLoading || current.authRequired || !current.environment) return;
+
+    const homeTab = getEnvironmentHomeTab(current.environment);
+    if (current.activeTab !== homeTab) {
+      setActiveTab(homeTab);
+      return;
+    }
+
+    setEnvironment(null);
+  }, [setActiveTab]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.history?.pushState) return undefined;
@@ -86,12 +63,7 @@ function AppContent() {
 
     const handleBack = () => {
       pushBackGuard();
-      const current = backStateRef.current;
-
-      if (current.authLoading || current.authRequired) return;
-      if (current.activeTab !== 'matches') {
-        setActiveTab('matches');
-      }
+      handleAppBack();
     };
 
     window.addEventListener('popstate', handleBack);
@@ -99,7 +71,7 @@ function AppContent() {
     return () => {
       window.removeEventListener('popstate', handleBack);
     };
-  }, [setActiveTab]);
+  }, [handleAppBack]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
@@ -107,12 +79,7 @@ function AppContent() {
     let listener;
 
     CapacitorApp.addListener('backButton', () => {
-      const current = backStateRef.current;
-
-      if (current.authLoading || current.authRequired) return;
-      if (current.activeTab !== 'matches') {
-        setActiveTab('matches');
-      }
+      handleAppBack();
     }).then((handle) => {
       listener = handle;
     });
@@ -120,7 +87,91 @@ function AppContent() {
     return () => {
       listener?.remove();
     };
-  }, [setActiveTab]);
+  }, [handleAppBack]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+
+    let listener;
+
+    CapacitorApp.addListener('appUrlOpen', (event) => {
+      handlePaymentReturn(event?.url);
+    }).then((handle) => {
+      listener = handle;
+    });
+
+    return () => {
+      listener?.remove();
+    };
+  }, [handlePaymentReturn]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+
+    let activeScroller = null;
+    let lastY = 0;
+    let lastX = 0;
+
+    const findScroller = (target) => {
+      if (!(target instanceof Element)) return document.querySelector('.petpal-screen');
+      return target.closest('.overflow-y-auto') || document.querySelector('.petpal-screen');
+    };
+
+    const handleTouchStart = (event) => {
+      const touch = event.touches?.[0];
+      if (!touch) return;
+      activeScroller = findScroller(event.target);
+      lastY = touch.clientY;
+      lastX = touch.clientX;
+    };
+
+    const handleTouchMove = (event) => {
+      const touch = event.touches?.[0];
+      if (!touch || !activeScroller) return;
+
+      const deltaY = lastY - touch.clientY;
+      const deltaX = lastX - touch.clientX;
+
+      if (Math.abs(deltaY) < 3 || Math.abs(deltaY) < Math.abs(deltaX)) {
+        lastY = touch.clientY;
+        lastX = touch.clientX;
+        return;
+      }
+
+      if (activeScroller.scrollHeight <= activeScroller.clientHeight) {
+        activeScroller = document.querySelector('.petpal-screen');
+      }
+
+      if (!activeScroller || activeScroller.scrollHeight <= activeScroller.clientHeight) {
+        return;
+      }
+
+      const before = activeScroller.scrollTop;
+      activeScroller.scrollTop += deltaY;
+      lastY = touch.clientY;
+      lastX = touch.clientX;
+
+      if (activeScroller.scrollTop !== before) {
+        event.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      activeScroller = null;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, []);
 
   return (
     <div className="petpal-container">
@@ -135,13 +186,21 @@ function AppContent() {
             </div>
           ) : authRequired ? (
             <AuthScreen />
+          ) : !environment ? (
+            <EnvironmentChooser onSelect={enterEnvironment} />
           ) : (
             <>
+              <EnvironmentHeader environment={environment} onBack={leaveEnvironment} />
               {activeTab === 'matches' && <MatchesTab />}
               {activeTab === 'foster' && <FosterTab />}
-              {activeTab === 'messages' && <MessagesTab />}
-              {activeTab === 'profile' && <ProfileTab />}
-              <BottomTabs />
+              {activeTab === 'messages' && (
+                <MessagesTab
+                  key={environment}
+                  source={getEnvironmentConversationSource(environment)}
+                />
+              )}
+              {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}
+              <EnvironmentBottomTabs environment={environment} />
             </>
           )}
         </div>

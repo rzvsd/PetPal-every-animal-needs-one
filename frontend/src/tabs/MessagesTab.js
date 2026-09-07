@@ -352,87 +352,58 @@ function getTimeAgo(dateStr, t) {
   return `${days}${t('messages.daysShort')}`;
 }
 
-export default function MessagesTab() {
+export default function MessagesTab({ source = 'MATCH' }) {
   const { t, conversations } = useApp();
-  const [filter, setFilter] = useState('all');
   const [activeConvId, setActiveConvId] = useState(null);
+  const isMatchInbox = source === 'MATCH';
+  const scopedConversations = conversations.filter((conversation) => conversation.source === source);
+  const activeConv = scopedConversations.find((conversation) => conversation.id === activeConvId);
+  const title = isMatchInbox ? t('messages.matchMessagesTitle') : t('messages.fosterMessagesTitle');
+  const subtitle = isMatchInbox ? t('messages.matchMessagesSubtitle') : t('messages.fosterMessagesSubtitle');
+  const emptyTitle = isMatchInbox ? t('messages.noMatchConversations') : t('messages.noFosterConversations');
+  const emptyDescription = isMatchInbox
+    ? t('messages.noMatchConversationsDesc')
+    : t('messages.noFosterConversationsDesc');
 
-  const filters = [
-    { key: 'all', label: t('messages.all') },
-    { key: 'matches', label: t('messages.matchesFilter') },
-    { key: 'foster', label: t('messages.fosterFilter') },
-  ];
+  useEffect(() => {
+    document.body.classList.toggle('petpal-thread-open', Boolean(activeConv));
 
-  const filtered = conversations.filter(c => {
-    if (filter === 'matches') return c.source === 'MATCH';
-    if (filter === 'foster') return c.source === 'FOSTER';
-    return true;
-  });
-
-  const matchConvs = filtered.filter(c => c.source === 'MATCH');
-  const fosterConvs = filtered.filter(c => c.source === 'FOSTER');
-  const activeConv = conversations.find(c => c.id === activeConvId);
+    return () => {
+      document.body.classList.remove('petpal-thread-open');
+    };
+  }, [activeConv]);
 
   if (activeConv) {
     return <ConversationThread conv={activeConv} onBack={() => setActiveConvId(null)} t={t} />;
   }
 
   return (
-    <div data-testid="messages-tab" className="flex-1 flex flex-col">
+    <div
+      data-testid="messages-tab"
+      data-message-source={source}
+      className="min-h-0 flex-1 flex flex-col"
+    >
       <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
-        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading mb-3">{t('messages.title')}</h1>
-
-        <div className="flex gap-1 bg-[#EFEDE8] rounded-xl p-1">
-          {filters.map(f => (
-            <button
-              type="button"
-              key={f.key}
-              data-testid={`messages-filter-${f.key}`}
-              onClick={() => setFilter(f.key)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                filter === f.key ? 'bg-white text-[#1F2924] shadow-sm' : 'text-[#57645C]'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{title}</h1>
+        <p className="mt-1 text-sm leading-relaxed text-[#57645C]">{subtitle}</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 pb-20 space-y-4">
-        {filtered.length === 0 ? (
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-3 pb-20">
+        {scopedConversations.length === 0 ? (
           <EmptyState
             icon={MessageCircle}
-            title={t('messages.noConversations')}
-            description={t('messages.noConversationsDesc')}
+            title={emptyTitle}
+            description={emptyDescription}
           />
-        ) : filter === 'all' ? (
-          <>
-            {matchConvs.length > 0 && (
-              <div>
-                <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('messages.matchesFilter')}</h3>
-                <div className="space-y-2">
-                  {matchConvs.map(c => (
-                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {fosterConvs.length > 0 && (
-              <div>
-                <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('messages.fosterFilter')}</h3>
-                <div className="space-y-2">
-                  {fosterConvs.map(c => (
-                    <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
         ) : (
           <div className="space-y-2">
-            {filtered.map(c => (
-              <ConversationCard key={c.id} conv={c} onClick={() => setActiveConvId(c.id)} t={t} />
+            {scopedConversations.map((conversation) => (
+              <ConversationCard
+                key={conversation.id}
+                conv={conversation}
+                onClick={() => setActiveConvId(conversation.id)}
+                t={t}
+              />
             ))}
           </div>
         )}

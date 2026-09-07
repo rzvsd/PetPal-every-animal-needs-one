@@ -446,6 +446,7 @@ export default function MatchesTab() {
   }[matchMode];
 
   const filteredCandidates = candidates.filter(c => {
+    if (!c.animal.activeMatchModes?.includes(matchMode)) return false;
     if (speciesFilter && c.animal.species !== speciesFilter) return false;
     if (matchFilters.verifiedOnly && c.ownerVerificationStatus !== 'VERIFIED') return false;
     if (matchFilters.breed && c.animal.breed !== matchFilters.breed) return false;
@@ -455,7 +456,8 @@ export default function MatchesTab() {
     return true;
   });
 
-  const currentCandidate = filteredCandidates[currentCardIndex];
+  const candidate = filteredCandidates[currentCardIndex];
+  const currentCandidate = candidate ? { ...candidate, mode: matchMode } : candidate;
   const isVerifiedMateLocked = matchMode === 'VERIFIED_MATE' &&
     (selectedAnimal?.adminMateApprovalStatus !== 'VERIFIED' || selectedAnimal?.healthDocumentStatus !== 'VERIFIED');
   const breedOptions = speciesFilter === 'CAT'
@@ -523,7 +525,10 @@ export default function MatchesTab() {
                 type="button"
                 key={m.key}
                 data-testid={`mode-${m.key.toLowerCase()}`}
-                onClick={() => setMatchMode(m.key)}
+                onClick={() => {
+                  setMatchMode(m.key);
+                  setCurrentCardIndex(0);
+                }}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   matchMode === m.key
                     ? 'bg-[#2C402B] text-white shadow-sm'

@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured, demoSupabaseCredentials } from './supabaseClient';
 
 const fallbackFosterPhoto = 'https://images.unsplash.com/photo-1699727314431-36ab60fcc3e1?w=600&h=800&fit=crop';
+const fallbackMatchPhoto = 'https://images.unsplash.com/photo-1642303009474-851f1dd5195f?w=600&h=800&fit=crop';
 
 function normalizeSize(size) {
   if (!size) return 'MEDIUM';
@@ -101,6 +102,122 @@ function mapOwnerAnimal(row) {
   };
 }
 
+function mapMatchCandidate(row) {
+  const animal = mapOwnerAnimal({
+    id: row.animal_id,
+    owner_id: row.owner_id,
+    name: row.name,
+    species: row.species,
+    breed_or_mix: row.breed_or_mix,
+    is_mixed_breed: row.is_mixed_breed,
+    approximate_age_months: row.approximate_age_months,
+    sex: row.sex,
+    size_label: row.size_label,
+    weight_kg: row.weight_kg,
+    sterilized_status: row.sterilized_status,
+    vaccine_status: row.vaccine_status,
+    health_document_status: row.health_document_status,
+    admin_mate_approval_status: row.admin_mate_approval_status,
+    temperament_tags: row.temperament_tags,
+    energy_level: row.energy_level,
+    good_with_dogs: row.good_with_dogs,
+    good_with_cats: row.good_with_cats,
+    good_with_children: row.good_with_children,
+    city: row.city,
+    coarse_area: row.coarse_area,
+    photo_urls: row.photo_urls?.length > 0 ? row.photo_urls : [fallbackMatchPhoto],
+    active_match_modes: row.active_match_modes,
+    profile_completeness: row.profile_completeness,
+    verification_status: row.verification_status,
+  });
+  const preferredMode = animal.activeMatchModes?.includes('PLAY') ? 'PLAY' : animal.activeMatchModes?.[0] || 'SOCIAL';
+  const verifiedOwner = row.owner_verification_status === 'VERIFIED';
+  const score = Math.min(96, 55
+    + (verifiedOwner ? 10 : 0)
+    + (animal.profileCompleteness >= 85 ? 10 : 0)
+    + (animal.vaccineStatus === 'UP_TO_DATE' ? 8 : 0)
+    + (animal.healthDocumentStatus === 'VERIFIED' ? 8 : 0)
+    + (animal.city ? 5 : 0));
+
+  return {
+    animal,
+    mode: preferredMode,
+    hasLikedBack: Boolean(row.has_liked_back),
+    compatibilityScore: score,
+    compatibilityReasons: [
+      'complete profile',
+      animal.city ? 'nearby area' : 'reachable area',
+      verifiedOwner ? 'verified owner' : 'good social fit',
+      animal.healthDocumentStatus === 'VERIFIED' ? 'health fields available' : 'compatible age',
+    ],
+    ownerVerificationStatus: row.owner_verification_status || 'UNVERIFIED',
+    healthDocumentStatus: animal.healthDocumentStatus,
+    distanceLabel: `${animal.city || 'Romania'}${animal.coarseArea ? ` / ${animal.coarseArea}` : ''}`,
+    exactLocationHidden: true,
+  };
+}
+
+function mapFosterHomeProfile(row) {
+  return {
+    id: row.id,
+    userId: row.profile_id,
+    displayName: row.display_name,
+    city: row.city || '',
+    coarseArea: row.coarse_area || '',
+    verifiedStatus: row.verified_status || 'PENDING',
+    acceptsSpecies: row.accepts_species || ['DOG', 'CAT'],
+    acceptsSizes: row.accepts_sizes || ['SMALL', 'MEDIUM'],
+    maxAnimalsAtOnce: row.max_animals_at_once || 1,
+    availabilityStatus: row.availability_status || 'LIMITED',
+    availableFrom: row.available_from,
+    preferredDuration: row.preferred_duration || 'ONE_TWO_WEEKS',
+    housingType: row.housing_type || '',
+    hasSeparateRoom: Boolean(row.has_separate_room),
+    otherPets: row.other_pets || '',
+    childrenInHome: row.children_in_home || '',
+    experienceSummary: row.experience_summary || '',
+    previousFosterCount: row.previous_foster_count || 0,
+    canTransport: Boolean(row.can_transport),
+    canHandleMedicalNeeds: Boolean(row.can_handle_medical_needs),
+    needsFoodCovered: Boolean(row.needs_food_covered),
+    needsVetCovered: Boolean(row.needs_vet_covered),
+    ratingAverage: row.rating_average ? Number(row.rating_average) : null,
+    reviewCount: row.review_count || 0,
+    responseTimeLabel: row.response_time_label || '',
+    bio: row.bio || '',
+    photos: row.photos || [],
+    pastFosters: row.past_fosters || [],
+  };
+}
+
+function mapFosterInvite(row) {
+  return {
+    id: row.id,
+    fosterCaseId: row.foster_case_id,
+    fosterHomeProfileId: row.foster_home_profile_id,
+    sentByUserId: row.sent_by_user_id,
+    status: row.status,
+    message: row.message || '',
+    createdAt: row.created_at,
+  };
+}
+
+function mapPaymentSession(row) {
+  return {
+    id: row.id,
+    provider: row.provider,
+    purpose: row.purpose,
+    amountCents: row.amount_cents,
+    currency: row.currency,
+    status: row.status,
+    checkoutUrl: row.checkout_url,
+    providerSessionId: row.provider_session_id,
+    metadata: row.metadata || {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function mapConversation(row, messages) {
   const conversationMessages = messages
     .filter((message) => message.conversation_id === row.conversation_id)
@@ -112,19 +229,32 @@ function mapConversation(row, messages) {
       isMine: message.is_mine,
     }));
 
+  const source = row.source === 'MATCH' ? 'MATCH' : 'FOSTER';
+  const isMatch = source === 'MATCH';
+  const isInvite = row.source === 'FOSTER_INVITE';
+
   return {
     id: row.conversation_id,
-    source: 'FOSTER',
+    source,
+    matchId: row.match_id,
     fosterCaseId: row.listing_id,
     fosterApplicationId: row.application_id,
-    title: row.animal_name,
-    subtitle: 'Application accepted',
-    contextLabel: 'This chat opened after the foster request was accepted.',
+    fosterInviteId: row.foster_invite_id,
+    title: isMatch ? `${row.animal_name} + ${row.related_animal_name}` : row.animal_name,
+    subtitle: isMatch ? row.match_mode : isInvite ? 'Foster invite accepted' : 'Application accepted',
+    contextLabel: isMatch
+      ? 'This chat opened after a mutual match.'
+      : isInvite
+        ? 'This chat opened after the foster invite was accepted.'
+        : 'This chat opened after the foster request was accepted.',
     privacyLabel: 'Exact location stays private.',
     animalName: row.animal_name,
+    relatedAnimalName: row.related_animal_name,
+    mode: row.match_mode,
     fosterStatus: row.application_status,
     organizationName: row.organization_name,
     organizationVerified: row.organization_verification_status === 'VERIFIED',
+    ownerVerified: row.organization_verification_status === 'VERIFIED',
     city: row.city || '',
     coarseArea: row.coarse_area || '',
     otherParticipantIds: row.other_participant_ids || [],
@@ -292,6 +422,36 @@ async function loadFosterCases() {
   return (data || []).map(mapFosterCase);
 }
 
+async function loadMatchCandidates() {
+  const { data, error } = await supabase
+    .from('match_candidates_view')
+    .select('*')
+    .order('profile_completeness', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(mapMatchCandidate);
+}
+
+async function loadFosterHomeProfiles() {
+  const { data, error } = await supabase
+    .from('foster_home_profiles_view')
+    .select('*')
+    .order('rating_average', { ascending: false, nullsFirst: false });
+
+  if (error) throw error;
+  return (data || []).map(mapFosterHomeProfile);
+}
+
+async function loadFosterInvites() {
+  const { data, error } = await supabase
+    .from('my_foster_invites_view')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(mapFosterInvite);
+}
+
 async function loadApplications() {
   const { data, error } = await supabase
     .from('my_applications_view')
@@ -334,6 +494,17 @@ async function loadConversations() {
   return rows.map((row) => mapConversation(row, messages || []));
 }
 
+async function loadPaymentSessions() {
+  const { data, error } = await supabase
+    .from('payment_sessions')
+    .select('id, provider, purpose, amount_cents, currency, status, checkout_url, provider_session_id, metadata, created_at, updated_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error) throw error;
+  return (data || []).map(mapPaymentSession);
+}
+
 export async function loadSupabaseAppData() {
   if (!isSupabaseConfigured) {
     return { configured: false };
@@ -342,23 +513,31 @@ export async function loadSupabaseAppData() {
   const session = await getSupabaseSession();
 
   const fosterCases = await loadFosterCases();
-  const [profile, myAnimals, fosterApplications, conversations] = session
+  const [profile, myAnimals, matchCandidates, fosterHomeProfiles, fosterApplications, fosterInvites, conversations, paymentSessions] = session
     ? await Promise.all([
         loadProfile(),
         loadMyAnimals(),
+        loadMatchCandidates(),
+        loadFosterHomeProfiles(),
         loadApplications(),
+        loadFosterInvites(),
         loadConversations(),
+        loadPaymentSessions(),
       ])
-    : [null, [], [], []];
+    : [null, [], [], [], [], [], [], []];
 
   return {
     configured: true,
     session,
     profile,
     myAnimals,
+    matchCandidates,
     fosterCases,
+    fosterHomeProfiles,
     fosterApplications,
+    fosterInvites,
     conversations,
+    paymentSessions,
   };
 }
 
@@ -481,6 +660,63 @@ export async function submitSupabaseFosterApplication(caseId, formData) {
 
   if (error) throw error;
   return data;
+}
+
+export async function likeSupabaseMatchCandidate(myAnimalId, targetAnimalId, mode) {
+  const { data, error } = await supabase.rpc('like_match_candidate', {
+    my_animal_id_input: myAnimalId,
+    target_animal_id_input: targetAnimalId,
+    mode_input: mode,
+  });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data[0] : data;
+}
+
+export async function sendSupabaseFosterInvite({ fosterCaseId, fosterHomeProfileId, message = '' }) {
+  const { data, error } = await supabase.rpc('send_foster_invite', {
+    foster_case_id_input: fosterCaseId,
+    foster_home_profile_id_input: fosterHomeProfileId,
+    message_input: message,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function rateSupabaseFosterHome({ fosterHomeProfileId, fosterCaseId = null, rating, comment = '' }) {
+  const { data, error } = await supabase.rpc('rate_foster_home', {
+    foster_home_profile_id_input: fosterHomeProfileId,
+    foster_case_id_input: fosterCaseId,
+    rating_input: rating,
+    comment_input: comment,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function createSupabasePaymentSession({
+  provider = 'STRIPE',
+  purpose = 'DONATION',
+  amountCents,
+  currency = 'RON',
+  metadata = {},
+}) {
+  const { data, error } = await supabase.functions.invoke('create-payment-session', {
+    body: {
+      provider,
+      purpose,
+      amountCents,
+      currency,
+      metadata,
+    },
+  });
+
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  const session = data?.paymentSession || data;
+  return session?.amount_cents ? mapPaymentSession(session) : session;
 }
 
 export async function sendSupabaseConversationMessage(conversationId, body) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
@@ -16,6 +16,7 @@ function AnimalCard({
   onEditAnimal = () => {},
   onMatchSettings = () => {},
   onDeleteAnimal = () => {},
+  showMatchDetails = true,
 }) {
   const completenessColor = animal.profileCompleteness >= 90 ? 'text-[#2C402B]' : animal.profileCompleteness >= 70 ? 'text-[#6A5A2A]' : 'text-[#8B4C2F]';
   const modeLabels = {
@@ -49,13 +50,15 @@ function AnimalCard({
           <div className="flex items-center gap-1.5">
             <span className={`text-xs font-semibold ${completenessColor}`}>{t('profile.profileComplete')}: {animal.profileCompleteness}%</span>
           </div>
-          <div className="flex flex-wrap gap-1">
-            {(animal.activeMatchModes || []).map(m => (
-              <Badge key={m} variant={m === 'VERIFIED_MATE' ? 'sage' : 'default'}>
-                {modeLabels[m] || m}
-              </Badge>
-            ))}
-          </div>
+          {showMatchDetails && (
+            <div className="flex flex-wrap gap-1">
+              {(animal.activeMatchModes || []).map(m => (
+                <Badge key={m} variant={m === 'VERIFIED_MATE' ? 'sage' : 'default'}>
+                  {modeLabels[m] || m}
+                </Badge>
+              ))}
+            </div>
+          )}
           <div className="flex gap-2 pt-1">
             <button
               type="button"
@@ -64,13 +67,15 @@ function AnimalCard({
             >
               <Edit3 size={12} />{t('profile.editAnimal')}
             </button>
-            <button
-              type="button"
-              onClick={() => onMatchSettings(animal)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
-            >
-              <Settings size={12} />{t('profile.matchSettings')}
-            </button>
+            {showMatchDetails && (
+              <button
+                type="button"
+                onClick={() => onMatchSettings(animal)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+              >
+                <Settings size={12} />{t('profile.matchSettings')}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onDeleteAnimal(animal)}
@@ -159,8 +164,6 @@ function ProfileEditModal({ draft, t, onChange, onClose, onSave }) {
             <FormField label={t('profile.displayName')} value={draft.displayName} onChange={(value) => onChange({ displayName: value })} />
             <FormField label={t('profile.city')} value={draft.city} onChange={(value) => onChange({ city: value })} />
             <FormField label={t('profile.coarseArea')} value={draft.coarseArea} onChange={(value) => onChange({ coarseArea: value })} />
-            <FormField label={t('profile.email')} value={draft.email} onChange={(value) => onChange({ email: value })} />
-            <FormField label={t('profile.phone')} value={draft.phone} onChange={(value) => onChange({ phone: value })} />
           </div>
           <div className="grid grid-cols-2 gap-2 pt-1">
             <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
@@ -332,18 +335,27 @@ function getRoleLabel(role, t) {
   return roleLabels[role] || role;
 }
 
-function VerificationSection({ user, animals, t }) {
+function VerificationSection({ user, animals, t, environment }) {
   const mainAnimal = animals[0];
-  const checks = [
+  const sharedChecks = [
     {
       label: t('profile.ownerVerification'),
       status: user.ownerVerificationStatus,
     },
-    {
+    ...(environment === 'foster' ? [] : [{
       label: t('profile.animalProfile'),
       status: mainAnimal ? (mainAnimal.profileCompleteness >= 90 ? 'VERIFIED' : 'PENDING') : 'UNVERIFIED',
       detail: mainAnimal ? `${mainAnimal.profileCompleteness}%` : null,
-    },
+    }]),
+  ];
+  const environmentChecks = environment === 'foster'
+    ? [
+      {
+        label: t('profile.rescuerAccess'),
+        status: user.rescuerAccessStatus,
+      },
+    ]
+    : [
     {
       label: t('profile.healthDocuments'),
       status: mainAnimal?.healthDocumentStatus || 'UNVERIFIED',
@@ -352,11 +364,8 @@ function VerificationSection({ user, animals, t }) {
       label: t('profile.verifiedMateEligibility'),
       status: mainAnimal?.adminMateApprovalStatus || 'UNVERIFIED',
     },
-    {
-      label: t('profile.rescuerAccess'),
-      status: user.rescuerAccessStatus,
-    },
   ];
+  const checks = [...sharedChecks, ...environmentChecks];
 
   return (
     <div data-testid="verification-section" className="space-y-2">
@@ -427,11 +436,12 @@ function ToggleRow({ label, description, enabled, onToggle, t }) {
   );
 }
 
-function NotificationPreferenceScreen({ prefs, onToggle, t, onBack }) {
+function NotificationPreferenceScreen({ prefs, onToggle, t, onBack, environment }) {
   const rows = [
     ['push', t('profile.pushNotifications'), t('profile.pushNotificationsDesc')],
-    ['matches', t('profile.matchUpdates'), t('profile.matchUpdatesDesc')],
-    ['foster', t('profile.fosterUpdates'), t('profile.fosterUpdatesDesc')],
+    environment === 'foster'
+      ? ['foster', t('profile.fosterUpdates'), t('profile.fosterUpdatesDesc')]
+      : ['matches', t('profile.matchUpdates'), t('profile.matchUpdatesDesc')],
     ['safety', t('profile.safetyUpdates'), t('profile.safetyUpdatesDesc')],
   ];
 
@@ -485,8 +495,143 @@ function InfoDetailScreen({ title, intro, bullets, note, primaryLabel, onPrimary
   );
 }
 
-export default function ProfileTab() {
-  const { t, lang, toggleLang, user, updateUserProfile, myAnimals, saveAnimalProfile, deleteAnimalProfile, authConfigured, signOut } = useApp();
+function formatPaymentAmount(session) {
+  const amount = (session.amountCents || 0) / 100;
+  return `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${session.currency || 'RON'}`;
+}
+
+function formatPaymentDate(value) {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function getPaymentStatusLabel(status, t) {
+  const labels = {
+    CREATED: t('profile.paymentStatusCreated'),
+    PENDING: t('profile.paymentStatusPending'),
+    PAID: t('profile.paymentStatusPaid'),
+    FAILED: t('profile.paymentStatusFailed'),
+    CANCELED: t('profile.paymentStatusCanceled'),
+  };
+
+  return labels[status] || status || t('common.unknown');
+}
+
+function SupportPetPalScreen({ t, onBack, onCreateDonation, paymentSessions = [] }) {
+  const [selectedAmount, setSelectedAmount] = useState(2500);
+  const [loading, setLoading] = useState(false);
+  const amounts = [1000, 2500, 5000, 10000];
+
+  const submitDonation = async () => {
+    setLoading(true);
+    try {
+      const session = await onCreateDonation({ amountCents: selectedAmount, currency: 'RON' });
+      const checkoutUrl = session?.checkout_url || session?.checkoutUrl;
+      if (checkoutUrl && checkoutUrl.startsWith('http')) {
+        window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      }
+      return session;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <ScreenHeader title={t('profile.supportPetPal')} onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
+              <Heart size={20} className="text-[#2C402B]" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#1F2924] font-heading">{t('profile.donationTitle')}</h2>
+              <p className="mt-1 text-sm leading-relaxed text-[#57645C]">{t('profile.donationIntro')}</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {amounts.map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                onClick={() => setSelectedAmount(amount)}
+                className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${
+                  selectedAmount === amount
+                    ? 'border-[#2C402B] bg-[#E3ECE4] text-[#2C402B]'
+                    : 'border-[#E4E2DC] bg-[#F8F7F4] text-[#57645C]'
+                }`}
+              >
+                {amount / 100} RON
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm space-y-3">
+          <div className="flex items-start gap-2.5 text-sm leading-relaxed text-[#1F2924]">
+            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#9BAE96]" />
+            <span>{t('profile.donationRule1')}</span>
+          </div>
+          <div className="flex items-start gap-2.5 text-sm leading-relaxed text-[#1F2924]">
+            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#9BAE96]" />
+            <span>{t('profile.donationRule2')}</span>
+          </div>
+          <div className="flex items-start gap-2.5 text-sm leading-relaxed text-[#1F2924]">
+            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#9BAE96]" />
+            <span>{t('profile.donationRule3')}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-[#1F2924]">{t('profile.paymentHistory')}</h3>
+          {paymentSessions.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              {paymentSessions.map((session) => (
+                <div key={session.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3 py-2">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1F2924]">{formatPaymentAmount(session)}</p>
+                    <p className="text-xs text-[#57645C]">{session.provider} · {formatPaymentDate(session.createdAt)}</p>
+                  </div>
+                  <Badge variant={session.status === 'PAID' ? 'success' : session.status === 'FAILED' ? 'danger' : 'default'}>
+                    {getPaymentStatusLabel(session.status, t)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm leading-relaxed text-[#57645C]">{t('profile.noPaymentHistory')}</p>
+          )}
+        </div>
+
+        <PrivacyNote text={t('profile.paymentPrivacyNote')} />
+        <PrimaryButton onClick={submitDonation} disabled={loading}>
+          {loading ? t('common.loading') : t('profile.createDonation')}
+        </PrimaryButton>
+        <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfileTab({ environment = 'match' }) {
+  const {
+    t,
+    lang,
+    toggleLang,
+    user,
+    updateUserProfile,
+    myAnimals,
+    saveAnimalProfile,
+    deleteAnimalProfile,
+    authConfigured,
+    signOut,
+    paymentSessions,
+    createDonationSession,
+    paymentReturnNotice,
+    clearPaymentReturnNotice,
+  } = useApp();
+  const isFosterEnvironment = environment === 'foster';
   const [activeSection, setActiveSection] = useState(null);
   const [notice, setNotice] = useState('');
   const [profileDraft, setProfileDraft] = useState(null);
@@ -500,6 +645,13 @@ export default function ProfileTab() {
   });
   const [activeHelpTopic, setActiveHelpTopic] = useState(null);
   const showNotice = (message) => setNotice(message);
+
+  useEffect(() => {
+    if (!paymentReturnNotice) return;
+    setNotice(paymentReturnNotice);
+    clearPaymentReturnNotice();
+  }, [paymentReturnNotice, clearPaymentReturnNotice]);
+
   const toggleNotificationPref = (key) => {
     setNotificationPrefs((current) => ({ ...current, [key]: !current[key] }));
   };
@@ -544,9 +696,17 @@ export default function ProfileTab() {
       displayName: user.displayName || '',
       city: user.city || '',
       coarseArea: user.coarseArea || '',
-      email: user.email || '',
-      phone: user.phone || '',
     });
+  };
+  const createDonation = async ({ amountCents, currency }) => {
+    try {
+      const session = await createDonationSession({ amountCents, currency });
+      showNotice(t('profile.donationSessionCreated'));
+      return session;
+    } catch (error) {
+      showNotice(error.message || t('profile.donationSessionFailed'));
+      throw error;
+    }
   };
   const openAnimalEditor = (animal) => {
     setNotice('');
@@ -753,7 +913,7 @@ export default function ProfileTab() {
       <div className="flex-1 flex flex-col">
         <ScreenHeader title={t('profile.verification')} onBack={() => setActiveSection(null)} />
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
-          <VerificationSection user={user} animals={myAnimals} t={t} />
+          <VerificationSection user={user} animals={myAnimals} t={t} environment={environment} />
         </div>
         {renderEditModals()}
       </div>
@@ -796,6 +956,7 @@ export default function ProfileTab() {
                 onEditAnimal={openAnimalEditor}
                 onMatchSettings={showMatchSettingsNotice}
                 onDeleteAnimal={requestDeleteAnimal}
+                showMatchDetails={!isFosterEnvironment}
               />
             ))
           )}
@@ -860,6 +1021,17 @@ export default function ProfileTab() {
     );
   }
 
+  if (activeSection === 'supportPetPal') {
+    return (
+      <SupportPetPalScreen
+        t={t}
+        onBack={() => setActiveSection(null)}
+        onCreateDonation={createDonation}
+        paymentSessions={paymentSessions}
+      />
+    );
+  }
+
   if (activeSection === 'help') {
     if (activeHelpTopic && helpTopics[activeHelpTopic]) {
       const topic = helpTopics[activeHelpTopic];
@@ -881,8 +1053,11 @@ export default function ProfileTab() {
         <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
           <NoticeBanner message={notice} />
           <div className="space-y-0">
-            <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => openHelpTopic('matching')} />
-            <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => openHelpTopic('foster')} />
+            {isFosterEnvironment ? (
+              <SectionItem icon={Home} label={t('profile.howFosterWorks')} onClick={() => openHelpTopic('foster')} />
+            ) : (
+              <SectionItem icon={Heart} label={t('profile.howMatchingWorks')} onClick={() => openHelpTopic('matching')} />
+            )}
             <SectionItem icon={Shield} label={t('profile.safetyRules')} onClick={() => openHelpTopic('safety')} />
             <SectionItem icon={FileText} label={t('profile.terms')} onClick={() => openHelpTopic('terms')} />
             <SectionItem icon={Lock} label={t('profile.privacyPolicy')} onClick={() => openHelpTopic('privacy')} />
@@ -942,6 +1117,7 @@ export default function ProfileTab() {
         prefs={notificationPrefs}
         onToggle={toggleNotificationPref}
         t={t}
+        environment={environment}
         onBack={() => setActiveSection(null)}
       />
     );
@@ -951,6 +1127,9 @@ export default function ProfileTab() {
     <div data-testid="profile-tab" className="min-h-0 flex-1 flex flex-col">
       <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
         <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('profile.title')}</h1>
+        <p className="mt-1 text-sm leading-relaxed text-[#57645C]">
+          {isFosterEnvironment ? t('profile.fosterSpaceSubtitle') : t('profile.matchSpaceSubtitle')}
+        </p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-24 space-y-5">
@@ -984,34 +1163,36 @@ export default function ProfileTab() {
           </button>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('profile.myAnimals')}</h3>
-            <button type="button" className="text-xs font-medium text-[#2C402B]" onClick={() => setActiveSection('animals')}>{t('profile.viewAll')}</button>
-          </div>
-          {myAnimals.length === 0 ? (
-            <EmptyState
-              icon={Dog}
-              title={t('profile.noAnimals')}
-              description={t('profile.noAnimalsDesc')}
-              action={t('profile.addAnimal')}
-              onAction={openNewAnimalEditor}
-            />
-          ) : (
-            <div className="space-y-2">
-              {myAnimals.slice(0, 2).map(a => (
-                <AnimalCard
-                  key={a.id}
-                  animal={a}
-                  t={t}
-                  onEditAnimal={openAnimalEditor}
-                  onMatchSettings={showMatchSettingsNotice}
-                  onDeleteAnimal={requestDeleteAnimal}
-                />
-              ))}
+        {!isFosterEnvironment && (
+          <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider">{t('profile.myAnimals')}</h3>
+              <button type="button" className="text-xs font-medium text-[#2C402B]" onClick={() => setActiveSection('animals')}>{t('profile.viewAll')}</button>
             </div>
-          )}
-        </div>
+            {myAnimals.length === 0 ? (
+              <EmptyState
+                icon={Dog}
+                title={t('profile.noAnimals')}
+                description={t('profile.noAnimalsDesc')}
+                action={t('profile.addAnimal')}
+                onAction={openNewAnimalEditor}
+              />
+            ) : (
+              <div className="space-y-2">
+                {myAnimals.slice(0, 2).map(a => (
+                  <AnimalCard
+                    key={a.id}
+                    animal={a}
+                    t={t}
+                    onEditAnimal={openAnimalEditor}
+                    onMatchSettings={showMatchSettingsNotice}
+                    onDeleteAnimal={requestDeleteAnimal}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.verification')}</h3>
@@ -1027,8 +1208,14 @@ export default function ProfileTab() {
             </div>
             <div className="flex gap-2">
               <VerificationBadge status={user.ownerVerificationStatus} label={t('profile.owner')} />
-              <VerificationBadge status={myAnimals[0]?.healthDocumentStatus || 'UNVERIFIED'} label={t('profile.health')} />
-              <VerificationBadge status={myAnimals[0]?.adminMateApprovalStatus || 'UNVERIFIED'} label={t('profile.mate')} />
+              {isFosterEnvironment ? (
+                <VerificationBadge status={user.rescuerAccessStatus || 'UNVERIFIED'} label={t('profile.rescuerAccess')} />
+              ) : (
+                <>
+                  <VerificationBadge status={myAnimals[0]?.healthDocumentStatus || 'UNVERIFIED'} label={t('profile.health')} />
+                  <VerificationBadge status={myAnimals[0]?.adminMateApprovalStatus || 'UNVERIFIED'} label={t('profile.mate')} />
+                </>
+              )}
             </div>
           </button>
         </div>
@@ -1036,8 +1223,11 @@ export default function ProfileTab() {
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.preferences')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-            <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => setActiveSection('matchPreferences')} />
-            <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => setActiveSection('fosterPreferences')} />
+            {isFosterEnvironment ? (
+              <SectionItem icon={Home} label={t('profile.fosterPreferences')} onClick={() => setActiveSection('fosterPreferences')} />
+            ) : (
+              <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => setActiveSection('matchPreferences')} />
+            )}
             <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => setActiveSection('notificationPreferences')} />
           </div>
         </div>
@@ -1076,6 +1266,7 @@ export default function ProfileTab() {
         <div>
           <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.help')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
+            <SectionItem icon={Heart} label={t('profile.supportPetPal')} onClick={() => setActiveSection('supportPetPal')} />
             <SectionItem icon={HelpCircle} label={t('profile.help')} onClick={() => setActiveSection('help')} />
             <SectionItem icon={FileText} label={t('profile.termsAndSafety')} onClick={() => setActiveSection('termsSafety')} />
           </div>
