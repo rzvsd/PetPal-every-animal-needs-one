@@ -272,7 +272,7 @@ values
     'Bucharest',
     'Sector 6',
     array['https://images.unsplash.com/photo-1772405442022-73adfee1d7d9?w=600&h=800&fit=crop'],
-    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    array['PLAY', 'SOCIAL'],
     100,
     'VERIFIED'
   ),
@@ -326,7 +326,7 @@ values
     'Bucharest',
     'Sector 3',
     array['https://images.unsplash.com/photo-1768676758489-851bb9ea865a?w=600&h=800&fit=crop'],
-    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    array['PLAY', 'SOCIAL'],
     100,
     'VERIFIED'
   ),
@@ -353,7 +353,7 @@ values
     'Bucharest',
     'Sector 6',
     array['https://images.unsplash.com/photo-1743997182218-30d0e9c3b0f1?w=600&h=800&fit=crop'],
-    array['PLAY', 'SOCIAL', 'VERIFIED_MATE'],
+    array['PLAY', 'SOCIAL'],
     100,
     'VERIFIED'
   )

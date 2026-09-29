@@ -66,7 +66,7 @@ select ok(
     from public.owner_animal_profiles
     where owner_id = '10000000-0000-4000-8000-000000000002'
       and name = 'Max'
-      and active_match_modes @> array['PLAY', 'SOCIAL', 'VERIFIED_MATE']
+      and active_match_modes @> array['PLAY', 'SOCIAL']
   ),
   'demo Max profile has match modes'
 );
