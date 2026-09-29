@@ -36,5 +36,13 @@ Thumbs.db
 
 # Local verification artifacts can contain session and network details.
 .playwright-cli/
-output/playwright/
+.playwright-mcp/
+output/
 .serena/
+
+# Agent/tool leftovers and local run configs.
+.emergent/
+memory/
+test_reports/
+.codex-remote-attachments/
+.claude/launch.json
