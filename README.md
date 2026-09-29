@@ -31,7 +31,7 @@ Current public product direction:
 - Dogs and cats only
 - Romania-first pilot, starting with Bucharest / Ilfov
 - Application-first contact flow for foster
-- Mutual-match-only contact flow for matching
+- Matching contact opens after a mutual match, or through a limited Social walk request (dogs only, one per owner pair, at most 5 new requests a day; the chat continues only if the other owner accepts)
 - Play and Social remain available; new Verified Mate operations are postponed.
 - Foster: requests and chat before acceptance, reservations separate from declared receipt, shared mobile care registers with pagination, tasks and journals.
 

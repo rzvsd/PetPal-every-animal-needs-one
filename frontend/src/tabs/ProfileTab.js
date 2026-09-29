@@ -295,7 +295,7 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave, busy = false, er
             </div>
             <FormField label={t('profile.name')} value={draft.name} onChange={(value) => onChange({ name: value })} />
             <fieldset className="space-y-2"><legend className="font-semibold text-sm">{t('profile.matchSettings')}</legend>
-              {[['PLAY', 'matches.play'], ['SOCIAL', 'matches.social']].map(([mode, label]) =>
+              {[['PLAY', 'matches.play'], ...(draft.species === 'CAT' ? [] : [['SOCIAL', 'matches.social']])].map(([mode, label]) =>
                 <label key={mode} className="flex items-center gap-2 min-h-11 text-sm"><input type="checkbox" checked={draft.activeMatchModes?.includes(mode) || false}
                   onChange={event => onChange({ activeMatchModes: event.target.checked ? [...(draft.activeMatchModes || []), mode] : draft.activeMatchModes.filter(value => value !== mode) })} />{t(label)}</label>)}
             </fieldset>
@@ -941,7 +941,9 @@ export default function ProfileTab({ environment = 'match' }) {
       photoUrls: existingAnimal?.photoUrls || [],
       photoFile: animalDraft.photoFile || null,
       photoPreviewUrl: animalDraft.photoPreviewUrl || '',
-      activeMatchModes: animalDraft.activeMatchModes || ['PLAY', 'SOCIAL'],
+      // Social walks are for dogs only.
+      activeMatchModes: (animalDraft.activeMatchModes || ['PLAY', 'SOCIAL'])
+        .filter((mode) => animalDraft.species !== 'CAT' || mode !== 'SOCIAL'),
       profileCompleteness: existingAnimal?.profileCompleteness || 0,
       verificationStatus: existingAnimal?.verificationStatus || 'UNVERIFIED',
       healthDocumentStatus: existingAnimal?.healthDocumentStatus || 'UNVERIFIED',

@@ -11,6 +11,9 @@ _Avoid_: Match, when only one participant has acted.
 **Mutual match**:
 Reciprocal interest confirmed by the matching flow. A social walk request or foster request is not a mutual match.
 
+**Social walk request**:
+One first message from one dog owner to another, sent without a mutual match. The chat continues only if the recipient accepts. Limited to dogs, one per owner pair and five new requests per sender per day.
+
 **Basic-details checklist**:
 A record of whether basic profile information has been supplied, including explicit Unknown answers. Checks use saved information, including saved photos; drafts do not count.
 _Avoid_: Trust score, certification, verified profile.

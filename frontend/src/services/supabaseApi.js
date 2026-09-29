@@ -179,7 +179,7 @@ function mapConversation(row, messages) {
 
   return {
     id: row.conversation_id,
-    animalPhoto: row.animal_photo,
+    animalPhoto: animalPhotoUrl(row.animal_photo),
     otherOwnerName: row.other_owner_name,
     activityAt: row.activity_at,
     lastReadSequence: row.last_read_seq || 0,
@@ -669,7 +669,9 @@ function getSafeStorageFileName(file) {
   return `${Date.now()}-${baseName}.${extension}`;
 }
 
-export async function uploadSupabaseAnimalPhoto({ ownerId, animalId, file }) {
+// Returns the storage path (<ownerId>/<animalId>/<file>). Foster records store
+// this path; the database accepts only the uploader's own files.
+export async function uploadSupabaseAnimalPhotoPath({ ownerId, animalId, file }) {
   if (!ownerId || !animalId || !file) {
     throw new Error('Missing animal photo upload details.');
   }
@@ -684,7 +686,17 @@ export async function uploadSupabaseAnimalPhoto({ ownerId, animalId, file }) {
     });
 
   if (error) throw error;
+  return filePath;
+}
 
+// Turns a stored photo value into a displayable URL. Older records hold full URLs.
+export function animalPhotoUrl(value) {
+  if (!value || /^(https?:|blob:|data:)/.test(value) || !supabase) return value;
+  return supabase.storage.from('animal-photos').getPublicUrl(value).data.publicUrl;
+}
+
+export async function uploadSupabaseAnimalPhoto({ ownerId, animalId, file }) {
+  const filePath = await uploadSupabaseAnimalPhotoPath({ ownerId, animalId, file });
   const { data } = supabase.storage.from('animal-photos').getPublicUrl(filePath);
   if (!data?.publicUrl) {
     throw new Error('Animal photo was uploaded, but no public URL was returned.');
@@ -751,6 +763,35 @@ export async function sendSupabaseConversationMessage(conversationId, body, clie
 
   if (error) throw error;
   return data;
+}
+
+export async function passSupabaseCandidate({ myAnimalId, targetAnimalId, mode }) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase.from('match_passes').insert({
+    profile_id: userData.user?.id,
+    my_animal_id: myAnimalId,
+    target_animal_id: targetAnimalId,
+    mode,
+  });
+  // A repeated pass is already stored.
+  if (error && error.code !== '23505') throw error;
+}
+
+export async function reportSupabaseMatchProfile({ ownerId, animalId }) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase.from('reports').insert({
+    reporter_id: userData.user?.id,
+    reported_profile_id: ownerId,
+    category: 'MATCH_PROFILE',
+    details: `Reported from Animal Match (animal ${animalId}).`,
+  });
+  if (error) throw error;
+}
+
+export async function blockSupabaseProfile(profileId) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase.from('blocks').insert({ blocker_id: userData.user?.id, blocked_id: profileId });
+  if (error && error.code !== '23505') throw error;
 }
 
 export async function reportSupabaseConversation(conversationId, details = '') {
