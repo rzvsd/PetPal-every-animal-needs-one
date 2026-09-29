@@ -1,6 +1,6 @@
 # Supabase Integration
 
-PetPal uses Supabase as the real backend. The small `backend/` FastAPI service is only a prototype health stub and is not the product backend.
+PetPal uses Supabase as its backend.
 
 ## Mobile App Wiring
 
