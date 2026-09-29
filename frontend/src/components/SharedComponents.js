@@ -205,10 +205,10 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
       <div className="bg-white rounded-t-3xl border-t border-[#E4E2DC] shadow-xl">
         <div className="w-10 h-1 bg-[#E4E2DC] rounded-full mx-auto mt-3" />
         <div className="p-4 space-y-1">
-          <button type="button" data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
+          {onViewContext && <button type="button" data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
             <Info size={18} className="text-[#57645C]" />
             <span className="text-sm font-medium text-[#1F2924]">{t('messages.viewContext')}</span>
-          </button>
+          </button>}
           <button type="button" data-testid="safety-report" onClick={onReport} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5D5D8]/30 transition-colors">
             <AlertTriangle size={18} className="text-[#CD7A7E]" />
             <span className="text-sm font-medium text-[#CD7A7E]">{t('matches.report')}</span>

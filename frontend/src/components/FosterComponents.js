@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Dog, Cat, Info } from 'lucide-rea
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { useBackHandler } from '../navigation/backNavigation';
-import { uploadSupabaseAnimalPhoto } from '../services/supabaseApi';
+import { animalPhotoUrl, uploadSupabaseAnimalPhotoPath } from '../services/supabaseApi';
 import { prepareImageForUpload } from '../services/imageUpload';
 import { useDiscardGuard } from './FormGuard';
 import { motionSpring, useReducedPetMotion } from './Motion';
@@ -33,7 +33,7 @@ export function FosterPhoto({ src, name = '', species, large = false }) {
   const Icon = species === 'CAT' ? Cat : Dog;
   useEffect(() => { setFailed(false); setLoaded(false); }, [src]);
   return <div className={large ? 'foster-photo-large' : 'foster-thumb'}>
-    {src && !failed ? <motion.img src={src} alt={name} loading="lazy" initial={reducedMotion ? false : { opacity: 0.35 }}
+    {src && !failed ? <motion.img src={animalPhotoUrl(src)} alt={name} loading="lazy" initial={reducedMotion ? false : { opacity: 0.35 }}
       animate={{ opacity: loaded ? 1 : 0.35 }} transition={reducedMotion ? { duration: 0 } : motionSpring}
       onLoad={() => setLoaded(true)} onError={() => setFailed(true)} /> : <Icon aria-label={name} size={large ? 56 : 28} />}
   </div>;
@@ -147,7 +147,7 @@ export function FosterPhotoField({ value, onChange, itemId }) {
     try {
       // Only the re-encoded copy is uploaded, never the original file.
       const photo = await prepareImageForUpload(file);
-      onChange(await uploadSupabaseAnimalPhoto({ ownerId: user.id, animalId: itemId, file: photo }));
+      onChange(await uploadSupabaseAnimalPhotoPath({ ownerId: user.id, animalId: itemId, file: photo }));
     } catch (failure) {
       const message = friendlyError(failure, t);
       setError(message); uploadInput.current?.setCustomValidity(message);

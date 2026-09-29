@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Heart, MessageCircle, X, Bookmark, BookmarkCheck, MapPin, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat, PawPrint } from 'lucide-react';
+import { Heart, MessageCircle, X, Bookmark, BookmarkCheck, MapPin, CheckCircle2, XCircle, Filter, Play, Users, Dog, Cat, PawPrint, MoreHorizontal } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { DOG_BREEDS, CAT_BREEDS } from '../data/breeds';
-import { Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote, FilterSheet, Modal } from '../components/SharedComponents';
+import { Badge, Chip, PrimaryButton, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote, FilterSheet, Modal, SafetyMenu } from '../components/SharedComponents';
+import { friendlyError } from '../services/errors';
 import { motionSpring, useReducedPetMotion } from '../components/Motion';
 import { useDiscardGuard } from '../components/FormGuard';
 import { loadMatchCandidates, findSocialWalkConversation, requestSocialWalk } from '../services/supabaseApi';
@@ -28,12 +29,15 @@ function ageLabel(months, t) {
   return years ? `${years} ${t(years === 1 ? 'common.year' : 'common.years')}` : `${months} ${t(months === 1 ? 'common.month' : 'common.months')}`;
 }
 
-function AnimalFacts({ candidate, t, detailed = false }) {
+function AnimalFacts({ candidate, t, detailed = false, onSafety }) {
   const { animal } = candidate;
   return <>
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0"><h2 className="font-heading text-2xl font-bold break-words">{animal.name}</h2>
         <p className="text-sm text-[#57645C]">{animal.breed === 'Unknown' ? t('common.unknown') : animal.breed} · {ageLabel(animal.ageMonths, t)}</p></div>
+      {onSafety && <button type="button" data-testid="match-safety-btn" onClick={onSafety} aria-label={t('readiness.safetyOptions')}
+        title={t('readiness.safetyOptions')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[#57645C] hover:bg-[#F0EDE8]">
+        <MoreHorizontal size={20} aria-hidden="true" /></button>}
     </div>
     <p className="flex gap-1.5 items-center text-sm text-[#57645C]"><MapPin size={15} className="shrink-0" />
       {[animal.city, animal.coarseArea].filter(Boolean).join(' · ') || t('common.unknown')}</p>
@@ -139,7 +143,7 @@ function MatchActions({ onLike, onPass, onSave, isSaved, busy, error, social, t 
 
 export default function MatchesTab() {
   const { t, myAnimals, selectedAnimal, selectedAnimalId, matchMode, setMatchMode, candidates, dataSource,
-    savedAnimals, skippedMatches, handleLike, handlePass, handleSave, matchSuccess, setMatchSuccess,
+    savedAnimals, skippedMatches, handleLike, handlePass, handleSave, reportMatchProfile, blockMatchProfile, matchSuccess, setMatchSuccess,
     setActiveTab, navigate, requestOpenConversation, messaging } = useApp();
   const reducedMotion = useReducedPetMotion();
   const [view, setView] = useState('browse');
@@ -153,6 +157,8 @@ export default function MatchesTab() {
   const [cardAction, setCardAction] = useState('advance');
   const [walkTarget, setWalkTarget] = useState(null);
   const [walkBody, setWalkBody] = useState('');
+  const [safetyTarget, setSafetyTarget] = useState(null);
+  const [notice, setNotice] = useState('');
   const actionLock = useRef(false);
   const celebratedMatchRef = useRef(null);
   const closeWalk = useCallback(() => {
@@ -171,7 +177,9 @@ export default function MatchesTab() {
     const next = { ...(reset ? { rows: [], cursor: null, hasMore: false } : previous), loading: true, error: '' };
     pageRef.current = next; setPage(next);
     try {
-      const rows = await loadMatchCandidates({ animalId: selectedAnimalId, mode: matchMode, filters, savedOnly: view === 'saved', afterId: reset ? null : previous.cursor });
+      // Social walks are for dogs only.
+      const modeFilters = matchMode === 'SOCIAL' ? { ...filters, species: 'DOG' } : filters;
+      const rows = await loadMatchCandidates({ animalId: selectedAnimalId, mode: matchMode, filters: modeFilters, savedOnly: view === 'saved', afterId: reset ? null : previous.cursor });
       if (requestVersion.current !== version) return;
       const result = { rows: reset ? rows : [...previous.rows, ...rows], cursor: rows[rows.length - 1]?.animal.id || previous.cursor, hasMore: rows.length === 20, loading: false, error: '' };
       pageRef.current = result; setPage(result);
@@ -198,8 +206,11 @@ export default function MatchesTab() {
     if (matchKey) celebratedMatchRef.current = matchKey;
   }, [matchKey]);
   useBackHandler(Boolean(detail), () => setDetail(null));
-  useEffect(() => { if (matchMode === 'VERIFIED_MATE') setMatchMode('PLAY'); }, [matchMode, setMatchMode]);
-  const modes = [['PLAY', 'matches.play', Play], ['SOCIAL', 'matches.social', Users]];
+  const isCat = selectedAnimal?.species === 'CAT';
+  useEffect(() => {
+    if (matchMode === 'VERIFIED_MATE' || (matchMode === 'SOCIAL' && isCat)) setMatchMode('PLAY');
+  }, [matchMode, setMatchMode, isCat]);
+  const modes = [['PLAY', 'matches.play', Play], ...(isCat ? [] : [['SOCIAL', 'matches.social', Users]])];
   const checks = [
     ['readiness.modeEnabled', selectedAnimal?.activeMatchModes?.includes(matchMode), 'animals'],
   ];
@@ -218,9 +229,23 @@ export default function MatchesTab() {
       }
       else if (type === 'like') { setCardAction('advance'); await handleLike(item); setDetail(null); }
       else if (type === 'save') await handleSave(item);
-      else { setCardAction('pass'); handlePass(item); setDetail(null); }
-    } catch { setActionError(t(type === 'save' ? 'readiness.saveError' : matchMode === 'SOCIAL' ? 'readiness.walkError' : 'readiness.likeError')); }
+      else { setCardAction('pass'); await handlePass(item); setDetail(null); }
+    } catch (error) {
+      setActionError(type === 'pass' ? friendlyError(error, t)
+        : t(type === 'save' ? 'readiness.saveError' : matchMode === 'SOCIAL' ? 'readiness.walkError' : 'readiness.likeError'));
+    }
     finally { actionLock.current = false; setBusy(false); }
+  };
+  const safetyAction = async action => {
+    const item = safetyTarget;
+    setSafetyTarget(null);
+    setActionError(''); setNotice('');
+    try {
+      if (action === 'block') await blockMatchProfile(item);
+      else await reportMatchProfile(item);
+      setDetail(null);
+      setNotice(t(action === 'block' ? 'messages.userBlocked' : 'readiness.profileReported'));
+    } catch (error) { setActionError(friendlyError(error, t)); }
   };
   const sendWalkRequest = async () => {
     if (actionLock.current || !walkTarget || !walkBody.trim() || [...walkBody].length > 4000) return;
@@ -280,7 +305,7 @@ export default function MatchesTab() {
               exit="leave" transition={{ duration: reducedMotion ? 0.1 : 0.22 }}>
               <motion.img src={current.animal.photoUrls?.[0]} alt={current.animal.name} className="match-photo"
                 {...(!reducedMotion && current.animal.photoUrls?.[0] ? { layoutId: `match-photo-${current.animal.id}` } : {})} />
-              <div className="match-card-info"><AnimalFacts candidate={current} t={t} />
+              <div className="match-card-info"><AnimalFacts candidate={current} t={t} onSafety={() => setSafetyTarget(current)} />
                 <button type="button" data-testid="match-details-btn" onClick={() => setDetail(current)} className="about-animal">{t('readiness.about')} {current.animal.name} <span aria-hidden="true">›</span></button>
                 {actions(current)}
               </div>
@@ -291,6 +316,7 @@ export default function MatchesTab() {
             </motion.div>}
           </AnimatePresence>
       )}
+      {notice && <p role="status" className="px-5 pt-2 text-sm font-medium text-[#2C5E3F]">{notice}</p>}
       {!detail && <p className="match-mutual-hint">{t(matchMode === 'SOCIAL' ? 'readiness.walkHint' : 'readiness.mutualHint')}</p>}
     </>}
     <FilterSheet open={Boolean(walkTarget)} onClose={requestWalkClose} draggable={false} title={t('readiness.proposeWalk')}
@@ -307,6 +333,8 @@ export default function MatchesTab() {
       {actionError && <p role="alert" className="text-sm text-[#9B4650]">{actionError}</p>}
     </FilterSheet>
     {walkDiscardDialog}
+    <SafetyMenu open={Boolean(safetyTarget)} onClose={() => setSafetyTarget(null)}
+      onReport={() => safetyAction('report')} onBlock={() => safetyAction('block')} />
     <AnimatePresence initial={false}>
       {detail && <motion.section key="match-detail" data-testid="match-detail-screen" className="petpal-fullscreen"
         initial={reducedMotion ? false : { opacity: 0, x: detail.animal.photoUrls?.[0] ? 0 : 16 }}
@@ -315,7 +343,7 @@ export default function MatchesTab() {
         <ScreenHeader title={`${t('readiness.about')} ${detail.animal.name}`} onBack={() => setDetail(null)} />
         <div className="min-h-0 flex-1 overflow-y-auto"><motion.img src={detail.animal.photoUrls?.[0]} alt={detail.animal.name} className="h-64 w-full object-cover"
           {...(!reducedMotion && detail.animal.photoUrls?.[0] ? { layoutId: `match-photo-${detail.animal.id}` } : {})} />
-          <div className="p-5 space-y-3"><AnimalFacts candidate={detail} detailed t={t} /></div>
+          <div className="p-5 space-y-3"><AnimalFacts candidate={detail} detailed t={t} onSafety={() => setSafetyTarget(detail)} /></div>
         </div><footer className="shrink-0 border-t bg-white p-4">{actions(detail)}</footer>
       </motion.section>}
     </AnimatePresence>

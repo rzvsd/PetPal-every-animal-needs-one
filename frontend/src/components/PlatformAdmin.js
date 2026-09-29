@@ -67,7 +67,7 @@ function PlatformAdmin({ role, onClose }) {
     {selected && <FosterScreen title={item.display_name || item.title || item.category} onClose={() => setSelected(null)}><div className="foster-detail-body">
       <p className="foster-id">{item.id}</p><p>{item.details || item.city}</p>
       {selected.type === 'REPORT' && <>
-        <p className="foster-muted">{item.reporter_id} → {item.reported_profile_id}</p>
+        <p className="foster-muted">{item.reporter_id || t('care.autoFlag')} → {item.reported_profile_id}</p>
         <div className="foster-actions">{item.reported_profile_id && <button type="button" className="foster-secondary" onClick={() => openLinked('ACCOUNT', item.reported_profile_id)}>{t('care.ACCOUNT')}</button>}
           {item.listing_id && <button type="button" className="foster-secondary" onClick={() => openLinked('LISTING', item.listing_id)}>{t('care.LISTING')}</button>}</div>
         <div className="foster-stack">{['IN_REVIEW', 'RESOLVED', 'DISMISSED'].map(action => <button type="button" key={action} className="foster-secondary" onClick={() => choose(action)}>{t(`care.${action}`)}</button>)}</div>

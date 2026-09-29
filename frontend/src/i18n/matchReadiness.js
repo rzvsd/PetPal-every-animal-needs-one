@@ -1,7 +1,8 @@
 export const matchReadiness = {
   en: {
     proposeWalk: 'Suggest a walk', sendWalkRequest: 'Send request', walkFirstMessage: 'Your first message',
-    walkHint: 'For walks and socializing, not breeding. Send one message without a match; chat continues only after the other owner accepts.',
+    walkHint: 'Dogs only. For walks and socializing, not breeding. Send one message without a match (up to 5 new requests a day); chat continues only after the other owner accepts.',
+    safetyOptions: 'Report or block', profileReported: 'Profile reported to PetPal moderators. It will no longer be shown to you.',
     walkLiveOnly: 'Sign in to send a real walk request. Requests are not available in the local demo.',
     walkError: 'Could not confirm your request. Your text is kept; retry safely or check Messages.',
     walkPending: 'Awaiting reply', walkIncoming: 'Walk request', walkDeclined: 'Request declined', walkAccepted: 'Accepted',
@@ -41,7 +42,8 @@ export const matchReadiness = {
   },
   ro: {
     proposeWalk: 'Propune o plimbare', sendWalkRequest: 'Trimite cererea', walkFirstMessage: 'Primul tău mesaj',
-    walkHint: 'Pentru plimbări și socializare, nu împerechere. Trimite un mesaj fără match; discuția continuă doar după ce celălalt proprietar acceptă.',
+    walkHint: 'Doar pentru câini. Pentru plimbări și socializare, nu împerechere. Trimite un mesaj fără match (cel mult 5 cereri noi pe zi); discuția continuă doar după ce celălalt proprietar acceptă.',
+    safetyOptions: 'Raportează sau blochează', profileReported: 'Profilul a fost raportat moderatorilor PetPal. Nu îți va mai fi afișat.',
     walkLiveOnly: 'Autentifică-te pentru a trimite o cerere reală. Cererile nu sunt disponibile în demo local.',
     walkError: 'Cererea nu a putut fi confirmată. Textul este păstrat; reîncearcă în siguranță sau verifică Mesaje.',
     walkPending: 'Așteaptă răspuns', walkIncoming: 'Cerere de plimbare', walkDeclined: 'Cerere refuzată', walkAccepted: 'Acceptată',

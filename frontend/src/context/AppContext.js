@@ -20,6 +20,9 @@ import {
   setAnimalSaved,
   reportSupabaseConversation,
   blockSupabaseConversation,
+  passSupabaseCandidate,
+  reportSupabaseMatchProfile,
+  blockSupabaseProfile,
   requestSupabaseRescuerAccess,
   registerSupabasePushToken,
 } from '../services/supabaseApi';
@@ -334,9 +337,29 @@ export function AppProvider({ children }) {
     handlePass(candidate);
   };
 
-  const handlePass = candidate => {
+  const skipCandidate = candidate => {
     const key = `${selectedAnimalId}:${matchMode}`;
     setSkippedMatches(current => ({ ...current, [key]: [...new Set([...(current[key] || []), candidate.animal.id])] }));
+  };
+
+  const handlePass = async candidate => {
+    skipCandidate(candidate);
+    if (dataSource === 'supabase') {
+      await passSupabaseCandidate({ myAnimalId: selectedAnimalId, targetAnimalId: candidate.animal.id, mode: matchMode });
+    }
+  };
+
+  const reportMatchProfile = async candidate => {
+    if (dataSource === 'supabase') {
+      await reportSupabaseMatchProfile({ ownerId: candidate.animal.ownerId, animalId: candidate.animal.id });
+    }
+    // A reported animal is also passed so it stays hidden after a restart.
+    await handlePass(candidate);
+  };
+
+  const blockMatchProfile = async candidate => {
+    if (dataSource === 'supabase') await blockSupabaseProfile(candidate.animal.ownerId);
+    skipCandidate(candidate);
   };
 
   const handleSave = async candidate => {
@@ -779,7 +802,7 @@ export function AppProvider({ children }) {
       skippedMatches, messaging, requestedConversation, setRequestedConversation, requestOpenConversation,
       refreshSupabaseData,
       matchSuccess, setMatchSuccess,
-      savedAnimals, handleLike, handlePass, handleSave,
+      savedAnimals, handleLike, handlePass, handleSave, reportMatchProfile, blockMatchProfile,
       fosterCases,
       fosterApplications, submitFosterApplication, openFosterConversation,
       conversations, sendMessage, reportConversation, blockConversation,
