@@ -33,9 +33,16 @@ select ok(
       from pg_policies
       where schemaname = 'storage'
         and tablename = 'objects'
+        and policyname = 'animal_photos_owner_read'
+    )
+    and not exists (
+      select 1
+      from pg_policies
+      where schemaname = 'storage'
+        and tablename = 'objects'
         and policyname = 'animal_photos_public_read'
     ),
-  'animal photos have a public read policy when storage schema is available'
+  'animal photos are listable only by their owner when storage schema is available'
 );
 
 select ok(
