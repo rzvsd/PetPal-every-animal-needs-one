@@ -138,10 +138,9 @@ Deno.serve(async (request) => {
   }
 
   const supabaseUrl = getEnv('SUPABASE_URL');
-  const anonKey = getEnv('SUPABASE_ANON_KEY');
   const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return jsonResponse({ error: 'Supabase Edge Function credentials are not configured' }, 500);
   }
 
@@ -151,13 +150,13 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Authentication required' }, 401);
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { authorization } },
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });
-  const { data: userData, error: userError } = await userClient.auth.getUser(accessToken);
+  const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
   if (userError || !userData.user) {
-    return jsonResponse({ error: userError?.message || 'Invalid session' }, 401);
+    console.error('session check failed', userError);
+    return jsonResponse({ error: 'Invalid session' }, 401);
   }
 
   let body: PaymentRequest;
@@ -188,10 +187,6 @@ Deno.serve(async (request) => {
       requiresConfiguration: true,
     }, 501);
   }
-
-  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
 
   const clientMetadata = pickClientMetadata(body.metadata);
   const metadata = {

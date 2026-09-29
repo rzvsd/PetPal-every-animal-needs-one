@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronRight, Shield } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
 import { fosterRpc, loadPlatformAudit, loadPlatformItem, loadPlatformQueue, loadPlatformRole } from '../services/fosterApi';
 import { FosterField, FosterForm, FosterPager, FosterScreen } from './FosterComponents';
 
@@ -41,12 +42,12 @@ function PlatformAdmin({ role, onClose }) {
     setLoading(true);
     const timer = setTimeout(() => Promise.all([loadPlatformQueue(type, query, page), loadPlatformAudit()]).then(([rows, history]) => {
       if (!cancelled) { setQueue(rows); setAudit(history); setError(''); }
-    }).catch(failure => { if (!cancelled) setError(failure.message); }).finally(() => { if (!cancelled) setLoading(false); }), 180);
+    }).catch(failure => { if (!cancelled) setError(friendlyError(failure, t)); }).finally(() => { if (!cancelled) setLoading(false); }), 180);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [type, query, page, revision]);
+  }, [type, query, page, revision, t]);
   const openLinked = async (kind, id) => {
     try { setSelected({ type: kind, item: await loadPlatformItem(kind, id) }); }
-    catch (failure) { setError(failure.message); }
+    catch (failure) { setError(friendlyError(failure, t)); }
   };
   const choose = (action, kind = selected.type) => { setReason(''); setDecision({ action, kind }); };
   const item = selected?.item;

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Dog, Cat, Info } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
 import { useBackHandler } from '../navigation/backNavigation';
 import { uploadSupabaseAnimalPhoto } from '../services/supabaseApi';
+import { prepareImageForUpload } from '../services/imageUpload';
 import { useDiscardGuard } from './FormGuard';
 import { motionSpring, useReducedPetMotion } from './Motion';
 
@@ -107,7 +109,7 @@ export function FosterForm({ title, onClose, onSave, children, submitLabel, onSa
       onClose();
     } catch (failure) {
       if (failure.message === 'CAPACITY_ACK_REQUIRED') { setNeedsAck(true); setError(t('care.capacityWarning')); }
-      else setError(failure.message || t('readiness.saveError'));
+      else setError(friendlyError(failure, t));
     } finally { lock.current = false; setSaving(false); }
   };
   return <FosterScreen title={title} onClose={requestClose} busy={busy}>
@@ -143,18 +145,11 @@ export function FosterPhotoField({ value, onChange, itemId }) {
     setBusy(true); setUploading(true); setError('');
     uploadInput.current?.setCustomValidity('');
     try {
-      // Resize locally for mobile bandwidth; only the selected copy is uploaded, never the original document.
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82));
-      if (!blob) throw new Error(t('readiness.saveError'));
-      const photo = new File([blob], `${crypto.randomUUID()}.jpg`, { type: 'image/jpeg' });
+      // Only the re-encoded copy is uploaded, never the original file.
+      const photo = await prepareImageForUpload(file);
       onChange(await uploadSupabaseAnimalPhoto({ ownerId: user.id, animalId: itemId, file: photo }));
     } catch (failure) {
-      const message = failure.message || t('readiness.saveError');
+      const message = friendlyError(failure, t);
       setError(message); uploadInput.current?.setCustomValidity(message);
     }
     finally { setBusy(false); setUploading(false); }

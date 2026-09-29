@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Check, Clock, MessageCircle, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterPlacement, loadMoreFosterJournal, loadMoreFosterTasks } from '../services/fosterApi';
 import { FosterCheck, FosterField, FosterForm, FosterInfo, FosterPhoto, FosterScreen, FosterSelect, FosterStatus } from './FosterComponents';
 import { FosterReasonForm } from './FosterForms';
@@ -68,12 +69,12 @@ export default function FosterCare({ id, homes, team, spaces, onClose, onChanged
     let cancelled = false;
     const load = () => loadFosterPlacement(id).then(value => {
       if (!cancelled) { setData(value); setJournalHasMore(value.journal.length === 50); setTasksHasMore(value.tasks.length === 100); setError(''); }
-    }).catch(failure => { if (!cancelled) setError(failure.message); });
+    }).catch(failure => { if (!cancelled) setError(friendlyError(failure, t)); });
     load();
     const focus = () => { if (document.visibilityState !== 'hidden') load(); };
     window.addEventListener('focus', focus); document.addEventListener('visibilitychange', focus);
     return () => { cancelled = true; window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', focus); };
-  }, [id, revision, user.id]);
+  }, [id, revision, user.id, t]);
   const p = data?.placement;
   const home = homes.find(h => h.id === p?.home_id);
   const canCare = ['OWNER', 'CARER'].includes(home?.my_role);
@@ -89,14 +90,14 @@ export default function FosterCare({ id, homes, team, spaces, onClose, onChanged
     if (loadingMore) return;
     setLoadingMore(true);
     try { const rows = await loadMoreFosterJournal(id, data.journal.length); setData(current => ({ ...current, journal: [...current.journal, ...rows] })); setJournalHasMore(rows.length === 50); }
-    catch (failure) { setError(failure.message); }
+    catch (failure) { setError(friendlyError(failure, t)); }
     finally { setLoadingMore(false); }
   };
   const moreTasks = async () => {
     if (loadingMore) return;
     setLoadingMore(true);
     try { const rows = await loadMoreFosterTasks(id, data.tasks.length); setData(current => ({ ...current, tasks: [...current.tasks, ...rows] })); setTasksHasMore(rows.length === 100); }
-    catch (failure) { setError(failure.message); }
+    catch (failure) { setError(friendlyError(failure, t)); }
     finally { setLoadingMore(false); }
   };
   return <FosterScreen title={p?.name || t('care.loading')} onClose={onClose}>

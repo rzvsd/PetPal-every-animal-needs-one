@@ -30,7 +30,7 @@ select has_column('public', 'organizations', 'representative_name', 'organizatio
 select has_function(
   'public',
   'complete_profile_onboarding',
-  ARRAY['text', 'text', 'text', 'public.user_role[]'],
+  ARRAY['text', 'text', 'text', 'public.user_role[]', 'boolean', 'boolean'],
   'profile onboarding RPC exists'
 );
 
