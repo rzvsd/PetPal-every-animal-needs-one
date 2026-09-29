@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterDirectory, reportFosterItem } from '../services/fosterApi';
 import { FosterCheck, FosterField, FosterForm, FosterInfo, FosterPager, FosterPhotoField, FosterSelect } from './FosterComponents';
 
@@ -96,9 +97,9 @@ export function FosterRequestForm({ item, kind, homes, onClose, onSaved }) {
     if (kind !== 'INVITE') return undefined;
     let cancelled = false;
     loadFosterDirectory({ type: 'animals', ownerId: user.id, query, page }).then(data => { if (!cancelled) setCases({ ...data, error: '' }); })
-      .catch(error => { if (!cancelled) setCases({ rows: [], count: 0, error: error.message }); });
+      .catch(error => { if (!cancelled) setCases({ rows: [], count: 0, error: friendlyError(error, t) }); });
     return () => { cancelled = true; };
-  }, [kind, user.id, query, page]);
+  }, [kind, user.id, query, page, t]);
   return <FosterForm values={{ homeId, caseId, message }} title={t(kind === 'APPLICATION' ? 'care.apply' : 'care.invite')} onClose={onClose} onSaved={onSaved} submitLabel="care.send"
     onSave={() => fosterRpc('create_foster_request', { request_id_input: id, case_id_input: caseId, home_id_input: homeId, kind_input: kind, message_input: message })}>
     <h3>{item.name}</h3><p className="foster-muted">{t('care.requestHint')}</p>

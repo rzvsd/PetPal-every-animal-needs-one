@@ -27,6 +27,8 @@ import { allowLocalDemo, demoSupabaseCredentials, isSupabaseConfigured, supabase
 import { initializePushNotifications } from '../services/pushNotifications';
 import { useMessaging } from '../services/useMessaging';
 import { clearChatStorage } from '../services/messageStorage';
+import { prepareImageForUpload } from '../services/imageUpload';
+import { friendlyError } from '../services/errors';
 
 const AppContext = createContext();
 
@@ -564,13 +566,13 @@ export function AppProvider({ children }) {
       await refreshSupabaseData();
       setActiveTab('matches');
     } catch (error) {
-      setAuthError(error.message || t('auth.signInError'));
+      setAuthError(friendlyError(error, t, t('auth.signInError')));
     } finally {
       setAuthLoading(false);
     }
   };
 
-  const signUp = async ({ email, password, displayName, city, coarseArea }) => {
+  const signUp = async ({ email, password, displayName, city, coarseArea, ageConfirmed, termsAccepted }) => {
     setAuthError('');
     setAuthNotice('');
     setAuthLoading(true);
@@ -582,6 +584,8 @@ export function AppProvider({ children }) {
         displayName,
         city,
         coarseArea,
+        ageConfirmed,
+        termsAccepted,
       });
 
       if (session) {
@@ -591,7 +595,7 @@ export function AppProvider({ children }) {
         setAuthNotice(t('auth.accountCreatedNoSession'));
       }
     } catch (error) {
-      setAuthError(error.message || t('auth.signUpError'));
+      setAuthError(friendlyError(error, t, t('auth.signUpError')));
     } finally {
       setAuthLoading(false);
     }
@@ -614,7 +618,7 @@ export function AppProvider({ children }) {
       setLocalDemoSession(false);
       setActiveTab('matches');
     } catch (error) {
-      setAuthError(error.message || t('auth.demoSignInError'));
+      setAuthError(friendlyError(error, t, t('auth.demoSignInError')));
     } finally {
       setAuthLoading(false);
     }
@@ -638,7 +642,7 @@ export function AppProvider({ children }) {
       setPaymentSessions([]);
       setBackendStatus({ loading: false, message: null });
     } catch (error) {
-      setAuthError(error.message || t('auth.signOutError'));
+      setAuthError(friendlyError(error, t, t('auth.signOutError')));
     } finally {
       setAuthLoading(false);
     }
@@ -693,7 +697,7 @@ export function AppProvider({ children }) {
         const publicUrl = await uploadSupabaseAnimalPhoto({
           ownerId: authSession?.user?.id || user.id,
           animalId: savedAnimal.id,
-          file: photoFile,
+          file: await prepareImageForUpload(photoFile),
         });
 
         savedAnimal = await upsertSupabaseAnimalProfile({

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bookmark, BookmarkCheck, Cat, ChevronRight, Dog, Home, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterOverview, loadFosterDirectory, loadFosterRegistry, loadFosterHomeDetails,
   loadFosterRequests, loadRequestHistory, saveFosterItem } from '../services/fosterApi';
 import { FosterInfo, FosterPager, FosterPhoto, FosterScreen, FosterSelect, FosterStatus } from '../components/FosterComponents';
@@ -52,9 +53,9 @@ export default function FosterTab() {
       if (cancelled) return;
       setOverview(value); setOverviewError('');
       setHomeId(current => value.homes.some(h => h.id === current) ? current : value.homes[0]?.id || '');
-    }).catch(error => { if (!cancelled) setOverviewError(error.message); });
+    }).catch(error => { if (!cancelled) setOverviewError(friendlyError(error, t)); });
     return () => { cancelled = true; };
-  }, [live, user.id, revision]);
+  }, [live, user.id, revision, t]);
   useEffect(() => {
     if (!live) return undefined;
     const focus = () => { if (document.visibilityState !== 'hidden') changed(); };
@@ -70,34 +71,34 @@ export default function FosterTab() {
       loadFosterDirectory({ type: directoryType === 'myCases' ? 'animals' : directoryType, query: directoryQuery,
         species: directorySpecies, urgent, page: directoryPage, savedIds, ownerId: directoryType === 'myCases' ? user.id : undefined })
         .then(value => { if (!cancelled) setDirectory({ ...value, loading: false, error: '' }); })
-        .catch(error => { if (!cancelled) setDirectory({ ...emptyPage, error: error.message }); });
+        .catch(error => { if (!cancelled) setDirectory({ ...emptyPage, error: friendlyError(error, t) }); });
     }, 180);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [live, activeTab, directoryType, directoryQuery, directorySpecies, urgent, savedOnly, directoryPage, overview.saved, user.id, revision]);
+  }, [live, activeTab, directoryType, directoryQuery, directorySpecies, urgent, savedOnly, directoryPage, overview.saved, user.id, revision, t]);
   useEffect(() => {
     if (!live || !homeId) return undefined;
     let cancelled = false;
     loadFosterHomeDetails(homeId).then(value => { if (!cancelled) setHomeDetails(value); })
-      .catch(error => { if (!cancelled) setOverviewError(error.message); });
+      .catch(error => { if (!cancelled) setOverviewError(friendlyError(error, t)); });
     return () => { cancelled = true; };
-  }, [live, homeId, revision]);
+  }, [live, homeId, revision, t]);
   useEffect(() => {
     if (!live || !homeId || activeTab !== 'foster-home') return undefined;
     let cancelled = false;
     setRegistry(current => ({ ...current, loading: true, error: '' }));
     const timer = setTimeout(() => loadFosterRegistry({ homeId, ...registryFilters, page: registryPage })
       .then(value => { if (!cancelled) setRegistry({ ...value, loading: false, error: '' }); })
-      .catch(error => { if (!cancelled) setRegistry({ ...emptyPage, error: error.message }); }), 180);
+      .catch(error => { if (!cancelled) setRegistry({ ...emptyPage, error: friendlyError(error, t) }); }), 180);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [live, homeId, activeTab, registryFilters, registryPage, revision]);
+  }, [live, homeId, activeTab, registryFilters, registryPage, revision, t]);
   useEffect(() => {
     if (!live || activeTab !== 'foster-requests') return undefined;
     let cancelled = false;
     setRequests(current => ({ ...current, loading: true, error: '' }));
     loadFosterRequests(user.id, direction, requestPage).then(value => { if (!cancelled) setRequests({ ...value, loading: false, error: '' }); })
-      .catch(error => { if (!cancelled) setRequests({ ...emptyPage, error: error.message }); });
+      .catch(error => { if (!cancelled) setRequests({ ...emptyPage, error: friendlyError(error, t) }); });
     return () => { cancelled = true; };
-  }, [live, activeTab, user.id, direction, requestPage, revision]);
+  }, [live, activeTab, user.id, direction, requestPage, revision, t]);
 
   const setFilter = (key, value) => { setRegistryFilters(current => ({ ...current, [key]: value })); setRegistryPage(0); };
   const changeHome = value => { setHomeId(value); setRegistryPage(0); setRegistryFilters(emptyRegistryFilters); };
@@ -108,7 +109,7 @@ export default function FosterTab() {
     const key = `${type}:${id}`;
     setSavingItem(key);
     try { await saveFosterItem(type, id, !isSaved(type, id)); changed(); }
-    catch (error) { setNotice(error.message); }
+    catch (error) { setNotice(friendlyError(error, t)); }
     finally { saving.current = false; setSavingItem(''); }
   };
   const openApply = item => ownHomes.length ? setScreen({ type: 'request', kind: 'APPLICATION', item }) : setScreen({ type: 'homeForm' });
@@ -270,7 +271,7 @@ function RequestHistory({ item, onClose }) {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState('');
   useEffect(() => { let cancelled = false; loadRequestHistory(item.id).then(data => { if (!cancelled) setRows(data); })
-    .catch(failure => { if (!cancelled) setError(failure.message); }); return () => { cancelled = true; }; }, [item.id]);
+    .catch(failure => { if (!cancelled) setError(friendlyError(failure, t)); }); return () => { cancelled = true; }; }, [item.id, t]);
   return <FosterScreen title={t('care.history')} onClose={onClose}><div className="foster-detail-body"><h3>{item.animal_name}</h3>
     {error && <p role="alert" className="foster-alert">{error}</p>}<div className="foster-timeline">{rows.map(row => <article key={row.id}>
       <strong>{row.actor_name}</strong><div className="foster-muted">{new Date(row.created_at).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB')}</div><p>{row.body}</p>

@@ -19,6 +19,20 @@ function AuthField({ label, value, onChange, type = 'text', autoComplete, placeh
   );
 }
 
+function ConsentCheck({ label, checked, onChange }) {
+  return (
+    <label className="flex min-h-11 items-start gap-3 text-sm text-[#1F2924]">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="mt-0.5 h-5 w-5 flex-shrink-0 accent-[#2C402B]"
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
 export default function AuthScreen() {
   const {
     t,
@@ -40,6 +54,8 @@ export default function AuthScreen() {
     coarseArea: '',
     email: '',
     password: '',
+    ageConfirmed: false,
+    termsAccepted: false,
   });
   const [localError, setLocalError] = useState('');
 
@@ -54,6 +70,7 @@ export default function AuthScreen() {
     if (mode === 'register') {
       if (form.displayName.trim().length < 2) return t('auth.nameRequired');
       if (form.city.trim().length < 2) return t('auth.cityRequired');
+      if (!form.ageConfirmed || !form.termsAccepted) return t('auth.consentRequired');
     }
     return '';
   };
@@ -79,6 +96,8 @@ export default function AuthScreen() {
       displayName: form.displayName.trim(),
       city: form.city.trim(),
       coarseArea: form.coarseArea.trim(),
+      ageConfirmed: form.ageConfirmed,
+      termsAccepted: form.termsAccepted,
     });
   };
 
@@ -166,6 +185,28 @@ export default function AuthScreen() {
               type="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
+
+            {mode === 'register' && (
+              <div className="space-y-2">
+                <ConsentCheck
+                  label={t('auth.ageConfirm')}
+                  checked={form.ageConfirmed}
+                  onChange={(value) => update('ageConfirmed', value)}
+                />
+                <ConsentCheck
+                  label={t('auth.termsConfirm')}
+                  checked={form.termsAccepted}
+                  onChange={(value) => update('termsAccepted', value)}
+                />
+                <details className="rounded-xl bg-[#F8F7F4] px-3 py-2 text-xs text-[#57645C]">
+                  <summary className="cursor-pointer font-semibold text-[#2C402B]">{t('auth.readTerms')}</summary>
+                  <ul className="mt-2 list-disc space-y-1 pl-4">
+                    {[1, 2, 3, 4].map((n) => <li key={`terms-${n}`}>{t(`profile.termsBullet${n}`)}</li>)}
+                    {[1, 2, 3, 4].map((n) => <li key={`privacy-${n}`}>{t(`profile.privacyPolicyBullet${n}`)}</li>)}
+                  </ul>
+                </details>
+              </div>
+            )}
 
             {message && (
               <div className="rounded-xl border border-[#F5D5D8] bg-[#F5D5D8]/45 px-3 py-2 text-xs font-medium text-[#9B4650]">

@@ -269,6 +269,8 @@ export async function completeSupabaseProfile({
   city,
   coarseArea,
   roles = ['ADOPTER', 'FOSTER'],
+  ageConfirmed = null,
+  termsAccepted = null,
 }) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase is not configured.');
@@ -279,6 +281,8 @@ export async function completeSupabaseProfile({
     city_input: city,
     coarse_area_input: coarseArea || null,
     roles_input: roles,
+    age_confirmed_input: ageConfirmed,
+    terms_accepted_input: termsAccepted,
   });
 
   if (error) throw error;
@@ -325,11 +329,15 @@ export async function signUpWithSupabase({
   city,
   coarseArea,
   roles = ['ADOPTER', 'FOSTER'],
+  ageConfirmed = false,
+  termsAccepted = false,
 }) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase is not configured.');
   }
 
+  // Consent travels in the sign-up metadata so onboarding can finish on first
+  // sign-in when email confirmation delays the session.
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -338,6 +346,8 @@ export async function signUpWithSupabase({
         display_name: displayName,
         city,
         coarse_area: coarseArea,
+        age_confirmed: ageConfirmed,
+        terms_accepted: termsAccepted,
       },
     },
   });
@@ -345,7 +355,7 @@ export async function signUpWithSupabase({
   if (error) throw error;
 
   if (data.session) {
-    await completeSupabaseProfile({ displayName, city, coarseArea, roles });
+    await completeSupabaseProfile({ displayName, city, coarseArea, roles, ageConfirmed, termsAccepted });
   }
 
   return data.session;
@@ -505,12 +515,52 @@ async function loadPaymentSessions() {
   return (data || []).map(mapPaymentSession);
 }
 
+// With email confirmation, sign-up returns no session, so the profile is
+// created on first sign-in from the details and consent given at sign-up.
+async function completeOnboardingFromSignUp(authUser) {
+  const metadata = authUser?.user_metadata || {};
+  if (!metadata.display_name) return;
+  const { data, error } = await supabase.from('profiles').select('id').eq('id', authUser.id).maybeSingle();
+  if (error) throw error;
+  if (data) return;
+  await completeSupabaseProfile({
+    displayName: metadata.display_name,
+    city: metadata.city,
+    coarseArea: metadata.coarse_area,
+    ageConfirmed: metadata.age_confirmed === true,
+    termsAccepted: metadata.terms_accepted === true,
+  });
+}
+
+export async function exportSupabaseData() {
+  const { data, error } = await supabase.rpc('export_my_data');
+  if (error) throw error;
+  return data;
+}
+
+export async function loadSupabaseDeletionBlockers() {
+  const { data, error } = await supabase.rpc('my_account_deletion_blockers');
+  if (error) throw error;
+  return data;
+}
+
+// Resolves to { deleted: true } or, when open foster commitments block it,
+// { deleted: false, blockers }.
+export async function deleteSupabaseAccount() {
+  const { data, error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+  if (!error) return data;
+  const body = await error.context?.json?.().catch(() => null);
+  if (body?.deleted === false) return body;
+  throw error;
+}
+
 export async function loadSupabaseAppData() {
   if (!isSupabaseConfigured) {
     return { configured: false };
   }
 
   const session = await getSupabaseSession();
+  if (session) await completeOnboardingFromSignUp(session.user);
 
   const fosterCases = await loadFosterCases();
   const [profile, myAnimals, matchCandidates, fosterApplications, conversations, paymentSessions] = session

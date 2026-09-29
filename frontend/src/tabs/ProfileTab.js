@@ -2,6 +2,8 @@ import PlatformAdminEntry from '../components/PlatformAdmin';
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
+import { deleteSupabaseAccount, exportSupabaseData, loadSupabaseDeletionBlockers } from '../services/supabaseApi';
 import { useBackHandler } from '../navigation/backNavigation';
 import { motionSpring, SavedCheck, useReducedPetMotion } from '../components/Motion';
 import { useDiscardGuard } from '../components/FormGuard';
@@ -543,6 +545,68 @@ function InfoDetailScreen({ title, intro, bullets, note, primaryLabel, onPrimary
   );
 }
 
+function DeleteAccountScreen({ t, onBack, onDeleted }) {
+  const [blockers, setBlockers] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadSupabaseDeletionBlockers().then(setBlockers).catch((failure) => setError(friendlyError(failure, t)));
+  }, [t]);
+
+  const blocked = Boolean(blockers && (blockers.pendingRequests > 0 || blockers.activePlacements > 0));
+
+  const submit = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const result = await deleteSupabaseAccount();
+      if (result?.deleted === false) {
+        setBlockers(result.blockers);
+        return;
+      }
+      await onDeleted();
+    } catch (failure) {
+      setError(friendlyError(failure, t));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <ScreenHeader title={t('profile.deleteAccount')} onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
+        <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm space-y-3">
+          <p className="text-sm leading-relaxed text-[#1F2924]">{t('profile.deleteAccountIntro')}</p>
+          {['deleteAccountBullet1', 'deleteAccountBullet2', 'deleteAccountBullet3'].map((key) => (
+            <p key={key} className="text-sm leading-relaxed text-[#57645C]">{t(`profile.${key}`)}</p>
+          ))}
+        </div>
+        {blocked && (
+          <div role="alert" className="rounded-2xl border border-[#F5D5D8] bg-[#F5D5D8]/45 p-4 text-sm text-[#9B4650] space-y-1">
+            <p className="font-semibold">{t('profile.deleteAccountBlocked')}</p>
+            <p>{t('profile.deleteAccountPendingRequests')}: {blockers.pendingRequests}</p>
+            <p>{t('profile.deleteAccountActivePlacements')}: {blockers.activePlacements}</p>
+          </div>
+        )}
+        {error && <p role="alert" className="text-sm text-[#9B4650]">{error}</p>}
+        <label className="flex min-h-11 items-start gap-3 text-sm text-[#1F2924]">
+          <input type="checkbox" checked={confirmed} disabled={blocked || busy}
+            onChange={(event) => setConfirmed(event.target.checked)} className="mt-0.5 h-5 w-5 flex-shrink-0 accent-[#9B4650]" />
+          <span>{t('profile.deleteAccountConfirm')}</span>
+        </label>
+        <button type="button" onClick={submit} disabled={!confirmed || blocked || busy || !blockers}
+          className="w-full min-h-12 rounded-xl bg-[#9B4650] px-4 py-3 text-sm font-semibold text-white disabled:opacity-40">
+          {busy ? t('auth.working') : t('profile.deleteAccountAction')}
+        </button>
+        <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
 function formatPaymentAmount(session) {
   const amount = (session.amountCents || 0) / 100;
   return `${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${session.currency || 'RON'}`;
@@ -674,6 +738,7 @@ export default function ProfileTab({ environment = 'match' }) {
     deleteAnimalProfile,
     authConfigured,
     signOut,
+    dataSource,
     paymentSessions,
     createDonationSession,
     paymentReturnNotice,
@@ -731,7 +796,7 @@ export default function ProfileTab({ environment = 'match' }) {
     try {
       await setShowTypingActivity(user.showTypingActivity === false);
     } catch (error) {
-      setPreferenceError(error.message || t('motion.preferenceError'));
+      setPreferenceError(friendlyError(error, t, t('motion.preferenceError')));
     } finally {
       setTypingBusy(false);
     }
@@ -741,8 +806,21 @@ export default function ProfileTab({ environment = 'match' }) {
     setActiveHelpTopic(topic);
   };
   const closeHelpTopic = () => setActiveHelpTopic(null);
-  const exportProfileData = () => {
-    const exportPayload = {
+  const exportProfileData = async () => {
+    let serverData = null;
+    if (dataSource === 'supabase') {
+      try {
+        serverData = await exportSupabaseData();
+      } catch (error) {
+        showNotice(friendlyError(error, t));
+        return;
+      }
+    }
+    const exportPayload = serverData ? {
+      ...serverData,
+      language: lang,
+      notificationPreferences: notificationPrefs,
+    } : {
       exportedAt: new Date().toISOString(),
       language: lang,
       account: {
@@ -785,7 +863,7 @@ export default function ProfileTab({ environment = 'match' }) {
       showNotice(t('profile.donationSessionCreated'));
       return session;
     } catch (error) {
-      showNotice(error.message || t('profile.donationSessionFailed'));
+      showNotice(friendlyError(error, t, t('profile.donationSessionFailed')));
       throw error;
     }
   };
@@ -830,7 +908,7 @@ export default function ProfileTab({ environment = 'match' }) {
       setProfileDraft(null);
       showNotice(t('profile.profileSaved'));
     } catch (error) {
-      showNotice(error.message || t('profile.profileSaveFailed'));
+      showNotice(friendlyError(error, t, t('profile.profileSaveFailed')));
     } finally {
       setSavingProfile(false);
     }
@@ -877,7 +955,7 @@ export default function ProfileTab({ environment = 'match' }) {
       setAnimalDraft(null);
       showNotice(t('profile.animalSaved'));
     } catch (error) {
-      showNotice(error.message || t('profile.animalSaveFailed'));
+      showNotice(friendlyError(error, t, t('profile.animalSaveFailed')));
     } finally {
       setSavingAnimal(false);
     }
@@ -895,7 +973,7 @@ export default function ProfileTab({ environment = 'match' }) {
       setDeleteDraft(null);
       showNotice(t('profile.animalDeleted').replace('{animalName}', deleteDraft.name));
     } catch (error) {
-      showNotice(error.message || t('profile.animalDeleteFailed'));
+      showNotice(friendlyError(error, t, t('profile.animalDeleteFailed')));
     }
   };
   const helpTopics = {
@@ -1074,6 +1152,10 @@ export default function ProfileTab({ environment = 'match' }) {
         {renderEditModals()}
       </div>
     );
+  }
+
+  if (activeSection === 'deleteAccount') {
+    return <DeleteAccountScreen t={t} onBack={() => setActiveSection(null)} onDeleted={signOut} />;
   }
 
   if (activeSection === 'dataExport') {
@@ -1343,7 +1425,9 @@ export default function ProfileTab({ environment = 'match' }) {
         </div>
 
         <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
-          <SectionItem icon={Trash2} label={t('profile.deleteAccount')} danger onClick={() => showNotice(t('profile.deleteAccountNotice'))} />
+          <SectionItem icon={Trash2} label={t('profile.deleteAccount')} danger onClick={() => (
+            dataSource === 'supabase' ? setActiveSection('deleteAccount') : showNotice(t('profile.deleteAccountNotice'))
+          )} />
         </div>
 
         <div className="text-center py-4">
