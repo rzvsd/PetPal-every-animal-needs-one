@@ -44,6 +44,8 @@ export default function AuthScreen() {
     signInDemo,
     continueLocalDemo,
     authConfigured,
+    backendStatus,
+    refreshSupabaseData,
     localDemoAvailable,
     demoSupabaseLoginAvailable,
   } = useApp();
@@ -116,10 +118,19 @@ export default function AuthScreen() {
               {t('auth.subtitle')}
             </p>
           </div>
-          <Badge variant="sage">
-            <ShieldCheck size={12} />
-            {authConfigured ? t('auth.supabaseConnected') : t('auth.localDemoMode')}
-          </Badge>
+          {!authConfigured && (
+            <Badge variant="sage">
+              <ShieldCheck size={12} />
+              {t('auth.localDemoMode')}
+            </Badge>
+          )}
+          {backendStatus.message === 'readiness.loadError' && (
+            <div role="alert" className="mx-auto max-w-[300px] space-y-2 rounded-xl border border-[#F5D5D8] bg-[#F5D5D8]/45 px-3 py-2 text-xs font-medium text-[#9B4650]">
+              <p>{t('errors.network')}</p>
+              <button type="button" className="min-h-11 font-semibold underline" disabled={backendStatus.loading}
+                onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</button>
+            </div>
+          )}
         </div>
 
         <div className="rounded-3xl border border-[#E4E2DC] bg-white p-4 shadow-sm">

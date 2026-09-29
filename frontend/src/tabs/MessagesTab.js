@@ -246,10 +246,11 @@ function getConversationSubtitle(conv, t) {
     return conv.fosterRequestId ? t(`care.${conv.fosterStatus}`) : (conv.subtitle || t('messages.foster'));
   }
 
+  // Historical Verified Mate chats show the neutral match label.
   const modeLabels = {
     PLAY: t('matches.play'),
     SOCIAL: t('matches.social'),
-    VERIFIED_MATE: t('matches.verifiedMate'),
+    VERIFIED_MATE: t('messages.match'),
   };
 
   return modeLabels[conv.mode] || conv.subtitle || t('messages.match');

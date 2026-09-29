@@ -66,4 +66,4 @@ The M11 pgTAP test proves non-admin denial, document-review role access, documen
 
 ## Milestone Proof
 
-- M1 runtime proof: see `M1_RUNTIME_PROOF.md`.
+- M1 runtime proof (historical): see `../docs/history/milestones/M1_RUNTIME_PROOF.md`.

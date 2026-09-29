@@ -46,7 +46,6 @@ function mapFosterCase(row) {
     coarseArea: row.coarse_area,
     exactLocationPrivate: 'hidden',
     rescuerName: row.organization_name,
-    rescuerVerified: row.organization_verification_status === 'VERIFIED',
     photoUrl: row.primary_photo_url || fallbackFosterPhoto,
     createdAt: new Date().toISOString(),
   };
@@ -203,8 +202,6 @@ function mapConversation(row, messages) {
     mode: row.match_mode,
     fosterStatus: row.application_status,
     organizationName: row.organization_name,
-    organizationVerified: false,
-    ownerVerified: false,
     city: row.city || '',
     coarseArea: row.coarse_area || '',
     otherParticipantIds: row.other_participant_ids || [],

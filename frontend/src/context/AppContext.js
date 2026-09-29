@@ -185,10 +185,16 @@ export function AppProvider({ children }) {
       setBackendStatus({ loading: true, message: null });
 
       try {
-        const session = await getSupabaseSession();
-        if (cancelled) return;
-        setAuthSession(session);
-        await applySupabaseData();
+        // An unreachable backend otherwise keeps the loading screen up for a long time.
+        await Promise.race([
+          (async () => {
+            const session = await getSupabaseSession();
+            if (cancelled) return;
+            setAuthSession(session);
+            await applySupabaseData();
+          })(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Startup timed out')), 10000)),
+        ]);
       } catch (error) {
         if (cancelled) return;
         setDataSource('supabase');
@@ -315,13 +321,12 @@ export function AppProvider({ children }) {
         id: `conv-match-${candidate.animal.id}`,
         source: 'MATCH',
         title: `${selectedAnimal.name} + ${candidate.animal.name}`,
-        subtitle: candidate.mode === 'VERIFIED_MATE' ? t('matches.verifiedMate') : candidate.mode === 'PLAY' ? t('matches.play') : t('matches.social'),
+        subtitle: candidate.mode === 'SOCIAL' ? t('matches.social') : t('matches.play'),
         contextLabel: t('messages.matchChatContext'),
         privacyLabel: t('matches.locationPrivate'),
         animalName: selectedAnimal.name,
         relatedAnimalName: candidate.animal.name,
         mode: candidate.mode,
-        ownerVerified: candidate.ownerVerificationStatus === 'VERIFIED',
         city: candidate.animal.city,
         coarseArea: candidate.animal.coarseArea,
         lastMessage: t('messages.sayHello'),
@@ -434,7 +439,6 @@ export function AppProvider({ children }) {
       animalName: application.animalName,
       fosterStatus: 'ACCEPTED',
       organizationName: application.rescuerName,
-      organizationVerified: fcase?.rescuerVerified ?? true,
       city: fcase?.city || user.city,
       coarseArea: fcase?.coarseArea || user.coarseArea,
       lastMessage: t('messages.fosterAcceptedMessage'),

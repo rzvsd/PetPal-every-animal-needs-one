@@ -53,8 +53,6 @@ export const fosterCoordination = {
     SUSPEND: 'Suspendă contul', RESTORE: 'Restabilește', PAUSE: 'Ascunde anunțul', GRANT_MODERATOR: 'Acordă rol moderator', REVOKE_MODERATOR: 'Retrage rol moderator',
     moderationReason: 'Motivul deciziei', confirmDecision: 'Confirmă decizia', suspended: 'Suspendat', platformActive: 'Activ pe platformă',
     refresh: 'Reîncarcă', readOnlyChat: 'Această conversație este păstrată ca istoric. Solicitarea este închisă.',
-    noCertification: 'PetPal nu verifică aptitudinea animalelor sau a participanților. Informațiile sunt declarate de aceștia.',
-    matePaused: 'Verified Mate este amânat. Playdate și Social rămân disponibile.',
   },
   en: {
     DRAFT: 'Draft', PENDING_REVIEW: 'Unpublished (historical)', REJECTED: 'Rejected (historical)',
@@ -85,6 +83,5 @@ export const fosterCoordination = {
     reviews: 'Participant opinions', review: 'Leave a review', rating: 'Rating 1–5', comment: 'Comment', reviewHint: 'Available to participants after completion. An opinion does not certify a home’s suitability.',
     report: 'Report', category: 'Category', details: 'Details', reportSent: 'Report sent to moderators.', admin: 'PetPal moderation', adminHint: 'Moderate platform use, not animal, home or placement suitability.', REPORT: 'Reports', ACCOUNT: 'Accounts', LISTING: 'Listings', audit: 'Moderation history', autoFlag: 'PetPal automatic flag', OPEN: 'Open', IN_REVIEW: 'In review', RESOLVED: 'Resolved', DISMISSED: 'Dismissed',
     SUSPEND: 'Suspend account', RESTORE: 'Restore', PAUSE: 'Hide listing', GRANT_MODERATOR: 'Grant moderator role', REVOKE_MODERATOR: 'Revoke moderator role', moderationReason: 'Decision reason', confirmDecision: 'Confirm decision', suspended: 'Suspended', platformActive: 'Active on platform', refresh: 'Refresh', readOnlyChat: 'This conversation is retained as history. The request is closed.',
-    noCertification: 'PetPal does not verify animal or participant suitability. Information is self-reported.', matePaused: 'Verified Mate is postponed. Playdate and Social remain available.',
   },
 };

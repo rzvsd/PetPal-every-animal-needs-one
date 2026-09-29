@@ -131,12 +131,6 @@ export function PrivacyNote({ text }) {
   );
 }
 
-export function VerificationBadge({ status, label }) {
-  if (status === 'VERIFIED') return <Badge variant="success"><CheckCircle2 size={12} />{label}</Badge>;
-  if (status === 'PENDING') return <Badge variant="warning"><Clock size={12} />{label}</Badge>;
-  return <Badge variant="default"><XCircle size={12} />{label}</Badge>;
-}
-
 export function UrgencyBadge({ urgency }) {
   const { t } = useApp();
 
