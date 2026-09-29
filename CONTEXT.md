@@ -4,6 +4,17 @@ PetPal connects people and organizations who arrange temporary animal care and k
 
 ## Language
 
+**Like**:
+One participant's expression of interest in another pet; it does not establish mutual interest.
+_Avoid_: Match, when only one participant has acted.
+
+**Mutual match**:
+Reciprocal interest confirmed by the matching flow. A social walk request or foster request is not a mutual match.
+
+**Basic-details checklist**:
+A record of whether basic profile information has been supplied, including explicit Unknown answers. Checks use saved information, including saved photos; drafts do not count.
+_Avoid_: Trust score, certification, verified profile.
+
 **Platform administrator**:
 A person authorized to moderate accounts, reported content and platform access, not to certify animals, foster homes or placements.
 _Avoid_: Foster approver, animal reviewer

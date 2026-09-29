@@ -1,6 +1,6 @@
 begin;
 
-select plan(20);
+select plan(24);
 
 select has_view('public', 'my_conversations_view', 'my conversations view exists');
 select has_view('public', 'conversation_messages_view', 'conversation messages view exists');
@@ -35,7 +35,7 @@ select ok(
   'application review RPC is security definer for accepted-chat side effects'
 );
 
-select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 
 create temp table m6_pending_application as
 select public.submit_adoption_foster_application(
@@ -112,13 +112,13 @@ select ok(
   exists (
     select 1
     from public.notification_events
-    where profile_id = '10000000-0000-4000-8000-000000000002'
+    where profile_id = '10000000-0000-4000-8000-000000000003'
       and event_type = 'CONVERSATION_OPENED'
   ),
   'conversation opened notification is queued for applicant'
 );
 
-select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 
 select is(
   (select count(*)::integer from public.my_conversations_view where conversation_id=(select conversation_id from m6_conversation)),
@@ -144,10 +144,22 @@ select ok(
     select 1
     from public.messages m
     join m6_message msg on msg.message_id = m.id
-    where m.sender_id = '10000000-0000-4000-8000-000000000002'
+    where m.sender_id = '10000000-0000-4000-8000-000000000003'
   ),
   'participant message is inserted through RPC'
 );
+
+select is(public.set_conversation_typing((select conversation_id from m6_conversation),true),true,
+  'foster participant can publish ephemeral typing activity');
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from m6_conversation))),1,
+  'foster participant can read fresh typing activity');
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
+select is(public.set_conversation_typing((select conversation_id from m6_conversation),false),false,
+  'foster participant can explicitly stop typing activity');
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from m6_conversation))),0,
+  'explicit stop removes foster typing activity');
 
 select is(
   (select count(*)::integer from public.conversation_messages_view where conversation_id=(select conversation_id from m6_conversation)),
@@ -180,24 +192,24 @@ select ok(
     from public.reports r
     join m6_report report on report.report_id = r.id
     where r.reporter_id = '10000000-0000-4000-8000-000000000001'
-      and r.reported_profile_id = '10000000-0000-4000-8000-000000000002'
+      and r.reported_profile_id = '10000000-0000-4000-8000-000000000003'
   ),
   'message report stores reporter and reported participant'
 );
 
-select public.block_profile('10000000-0000-4000-8000-000000000002');
+select public.block_profile('10000000-0000-4000-8000-000000000003');
 
 select ok(
   exists (
     select 1
     from public.blocks
     where blocker_id = '10000000-0000-4000-8000-000000000001'
-      and blocked_id = '10000000-0000-4000-8000-000000000002'
+      and blocked_id = '10000000-0000-4000-8000-000000000003'
   ),
   'organization participant can block shared conversation participant'
 );
 
-select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000002', true);
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 
 select throws_ok(
   format(

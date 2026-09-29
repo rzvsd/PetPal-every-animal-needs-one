@@ -12,7 +12,7 @@ export function FosterHomeForm({ home, onClose, onSaved }) {
     bio: home?.bio || '', housingType: home?.housing_type || '', experience: home?.experience || '', photos: home?.photos || [],
     expectedUpdatedAt: home?.updated_at || null }));
   const field = (key, value) => setData(current => ({ ...current, [key]: value }));
-  return <FosterForm title={t(home ? 'care.editHome' : 'care.addHome')} onClose={onClose} onSaved={onSaved}
+  return <FosterForm values={data} title={t(home ? 'care.editHome' : 'care.addHome')} onClose={onClose} onSaved={onSaved}
     onSave={() => fosterRpc('save_foster_home', { home_id_input: id, data_input: data })}>
     <FosterField label={t('care.name')} required maxLength={100} value={data.name} onChange={e => field('name', e.target.value)} />
     <FosterField label={t('care.city')} required maxLength={100} value={data.city} onChange={e => field('city', e.target.value)} />
@@ -44,7 +44,7 @@ export function FosterCaseForm({ item, transfer, organizations = [], onClose, on
     vetCovered: item?.vet_covered || false, transport: item?.transport_available || false, medicalNeeds: item?.medical_needs || '',
     homeFit: item?.home_fit || '', status: item ? (['ACTIVE', 'PAUSED', 'ARCHIVED'].includes(item.status) ? item.status : 'PAUSED') : 'ACTIVE', organizationId: item?.organization_id || '', expectedUpdatedAt: item?.updated_at || null }));
   const field = (key, value) => setData(current => ({ ...current, [key]: value }));
-  return <FosterForm title={t(item ? 'care.editCase' : 'care.postCase')} onClose={onClose} onSaved={onSaved}
+  return <FosterForm values={data} title={t(item ? 'care.editCase' : 'care.postCase')} onClose={onClose} onSaved={onSaved}
     onSave={() => fosterRpc('save_foster_case', { case_id_input: id, animal_id_input: animalId, data_input: data })}>
     {transfer && <p className="foster-alert">{t('care.transferHint')}</p>}
     <FosterField label={t('care.animalName')} required maxLength={80} value={data.name} onChange={e => field('name', e.target.value)} />
@@ -72,7 +72,7 @@ export function FosterRegisterForm({ homeId, onClose, onSaved }) {
   const [id] = useState(() => crypto.randomUUID());
   const [data, setData] = useState({ ownerAnimalId: '', name: '', species: 'DOG', photo: '', provenance: '' });
   const field = (key, value) => setData(current => ({ ...current, [key]: value }));
-  return <FosterForm title={t('care.registerAnimal')} onClose={onClose} onSaved={onSaved}
+  return <FosterForm values={data} title={t('care.registerAnimal')} onClose={onClose} onSaved={onSaved}
     onSave={() => fosterRpc('register_foster_animal', { placement_id_input: id, home_id_input: homeId, data_input: data })}>
     <FosterSelect label={t('care.existingAnimal')} value={data.ownerAnimalId} onChange={v => field('ownerAnimalId', v)} empty={t('care.newAnimal')} options={myAnimals.map(a => [a.id, a.name])} />
     {!data.ownerAnimalId && <><FosterField label={t('care.animalName')} required maxLength={80} value={data.name} onChange={e => field('name', e.target.value)} />
@@ -99,7 +99,7 @@ export function FosterRequestForm({ item, kind, homes, onClose, onSaved }) {
       .catch(error => { if (!cancelled) setCases({ rows: [], count: 0, error: error.message }); });
     return () => { cancelled = true; };
   }, [kind, user.id, query, page]);
-  return <FosterForm title={t(kind === 'APPLICATION' ? 'care.apply' : 'care.invite')} onClose={onClose} onSaved={onSaved} submitLabel="care.send"
+  return <FosterForm values={{ homeId, caseId, message }} title={t(kind === 'APPLICATION' ? 'care.apply' : 'care.invite')} onClose={onClose} onSaved={onSaved} submitLabel="care.send"
     onSave={() => fosterRpc('create_foster_request', { request_id_input: id, case_id_input: caseId, home_id_input: homeId, kind_input: kind, message_input: message })}>
     <h3>{item.name}</h3><p className="foster-muted">{t('care.requestHint')}</p>
     {kind === 'APPLICATION' ? <FosterSelect required label={t('care.chooseHome')} value={homeId} onChange={setHomeId} empty={t('care.chooseHome')} options={homes.map(h => [h.id, h.name])} />
@@ -115,7 +115,7 @@ export function FosterRequestForm({ item, kind, homes, onClose, onSaved }) {
 export function FosterReasonForm({ title, description, onSave, onClose, onSaved, requireReason = true, submitLabel }) {
   const { t } = useApp();
   const [body, setBody] = useState('');
-  return <FosterForm title={title} onClose={onClose} onSave={ack => onSave(body, ack)} onSaved={onSaved} submitLabel={submitLabel || 'care.confirmDecision'}>
+  return <FosterForm values={body} title={title} onClose={onClose} onSave={ack => onSave(body, ack)} onSaved={onSaved} submitLabel={submitLabel || 'care.confirmDecision'}>
     {description && <p className="foster-muted">{description}</p>}
     {requireReason && <FosterField label={t('care.reason')}><textarea required maxLength={2000} value={body} onChange={e => setBody(e.target.value)} /></FosterField>}
   </FosterForm>;
@@ -125,7 +125,7 @@ export function FosterReportForm({ profileId, listingId, onClose, onSaved }) {
   const { t } = useApp();
   const [category, setCategory] = useState('SPAM');
   const [details, setDetails] = useState('');
-  return <FosterForm title={t('care.report')} onClose={onClose} onSaved={onSaved}
+  return <FosterForm values={{ category, details }} title={t('care.report')} onClose={onClose} onSaved={onSaved}
     onSave={() => reportFosterItem({ profileId, listingId, category, details })}>
     <FosterSelect label={t('care.category')} value={category} onChange={setCategory} options={['SPAM', 'ABUSE', 'MISLEADING', 'OTHER'].map(v => [v, v])} />
     <FosterField label={t('care.details')}><textarea required maxLength={2000} value={details} onChange={e => setDetails(e.target.value)} /></FosterField>

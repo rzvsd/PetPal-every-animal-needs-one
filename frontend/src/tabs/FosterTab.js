@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Bookmark, BookmarkCheck, Cat, ChevronRight, Dog, Home, Plus, RefreshCw, Search, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { fosterRpc, loadFosterOverview, loadFosterDirectory, loadFosterRegistry, loadFosterHomeDetails,
@@ -6,6 +7,7 @@ import { fosterRpc, loadFosterOverview, loadFosterDirectory, loadFosterRegistry,
 import { FosterInfo, FosterPager, FosterPhoto, FosterScreen, FosterSelect, FosterStatus } from '../components/FosterComponents';
 import { FosterCaseForm, FosterHomeForm, FosterRegisterForm, FosterReportForm, FosterRequestForm, FosterReasonForm } from '../components/FosterForms';
 import FosterCare, { FosterTeam } from '../components/FosterCare';
+import { motionSpring, PetGreeting, SavedCheck, useReducedPetMotion } from '../components/Motion';
 import '../foster.css';
 
 const emptyPage = { rows: [], count: 0, loading: false, error: '' };
@@ -33,7 +35,10 @@ export default function FosterTab() {
   const [direction, setDirection] = useState('incoming');
   const [requestPage, setRequestPage] = useState(0);
   const [requests, setRequests] = useState(emptyPage);
+  const [savingItem, setSavingItem] = useState('');
   const saving = useRef(false);
+  const reducedMotion = useReducedPetMotion();
+  const screenTransition = reducedMotion ? { duration: 0 } : motionSpring;
   const live = dataSource === 'supabase';
   const selectedHome = overview.homes.find(h => h.id === homeId);
   const ownHomes = overview.homes.filter(h => h.my_role === 'OWNER');
@@ -100,9 +105,11 @@ export default function FosterTab() {
   const toggleSave = async (type, id) => {
     if (saving.current) return;
     saving.current = true;
+    const key = `${type}:${id}`;
+    setSavingItem(key);
     try { await saveFosterItem(type, id, !isSaved(type, id)); changed(); }
     catch (error) { setNotice(error.message); }
-    finally { saving.current = false; }
+    finally { saving.current = false; setSavingItem(''); }
   };
   const openApply = item => ownHomes.length ? setScreen({ type: 'request', kind: 'APPLICATION', item }) : setScreen({ type: 'homeForm' });
   const requestAction = (item, action, title, reason = false) => setScreen({ type: 'requestAction', item, action, title, reason });
@@ -114,15 +121,17 @@ export default function FosterTab() {
 
   return <div className="foster-shell" data-testid="foster-tab">
     <div className="foster-scroll" hidden={Boolean(screen)}>
-      <header className="foster-hero"><div className="foster-hero-row"><h1>{t(sectionTitle)}</h1>
+      <header className={`foster-hero ${activeTab === 'foster' ? 'foster-hero-greeting' : ''}`}><div className="foster-hero-copy"><div className="foster-hero-row"><h1>{t(sectionTitle)}</h1>
         {live && <button type="button" onClick={changed} aria-label={t('care.refresh')}><RefreshCw size={18} /></button>}</div>
-        <p>{activeTab === 'foster' ? t('care.subtitle') : t('care.facts')}</p></header>
+        <p>{activeTab === 'foster' ? t('care.subtitle') : t('care.facts')}</p></div>{activeTab === 'foster' && <PetGreeting />}</header>
       {!live ? <div className="foster-card"><p>{t('care.liveRequired')}</p></div> : <>
         {overviewError && <div role="alert" className="foster-alert">{overviewError}<button type="button" className="foster-secondary" onClick={changed}>{t('care.retry')}</button></div>}
-        {notice && <div role="status" className="foster-success"><div className="foster-row foster-between"><p>{notice}</p><button type="button" className="foster-secondary" onClick={() => setNotice('')}>{t('care.close')}</button></div></div>}
+        <AnimatePresence initial={false}>{notice && <motion.div role="status" className="foster-success" initial={reducedMotion ? false : { opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -6 }} transition={screenTransition}><div className="foster-row foster-between"><SavedCheck /><p>{notice}</p><button type="button" className="foster-secondary" onClick={() => setNotice('')}>{t('care.close')}</button></div></motion.div>}</AnimatePresence>
         {activeTab === 'foster' && <>
-          <div className="foster-tabs">{['animals', 'homes', 'myCases'].map(type => <button type="button" key={type} aria-pressed={directoryType === type}
-            onClick={() => { setDirectoryType(type); setDirectoryPage(0); setSavedOnly(false); }}>{t(`care.${type}`)}</button>)}</div>
+          <div className="foster-tabs">{['animals', 'homes', 'myCases'].map(type => <button className="foster-tab" type="button" key={type} aria-pressed={directoryType === type}
+            onClick={() => { setDirectoryType(type); setDirectoryPage(0); setSavedOnly(false); }}>{t(`care.${type}`)}
+            {directoryType === type && <motion.span layoutId="foster-tab-indicator" className="foster-tab-indicator" transition={screenTransition} />}</button>)}</div>
           <div className="foster-search"><Search size={19} /><input aria-label={t('care.search')} placeholder={t('care.search')} value={directoryQuery}
             onChange={event => { setDirectoryQuery(event.target.value); setDirectoryPage(0); }} /></div>
           <div className="foster-chips">
@@ -134,17 +143,19 @@ export default function FosterTab() {
           {directoryType === 'myCases' && <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm' })}><Plus size={17} />{t('care.postCase')}</button>}
           <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
           {pageState(directory)}
-          {!directory.loading && directory.rows.map(item => <article className="foster-card" key={item.id}>
+          {!directory.loading && directory.rows.map((item, index) => <motion.article className="foster-card" key={item.id}
+            initial={reducedMotion ? false : { opacity: 0, y: 30, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: reducedMotion ? 0 : 0.4, delay: reducedMotion ? 0 : Math.min(index, 6) * 0.045, ease: [0.22, 1, 0.36, 1] }}>
             <div className="foster-row"><FosterPhoto key={item.photo || item.photos?.[0]} src={item.photo || item.photos?.[0]} name={item.name} species={item.species} />
               <div style={{ minWidth: 0, flex: 1 }}><h2>{item.name}</h2><p className="foster-muted">{item.city}{item.area ? ` · ${item.area}` : ''}</p>
                 {directoryType === 'homes' ? <FosterStatus value={item.availability} /> : <span className="foster-muted">{t(item.species === 'DOG' ? 'care.dogs' : 'care.cats')} · {t(`care.${item.duration || 'UNKNOWN'}`)}</span>}</div>
-              <button type="button" className="foster-secondary" aria-label={t('care.saved')} aria-pressed={isSaved(directoryType, item.id)} onClick={() => toggleSave(directoryType, item.id)}>
+              <button type="button" className="foster-secondary" aria-label={t('care.saved')} aria-pressed={isSaved(directoryType, item.id)} aria-busy={savingItem === `${directoryType}:${item.id}`} disabled={Boolean(savingItem)} onClick={() => toggleSave(directoryType, item.id)}>
                 {isSaved(directoryType, item.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}</button></div>
             {directoryType !== 'homes' && <p className="foster-muted">{item.responsible_name}{item.organization_name ? ` · ${item.organization_name}` : ''}</p>}
             <div className="foster-actions"><button type="button" className="foster-secondary" onClick={() => setScreen({ type: directoryType === 'homes' ? 'homeDetail' : 'caseDetail', item })}>{t('care.details')}<ChevronRight size={16} /></button>
               {directoryType !== 'homes' && item.responsible_id === user.id ? <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm', item })}>{t('care.editCase')}</button>
                 : directoryType !== 'homes' ? <button type="button" className="foster-primary" onClick={() => openApply(item)}>{t('care.apply')}</button> : null}</div>
-          </article>)}
+          </motion.article>)}
           <FosterPager page={directoryPage} count={directory.count} onChange={setDirectoryPage} disabled={directory.loading} />
         </>}
 
@@ -191,7 +202,8 @@ export default function FosterTab() {
         </>}
 
         {activeTab === 'foster-requests' && <>
-          <div className="foster-tabs">{['incoming', 'outgoing'].map(value => <button type="button" key={value} aria-pressed={direction === value} onClick={() => { setDirection(value); setRequestPage(0); }}>{t(`care.${value}`)}</button>)}</div>
+          <div className="foster-tabs">{['incoming', 'outgoing'].map(value => <button className="foster-tab" type="button" key={value} aria-pressed={direction === value} onClick={() => { setDirection(value); setRequestPage(0); }}>{t(`care.${value}`)}
+            {direction === value && <motion.span layoutId="foster-tab-indicator" className="foster-tab-indicator" transition={screenTransition} />}</button>)}</div>
           <FosterInfo title={t('care.requests')}>{t('care.requestHint')}</FosterInfo>
           {pageState(requests)}
           {!requests.loading && requests.rows.map(item => <article className="foster-card" key={item.id}><div className="foster-row foster-between"><h2>{item.animal_name}</h2><FosterStatus value={item.status} /></div>
@@ -211,41 +223,45 @@ export default function FosterTab() {
         </>}
       </>}
     </div>
-    {screen?.type === 'homeForm' && <FosterHomeForm home={screen.item} onClose={close} onSaved={id => { setHomeId(id); saved(); setActiveTab('foster-home'); }} />}
-    {screen?.type === 'caseForm' && <FosterCaseForm item={screen.item} transfer={screen.transfer} organizations={overview.organizations} onClose={close} onSaved={() => { saved(); setDirectoryType('myCases'); setActiveTab('foster'); }} />}
-    {screen?.type === 'register' && <FosterRegisterForm homeId={homeId} onClose={close} onSaved={saved} />}
-    {screen?.type === 'team' && selectedHome && <FosterTeam home={selectedHome} members={overview.team} spaces={homeDetails.spaces} onClose={close} onChanged={changed} />}
-    {screen?.type === 'placement' && <FosterCare id={screen.id} homes={overview.homes} team={overview.team} spaces={overview.spaces || homeDetails.spaces}
-      onClose={close} onChanged={changed} onTransfer={placement => setScreen({ type: 'caseForm', transfer: placement })} />}
-    {screen?.type === 'request' && <FosterRequestForm item={screen.item} kind={screen.kind} homes={ownHomes} onClose={close}
-      onSaved={() => { saved(); setDirection('outgoing'); setActiveTab('foster-requests'); }} />}
-    {screen?.type === 'requestAction' && <FosterReasonForm title={t(screen.title)} submitLabel={screen.title} description={t('care.requestHint')} requireReason={screen.reason} onClose={close} onSaved={saved}
-      onSave={(body, ack) => fosterRpc('respond_foster_request', { request_id_input: screen.item.id, action_input: screen.action,
-        expected_updated_at_input: screen.item.updated_at, acknowledge_capacity_input: ack, reason_input: body })} />}
-    {screen?.type === 'memberResponse' && <FosterReasonForm title={t(screen.action === 'ACCEPT' ? 'care.accept' : 'care.decline')} description={screen.member.home_name} requireReason={false}
-      onClose={close} onSaved={saved} onSave={() => fosterRpc('manage_foster_member', { home_id_input: screen.member.home_id, profile_id_input: user.id, action_input: screen.action })} />}
-    {screen?.type === 'report' && <FosterReportForm profileId={screen.profileId} listingId={screen.listingId} onClose={close} onSaved={() => setNotice(t('care.reportSent'))} />}
-    {screen?.type === 'history' && <RequestHistory item={screen.item} onClose={close} />}
-    {screen?.type === 'caseDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
-      <FosterPhoto src={screen.item.photo} name={screen.item.name} species={screen.item.species} large />
-      <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.responsible_name}</p>
-        <p style={{ whiteSpace: 'pre-wrap' }}>{screen.item.description}</p><p className="foster-muted">{t('care.duration')}: {t(`care.${screen.item.duration || 'UNKNOWN'}`)}</p>
-        {[['food_covered', 'food'], ['vet_covered', 'vet'], ['transport_available', 'transport']].filter(([key]) => screen.item[key]).map(([key, label]) => <p key={key}>{t(`care.${label}`)}</p>)}
-        <p className="foster-muted">{screen.item.medical_needs}</p><p className="foster-muted">{screen.item.home_fit}</p>
-        <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
-        <div className="foster-actions">{screen.item.responsible_id === user.id ? <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm', item: screen.item })}>{t('care.editCase')}</button>
-          : <><button type="button" className="foster-primary" onClick={() => openApply(screen.item)}>{t('care.apply')}</button>
-            <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.responsible_id, listingId: screen.item.id })}>{t('care.report')}</button></>}</div>
-      </div></div></FosterScreen>}
-    {screen?.type === 'homeDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
-      <FosterPhoto src={screen.item.photos?.[0]} name={screen.item.name} large />
-      <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.area}</p><FosterStatus value={screen.item.availability} />
-        <p>{screen.item.bio}</p><p className="foster-muted">{screen.item.experience}</p><p className="foster-muted">{screen.item.capacity} {t('care.declared')} · {screen.item.occupied} {t('care.occupied')}</p>
-        <p className="foster-muted">{screen.item.completed_placements} {t('care.COMPLETED')} · {screen.item.review_count} {t('care.reviews')}{screen.item.rating ? ` · ${screen.item.rating}/5` : ''}</p>
-        <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
-        {screen.item.profile_id !== user.id && <div className="foster-actions"><button type="button" className="foster-primary" onClick={() => setScreen({ type: 'request', kind: 'INVITE', item: screen.item })}>{t('care.invite')}</button>
-          <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.profile_id })}>{t('care.report')}</button></div>}
-      </div></div></FosterScreen>}
+    <AnimatePresence mode="wait" initial={false}>
+      {screen && <div className="foster-screen-host" key={`${screen.type}:${screen.id || screen.item?.id || screen.member?.home_id || ''}`}>
+        {screen?.type === 'homeForm' && <FosterHomeForm home={screen.item} onClose={close} onSaved={id => { setHomeId(id); saved(); setActiveTab('foster-home'); }} />}
+        {screen?.type === 'caseForm' && <FosterCaseForm item={screen.item} transfer={screen.transfer} organizations={overview.organizations} onClose={close} onSaved={() => { saved(); setDirectoryType('myCases'); setActiveTab('foster'); }} />}
+        {screen?.type === 'register' && <FosterRegisterForm homeId={homeId} onClose={close} onSaved={saved} />}
+        {screen?.type === 'team' && selectedHome && <FosterTeam home={selectedHome} members={overview.team} spaces={homeDetails.spaces} onClose={close} onChanged={changed} />}
+        {screen?.type === 'placement' && <FosterCare id={screen.id} homes={overview.homes} team={overview.team} spaces={overview.spaces || homeDetails.spaces}
+          onClose={close} onChanged={changed} onTransfer={placement => setScreen({ type: 'caseForm', transfer: placement })} />}
+        {screen?.type === 'request' && <FosterRequestForm item={screen.item} kind={screen.kind} homes={ownHomes} onClose={close}
+          onSaved={() => { saved(); setDirection('outgoing'); setActiveTab('foster-requests'); }} />}
+        {screen?.type === 'requestAction' && <FosterReasonForm title={t(screen.title)} submitLabel={screen.title} description={t('care.requestHint')} requireReason={screen.reason} onClose={close} onSaved={saved}
+          onSave={(body, ack) => fosterRpc('respond_foster_request', { request_id_input: screen.item.id, action_input: screen.action,
+            expected_updated_at_input: screen.item.updated_at, acknowledge_capacity_input: ack, reason_input: body })} />}
+        {screen?.type === 'memberResponse' && <FosterReasonForm title={t(screen.action === 'ACCEPT' ? 'care.accept' : 'care.decline')} description={screen.member.home_name} requireReason={false}
+          onClose={close} onSaved={saved} onSave={() => fosterRpc('manage_foster_member', { home_id_input: screen.member.home_id, profile_id_input: user.id, action_input: screen.action })} />}
+        {screen?.type === 'report' && <FosterReportForm profileId={screen.profileId} listingId={screen.listingId} onClose={close} onSaved={() => setNotice(t('care.reportSent'))} />}
+        {screen?.type === 'history' && <RequestHistory item={screen.item} onClose={close} />}
+        {screen?.type === 'caseDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
+          <FosterPhoto src={screen.item.photo} name={screen.item.name} species={screen.item.species} large />
+          <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.responsible_name}</p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{screen.item.description}</p><p className="foster-muted">{t('care.duration')}: {t(`care.${screen.item.duration || 'UNKNOWN'}`)}</p>
+            {[['food_covered', 'food'], ['vet_covered', 'vet'], ['transport_available', 'transport']].filter(([key]) => screen.item[key]).map(([key, label]) => <p key={key}>{t(`care.${label}`)}</p>)}
+            <p className="foster-muted">{screen.item.medical_needs}</p><p className="foster-muted">{screen.item.home_fit}</p>
+            <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
+            <div className="foster-actions">{screen.item.responsible_id === user.id ? <button type="button" className="foster-primary" onClick={() => setScreen({ type: 'caseForm', item: screen.item })}>{t('care.editCase')}</button>
+              : <><button type="button" className="foster-primary" onClick={() => openApply(screen.item)}>{t('care.apply')}</button>
+                <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.responsible_id, listingId: screen.item.id })}>{t('care.report')}</button></>}</div>
+          </div></div></FosterScreen>}
+        {screen?.type === 'homeDetail' && <FosterScreen title={screen.item.name} onClose={close}><div className="foster-detail-body">
+          <FosterPhoto src={screen.item.photos?.[0]} name={screen.item.name} large />
+          <div className="foster-card"><h2>{screen.item.name}</h2><p className="foster-muted">{screen.item.city} · {screen.item.area}</p><FosterStatus value={screen.item.availability} />
+            <p>{screen.item.bio}</p><p className="foster-muted">{screen.item.experience}</p><p className="foster-muted">{screen.item.capacity} {t('care.declared')} · {screen.item.occupied} {t('care.occupied')}</p>
+            <p className="foster-muted">{screen.item.completed_placements} {t('care.COMPLETED')} · {screen.item.review_count} {t('care.reviews')}{screen.item.rating ? ` · ${screen.item.rating}/5` : ''}</p>
+            <FosterInfo title={t('care.facts')}>{t('care.boundary')}</FosterInfo>
+            {screen.item.profile_id !== user.id && <div className="foster-actions"><button type="button" className="foster-primary" onClick={() => setScreen({ type: 'request', kind: 'INVITE', item: screen.item })}>{t('care.invite')}</button>
+              <button type="button" className="foster-secondary" onClick={() => setScreen({ type: 'report', profileId: screen.item.profile_id })}>{t('care.report')}</button></div>}
+          </div></div></FosterScreen>}
+      </div>}
+    </AnimatePresence>
   </div>;
 }
 

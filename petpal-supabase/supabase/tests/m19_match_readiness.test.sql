@@ -4,13 +4,13 @@ select no_plan();
 -- Only seeded local accounts; every fixture and action rolls back.
 insert into public.owner_animal_profiles(id,owner_id,name,species,photo_urls,profile_completeness,active_match_modes)
 values
-  ('51000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002','QA A','DOG',array['https://example.test/a.jpg'],100,array['PLAY','VERIFIED_MATE']),
-  ('51000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000004','QA B','DOG',array['https://example.test/b.jpg'],100,array['PLAY','VERIFIED_MATE']);
+  ('51000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000003','QA A','DOG',array['https://example.test/a.jpg'],100,array['PLAY']),
+  ('51000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000004','QA B','DOG',array['https://example.test/b.jpg'],100,array['PLAY']);
 create temp table qa_chat(conversation_id uuid,message_id uuid);
 grant all on qa_chat to authenticated;
 
 set local role authenticated;
-select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
 select throws_ok($$update public.owner_animal_profiles set admin_mate_approval_status='VERIFIED'
   where id='51000000-0000-4000-8000-000000000001'$$,'P0001',
   'Verification decisions require an authorized reviewer','owner cannot self-approve mate eligibility');
@@ -49,7 +49,7 @@ select throws_ok($$select public.send_conversation_message(conversation_id,repea
 select lives_ok($$select public.send_conversation_message(conversation_id,'Legacy client') from qa_chat$$,
   'legacy two-argument send remains compatible');
 
-select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
 select is((select unread_count from public.conversation_inbox_view where conversation_id=(select conversation_id from qa_chat)),2,
   'recipient unread count includes incoming messages');
 select lives_ok($$select public.mark_conversation_read(conversation_id,message_id) from qa_chat$$,'participant can mark visible message read');
@@ -58,17 +58,64 @@ select is((select unread_count from public.conversation_inbox_view where convers
 select lives_ok($$select public.mark_conversation_read(conversation_id,message_id) from qa_chat$$,'repeat read position is harmless');
 select is((select count(*)::integer from public.notification_events where payload->>'messageId'=(select message_id::text from qa_chat)
   and event_type='MESSAGE_RECEIVED'),1,'retry emits one recipient notification event');
+select throws_ok($$insert into public.conversation_typing(conversation_id,profile_id,is_typing)
+  select conversation_id,auth.uid(),true from qa_chat$$,'42501',null,
+  'typing rows are writable through RPCs only');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',true);
+select is(public.set_conversation_typing((select conversation_id from qa_chat),true),true,
+  'participant can publish ephemeral typing activity');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+select is((select is_typing from public.get_conversation_typing((select conversation_id from qa_chat)) limit 1),true,
+  'other participant can see fresh typing activity');
+set local role postgres;
+insert into public.user_suspensions(profile_id,suspended_by,reason)
+values('10000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000001','m19 typing actor suspension');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from qa_chat))),0,
+  'suspended typing actor is omitted during the expiry window');
+set local role postgres;
+delete from public.user_suspensions where profile_id='10000000-0000-4000-8000-000000000004' and reason='m19 typing actor suspension';
+set local role authenticated;
+set local role postgres;
+delete from public.conversation_participants
+where conversation_id=(select conversation_id from qa_chat) and profile_id='10000000-0000-4000-8000-000000000004';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from qa_chat))),0,
+  'removed typing actor is omitted from conversation reads');
+set local role postgres;
+insert into public.conversation_participants(conversation_id,profile_id)
+values((select conversation_id from qa_chat),'10000000-0000-4000-8000-000000000004');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',true);
+select is(public.update_typing_preference(false),false,'participant can disable typing sharing');
+select is(public.set_conversation_typing((select conversation_id from qa_chat),true),false,
+  'disabled typing preference suppresses activity');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from qa_chat))),0,
+  'disabled actor is omitted from typing reads');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',true);
+select is(public.update_typing_preference(true),true,'participant can restore typing sharing');
+select is(public.set_conversation_typing((select conversation_id from qa_chat),true),true,
+  'restored preference allows typing activity');
+select is(public.set_conversation_typing((select conversation_id from qa_chat),false),false,
+  'explicit stop removes typing activity');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+select is((select count(*)::integer from public.get_conversation_typing((select conversation_id from qa_chat))),0,
+  'unrelated account cannot read typing activity');
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
 select lives_ok($$delete from public.saved_animals where animal_id='51000000-0000-4000-8000-000000000002'$$,'owner can unsave');
 select is((select count(*)::integer from public.saved_animals where animal_id='51000000-0000-4000-8000-000000000002'),0,'unsave persists');
 
-select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
 select is((select count(*)::integer from public.messages where conversation_id=(select conversation_id from qa_chat)),0,'unrelated account cannot read messages');
 select throws_ok($$select public.send_conversation_message(conversation_id,'intruder',null) from qa_chat$$,'P0001',
   'Conversation not found or not accessible','unrelated sender rejected');
 select throws_ok($$select public.mark_conversation_read(conversation_id,message_id) from qa_chat$$,'P0001',
   'Conversation not found or not accessible','unrelated reader rejected');
 
-select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
 insert into public.blocks(blocker_id,blocked_id) values(auth.uid(),'10000000-0000-4000-8000-000000000004');
 select is((select count(*)::integer from public.match_candidates_view where animal_id='51000000-0000-4000-8000-000000000002'),0,
   'blocked candidate is hidden');

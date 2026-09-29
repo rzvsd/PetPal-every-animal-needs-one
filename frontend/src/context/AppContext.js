@@ -9,6 +9,7 @@ import {
   signInWithDemoSupabase,
   signOutOfSupabase,
   updateSupabaseProfile,
+  updateSupabaseTypingPreference,
   upsertSupabaseAnimalProfile,
   deleteSupabaseAnimalProfile,
   uploadSupabaseAnimalPhoto,
@@ -61,10 +62,28 @@ export function AppProvider({ children }) {
   const [screenParams, setScreenParams] = useState(null);
   const [skippedMatches, setSkippedMatches] = useState({});
   const [requestedConversation, setRequestedConversation] = useState(null);
+  const [motionPreferences, setMotionPreferences] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('petpal:reduce-motion') || '{}') || {}; }
+    catch { return {}; }
+  });
+  const preferenceAccount = authSession?.user?.id || (localDemoSession ? 'demo' : 'device');
+  const reduceMotion = Boolean(motionPreferences[preferenceAccount] ?? motionPreferences.device);
+  const setReduceMotion = enabled => {
+    const next = { ...motionPreferences, [preferenceAccount]: Boolean(enabled) };
+    setMotionPreferences(next);
+    try { localStorage.setItem('petpal:reduce-motion', JSON.stringify(next)); } catch { /* Current session still honors the preference. */ }
+  };
   const authVersion = useRef(0);
   const sessionAccount = useRef(null);
   const messaging = useMessaging({ accountId: authSession?.user?.id || (localDemoSession ? 'demo' : null),
-    live: Boolean(authSession && dataSource === 'supabase'), conversations, setConversations });
+    live: Boolean(authSession && dataSource === 'supabase'), conversations, setConversations,
+    showTypingActivity: user.showTypingActivity !== false });
+  const setShowTypingActivity = async enabled => {
+    const version = authVersion.current;
+    const saved = dataSource === 'supabase' ? await updateSupabaseTypingPreference(enabled) : Boolean(enabled);
+    if (version === authVersion.current) setUser(current => ({ ...current, showTypingActivity: saved }));
+    return saved;
+  };
   const { sendMessage } = messaging;
   const requestOpenConversation = useCallback((id, source = 'MATCH') => {
     setRequestedConversation({ id, source });
@@ -825,7 +844,7 @@ export function AppProvider({ children }) {
       ...animalDraft,
       id: localId,
       ownerId: user.id,
-      ageMonths: Number.parseInt(animalDraft.ageMonths, 10) || 0,
+      ageMonths: animalDraft.ageMonths === '' || animalDraft.ageMonths == null ? null : Number(animalDraft.ageMonths),
       profileCompleteness: animalDraft.profileCompleteness || 70,
       verificationStatus: animalDraft.verificationStatus || 'UNVERIFIED',
       healthDocumentStatus: animalDraft.healthDocumentStatus || 'UNVERIFIED',
@@ -870,6 +889,7 @@ export function AppProvider({ children }) {
       lang, t, toggleLang,
       activeTab, setActiveTab,
       user, setUser, updateUserProfile,
+      reduceMotion, setReduceMotion, setShowTypingActivity,
       myAnimals, setMyAnimals, saveAnimalProfile, deleteAnimalProfile, selectedAnimalId, setSelectedAnimalId, selectedAnimal,
       matchMode, setMatchMode,
       candidates, setCandidates,

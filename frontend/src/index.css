@@ -87,7 +87,7 @@ body {
   animation: fadeIn 0.2s ease-out;
 }
 
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 44px;
 }
@@ -146,3 +146,14 @@ img {
   user-select: none;
   background-color: #E4E2DC;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  button:active { transform: none !important; }
+  details::details-content { transition: none !important; }
+}
+html[data-petpal-reduced-motion="true"] *,
+html[data-petpal-reduced-motion="true"] *::before,
+html[data-petpal-reduced-motion="true"] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+html[data-petpal-reduced-motion="true"] button:active { transform: none !important; }
+html[data-petpal-reduced-motion="true"] details::details-content { transition: none !important; }

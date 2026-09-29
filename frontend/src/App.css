@@ -92,6 +92,43 @@
 }
 
 .petpal-thread-open .petpal-screen { padding-bottom: 0; }
+.petpal-entrance { position: absolute; inset: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; background: #F8F7F4; color: #2C402B; text-align: center; }
+.petpal-entrance .font-heading { display: block; margin-top: 14px; font-size: 30px; font-weight: 700; letter-spacing: -.04em; }
+.petpal-entrance-mark { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 24px; background: #E3ECE4; }
+.petpal-entrance-paw { position: absolute; display: grid; place-items: center; }
+.dialog-drag-handle { display: flex; justify-content: center; padding: 10px 0 6px; touch-action: none; cursor: grab; }
+.dialog-drag-handle span { width: 36px; height: 4px; border-radius: 4px; background: #D5D5CE; }
+.petpal-nav-indicator { position: absolute; top: 7px; width: 44px; height: 32px; border-radius: 13px; background: #E3ECE4; pointer-events: none; }
+.petpal-greeting { display: block; width: min(100%, 260px); margin: 0 auto; color: #466353; background: transparent; border: 0; border-radius: 24px; }
+.petpal-greeting svg { display: block; width: 100%; height: auto; overflow: visible; }
+.petpal-greeting > span { display: inline-flex; align-items: center; gap: 5px; min-height: 22px; font-size: 11px; font-weight: 600; }
+.petpal-greeting > span svg { width: 12px; }
+.petpal-greeting:focus-visible { outline: 3px solid #B67650; outline-offset: 3px; }
+.petpal-greeting:disabled { cursor: default; }
+.greeting-dog { animation: greeting-arrive .65s cubic-bezier(.16,1,.3,1) both; }
+.greeting-cat { animation: greeting-arrive .7s .12s cubic-bezier(.16,1,.3,1) both; }
+.greeting-dog-head { transform-origin: 109px 110px; animation: greeting-tilt 1.6s .5s ease-in-out; }
+.greeting-tail { transform-origin: 80px 130px; animation: greeting-wag .22s .55s ease-in-out 8 alternate; }
+.greeting-cat-tail { transform-origin: 214px 143px; animation: greeting-swish .7s .4s ease-in-out 3 alternate; }
+.greeting-eyes { transform-box: fill-box; transform-origin: center; animation: greeting-blink 2s .7s ease-in-out; }
+.greeting-spark { transform-box: fill-box; transform-origin: center; animation: greeting-spark 1.6s .3s both; }
+.greeting-trail { animation: greeting-trail 1.5s ease-out; }
+@keyframes greeting-arrive { from { opacity: 0; transform: translateY(24px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes greeting-tilt { 0%, 100% { transform: rotate(0); } 35%, 65% { transform: rotate(-10deg); } }
+@keyframes greeting-wag { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
+@keyframes greeting-swish { from { transform: rotate(-8deg); } to { transform: rotate(9deg); } }
+@keyframes greeting-blink { 0%, 40%, 48%, 100% { transform: scaleY(1); } 44% { transform: scaleY(.12); } }
+@keyframes greeting-spark { 0% { opacity: 0; transform: scale(.4) rotate(-20deg); } 45% { opacity: 1; transform: scale(1.2) rotate(5deg); } 100% { opacity: 1; transform: none; } }
+@keyframes greeting-trail { from { opacity: 0; stroke-dashoffset: 70; } to { opacity: 1; stroke-dashoffset: 0; } }
+.petpal-button-primary, .petpal-button-danger { padding: 12px; border-radius: 14px; font-weight: 600; font-size: 14px; }
+.petpal-button-primary { background: #2C402B; color: white; }
+.petpal-button-danger { background: #F7E8E4; color: #943F34; }
+.petpal-screen > [data-testid="matches-tab"], .petpal-screen > [data-testid="messages-tab"], .petpal-screen > [data-testid="profile-tab"], .petpal-screen > .foster-shell { animation: fadeIn .18s ease-out; }
+@supports (interpolate-size: allow-keywords) {
+  .foster-info, .chat-context, details:has(> summary) { interpolate-size: allow-keywords; }
+  .foster-info::details-content, .chat-context::details-content, details:has(> summary)::details-content { height: 0; overflow: clip; transition: height .22s ease, content-visibility .22s allow-discrete; }
+  details[open]::details-content { height: auto; }
+}
 .petpal-screen:has(> .data-source-banner) .petpal-fullscreen { top: 19px; }
 .petpal-fullscreen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: #F8F7F4; }
 .petpal-fullscreen > [data-testid="screen-header"] { flex-shrink: 0; }
@@ -109,6 +146,7 @@
 .match-modes { display: flex; border: 1px solid #E4E2DC; border-radius: 18px; padding: 3px; gap: 2px; }
 .match-modes button { display: flex; flex: 1; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; min-height: 44px; font-size: .75rem; line-height: 1.25; border-radius: 14px; }
 .match-modes button svg { flex-shrink: 0; }
+.match-modes button { position: relative; overflow: hidden; }
 .match-modes button[aria-pressed="true"] { color: #2C402B; background: #E3ECE4; font-weight: 600; }
 .filter-trigger { display: flex; align-items: center; gap: 6px; border: 1px solid #E4E2DC; border-radius: 24px; min-height: 44px; padding: 6px 12px; font-size: .875rem; }
 .match-card { margin: 0 16px; border: 1px solid #E4E2DC; border-radius: 20px; overflow: hidden; background: white; }

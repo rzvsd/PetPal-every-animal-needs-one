@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useReducedPetMotion } from '../components/Motion';
 import {
   Badge, EmptyState, SafetyMenu, PrimaryButton, SecondaryButton
 } from '../components/SharedComponents';
@@ -57,7 +59,7 @@ function ConversationCard({ conv, onClick, t }) {
 function ConversationThread({ conv, onBack, t }) {
   const { messaging, reportConversation, blockConversation, dataSource, lang, fosterApplications } = useApp();
   const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
-    threadHasMore, loadingThread, markRead, respondToWalk } = messaging;
+    threadHasMore, loadingThread, markRead, respondToWalk, typingByConversation, startTyping, stopTyping } = messaging;
   const [input, setInput] = useState(drafts[conv.id] || '');
   const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
@@ -68,12 +70,16 @@ function ConversationThread({ conv, onBack, t }) {
   const atBottom = useRef(true);
   const olderAnchor = useRef(null);
   const sending = useRef(false);
+  const reducedMotion = useReducedPetMotion();
   const isMatch = conv.source === 'MATCH';
   const canWrite = !conv.blocked && !conv.fosterReadOnly && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
   const application = fosterApplications.find(item => item.id === conv.fosterApplicationId || item.fosterCaseId === conv.fosterCaseId);
-  const pending = conv.blocked ? [] : outbox.filter(message => message.conversationId === conv.id
-    && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId));
-  const messages = conv.blocked ? [] : [...conv.messages, ...pending];
+  const messages = useMemo(() => conv.blocked ? [] : [...conv.messages, ...outbox.filter(message => message.conversationId === conv.id
+    && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId))], [conv.blocked, conv.id, conv.messages, outbox]);
+  const messageKey = message => message.clientMessageId || message.messageId;
+  const seenMessages = useRef(null);
+  if (!seenMessages.current) seenMessages.current = new Set(messages.map(messageKey));
+  useLayoutEffect(() => { messages.forEach(message => seenMessages.current.add(messageKey(message))); }, [messages]);
   const latest = conv.messages[conv.messages.length - 1];
   useBackHandler(true, onBack);
   useEffect(() => {
@@ -102,6 +108,7 @@ function ConversationThread({ conv, onBack, t }) {
     if (sending.current || !input.trim() || !canWrite) return;
     sending.current = true; setSendError('');
     try {
+      stopTyping(conv.id);
       await sendMessage(conv.id, input);
       setInput(''); atBottom.current = true;
     } catch (error) { setSendError(t(error.message)); }
@@ -168,27 +175,35 @@ function ConversationThread({ conv, onBack, t }) {
     {notice && <p role="status" className="px-4 py-2 text-sm">{notice}</p>}
     {dataSource === 'supabase' && !realtimeReady && <p role="status" className="px-4 text-xs text-[#57645C]">{t('readiness.refreshing')}</p>}
     {chatError && <div role="alert" className="px-4 text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="underline min-h-11" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button></div>}
+    {typingByConversation?.[conv.id] && <div data-testid="typing-indicator" role="status" className="px-4 pb-1 text-xs text-[#57645C]">
+      <span>{t('motion.typing')}</span>{' '}
+      {!reducedMotion && <motion.span aria-hidden="true" className="inline-flex gap-0.5 align-middle" animate={{ opacity: [0.35, 1, 0.35] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}>
+        <span>•</span><span>•</span><span>•</span>
+      </motion.span>}
+    </div>}
     <div ref={scroll} onScroll={scrollChanged} data-testid="message-scroll" className="min-h-0 flex-1 overflow-y-auto px-4 py-3 space-y-3">
       {threadHasMore[conv.id] && <button type="button" disabled={loadingThread} onClick={loadEarlier} className="min-h-11 w-full text-sm underline">{t('readiness.earlierMessages')}</button>}
       {loadingThread && <p role="status" className="text-center text-xs">{t('readiness.loading')}</p>}
       {messages.map((msg, index) => {
         const day = new Date(msg.createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB');
         const previousDay = index ? new Date(messages[index - 1].createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB') : null;
-        return <React.Fragment key={msg.messageId}>
-          {day !== previousDay && <p className="text-center text-xs text-[#57645C] py-2">{day}</p>}
-          <div data-testid="message-bubble" data-status={msg.status || 'sent'} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
-            <div className={`chat-bubble ${msg.isMine ? 'chat-bubble-mine' : ''}`}>
-              {!msg.isMine && <p className="text-xs font-semibold mb-1">{msg.senderDisplayName}</p>}
-              <p className="whitespace-pre-wrap break-words text-sm">{msg.body}</p>
-              <p className="text-[11px] mt-1 text-[#57645C]">{new Date(msg.createdAt).toLocaleTimeString(lang === 'ro' ? 'ro-RO' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
-                {msg.isMine && ` · ${t(msg.status === 'sending' ? 'readiness.sending' : msg.status === 'failed' ? 'readiness.failed' : 'readiness.sent')}`}</p>
-              {msg.status === 'failed' && <div role="alert" className="text-xs mt-2">
-                <p>{t('readiness.sendFailed')}</p>
-                <button type="button" data-testid="retry-message" disabled={!canWrite} className="underline font-semibold min-h-11"
-                  onClick={() => sendMessage(conv.id, msg.body, msg.clientMessageId).catch(error => setSendError(t(error.message)))}>{t('readiness.retryMessage')}</button>
-              </div>}
-            </div>
+        const messageBubble = <div data-testid="message-bubble" data-status={msg.status || 'sent'} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
+          <div className={`chat-bubble ${msg.isMine ? 'chat-bubble-mine' : ''}`}>
+            {!msg.isMine && <p className="text-xs font-semibold mb-1">{msg.senderDisplayName}</p>}
+            <p className="whitespace-pre-wrap break-words text-sm">{msg.body}</p>
+            <p className="text-[11px] mt-1 text-[#57645C]">{new Date(msg.createdAt).toLocaleTimeString(lang === 'ro' ? 'ro-RO' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
+              {msg.isMine && ` · ${t(msg.status === 'sending' ? 'readiness.sending' : msg.status === 'failed' ? 'readiness.failed' : 'readiness.sent')}`}</p>
+            {msg.status === 'failed' && <div role="alert" className="text-xs mt-2">
+              <p>{t('readiness.sendFailed')}</p>
+              <button type="button" data-testid="retry-message" disabled={!canWrite} className="underline font-semibold min-h-11"
+                onClick={() => sendMessage(conv.id, msg.body, msg.clientMessageId).catch(error => setSendError(t(error.message)))}>{t('readiness.retryMessage')}</button>
+            </div>}
           </div>
+        </div>;
+        const shouldAnimate = !seenMessages.current.has(messageKey(msg)) && (msg.isNew || msg.status === 'sending');
+        return <React.Fragment key={messageKey(msg)}>
+          {day !== previousDay && <p className="text-center text-xs text-[#57645C] py-2">{day}</p>}
+          <motion.div initial={shouldAnimate && !reducedMotion ? { opacity: 0, y: 4 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.24 }}>{messageBubble}</motion.div>
         </React.Fragment>;
       })}
     </div>
@@ -210,7 +225,8 @@ function ConversationThread({ conv, onBack, t }) {
       </div> : <>
       <div className="flex items-end gap-2">
         <textarea data-testid="message-input" rows={1} value={input} disabled={!canWrite}
-          onChange={event => { setInput(event.target.value); if (!saveDraft(conv.id, event.target.value)) setSendError(t('readiness.storageFailed')); }}
+          onChange={event => { const value = event.target.value; setInput(value); if (value.trim()) startTyping(conv.id); else stopTyping(conv.id); if (!saveDraft(conv.id, value)) setSendError(t('readiness.storageFailed')); }}
+          onBlur={() => stopTyping(conv.id)}
           aria-label={t('messages.messageInput')} placeholder={t(conv.blocked ? 'messages.blockedPlaceholder' : 'messages.typeMessage')}
           className="min-w-0 flex-1 resize-none rounded-2xl border border-[#D5D5CE] bg-[#F8F7F4] p-3 text-base max-h-32"
           onInput={event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(128, event.target.scrollHeight)}px`; }} />

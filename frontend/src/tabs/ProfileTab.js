@@ -1,13 +1,16 @@
 import PlatformAdminEntry from '../components/PlatformAdmin';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useBackHandler } from '../navigation/backNavigation';
+import { motionSpring, SavedCheck, useReducedPetMotion } from '../components/Motion';
+import { useDiscardGuard } from '../components/FormGuard';
 import {
   Badge, SecondaryButton, ScreenHeader, EmptyState, PrivacyNote,
   Modal, PrimaryButton
 } from '../components/SharedComponents';
 import {
-  User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2,
+  User, Dog, Cat, Shield, MapPin, Lock, CheckCircle2, Circle,
   ChevronRight, Edit3, Plus, Settings, Bell, HelpCircle,
   FileText, Trash2, EyeOff, Heart, Home, AlertTriangle, Languages, LogOut
 } from 'lucide-react';
@@ -19,15 +22,17 @@ function AnimalCard({
   onMatchSettings = () => {},
   onDeleteAnimal = () => {},
   showMatchDetails = true,
+  justCompleted = false,
 }) {
-  const completenessColor = animal.profileCompleteness >= 90 ? 'text-[#2C402B]' : animal.profileCompleteness >= 70 ? 'text-[#6A5A2A]' : 'text-[#8B4C2F]';
+  const reducedMotion = useReducedPetMotion();
   const modeLabels = {
     PLAY: t('matches.play'),
     SOCIAL: t('matches.social'),
   };
 
   return (
-    <div data-testid={`animal-card-${animal.id}`} className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden shadow-sm">
+    <motion.div data-testid={`animal-card-${animal.id}`} className="overflow-hidden rounded-2xl border border-[#E4E2DC] bg-white shadow-sm"
+      initial={reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={reducedMotion ? { duration: 0 } : motionSpring}>
       <div className="flex">
         <div className="w-24 h-28 flex-shrink-0">
           {animal.photoUrls?.[0] ? (
@@ -43,22 +48,20 @@ function AnimalCard({
             <div>
               <h3 className="text-base font-semibold text-[#1F2924] font-heading">{animal.name}</h3>
               <p className="text-xs text-[#57645C]">
-                {getSpeciesLabel(animal.species, t)} - {animal.breed} - {getSexLabel(animal.sex, t)} - {formatProfileAge(animal.ageMonths, t)}
+                {getSpeciesLabel(animal.species, t)} - {animal.breed === 'Unknown' ? t('common.unknown') : animal.breed || '—'} - {getSexLabel(animal.sex, t)} - {formatProfileAge(animal.ageMonths, t)}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-xs font-semibold ${completenessColor}`}>{t('profile.profileComplete')}: {animal.profileCompleteness}%</span>
-          </div>
           {showMatchDetails && (
             <div className="flex flex-wrap gap-1">
-              {(animal.activeMatchModes || []).filter(mode => mode !== 'VERIFIED_MATE').map(m => (
+              {(animal.activeMatchModes || []).filter(mode => modeLabels[mode]).map(m => (
                 <Badge key={m} variant="default">
-                  {modeLabels[m] || m}
+                  {modeLabels[m]}
                 </Badge>
               ))}
             </div>
           )}
+          <AnimalChecklist animal={animal} t={t} justCompleted={justCompleted} onEdit={() => onEditAnimal(animal)} />
           <div className="flex gap-2 pt-1">
             <button
               type="button"
@@ -86,7 +89,7 @@ function AnimalCard({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -117,6 +120,63 @@ function NoticeBanner({ message }) {
       <span>{message}</span>
     </div>
   );
+}
+
+function Checklist({ checks, t, justCompleted = false, onEdit }) {
+  const complete = checks.filter(([, answered]) => answered).length;
+  const summary = t('profile.checklistComplete')
+    .replace('{count}', String(complete))
+    .replace('{total}', String(checks.length));
+
+  return (
+    <details className="mt-2 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-[#2C402B]">
+        <span>{t('profile.checklistTitle')}</span><span className="flex items-center gap-1">{justCompleted && <SavedCheck />}{summary}</span>
+      </summary>
+      <div className="space-y-2 border-t border-[#E4E2DC]/70 pb-3 pt-3">
+        {checks.map(([label, answered]) => (
+          <div key={label} className="flex items-center gap-2 text-xs text-[#57645C]">
+            {answered ? <CheckCircle2 size={14} className="text-[#2C402B]" /> : <Circle size={14} className="text-[#9BAE96]" />}
+            {answered ? <span>{label}</span> : <button type="button" onClick={onEdit} className="text-left underline underline-offset-2">{label}</button>}
+          </div>
+        ))}
+        <p className="pt-1 text-[11px] leading-relaxed text-[#57645C]">{t('profile.checklistHint')}</p>
+      </div>
+    </details>
+  );
+}
+
+function OwnerChecklist({ user, t, justCompleted, onEdit }) {
+  return <Checklist t={t} justCompleted={justCompleted} onEdit={onEdit} checks={[
+    [t('profile.checklistName'), Boolean(user.displayName?.trim())],
+    [t('profile.checklistCity'), Boolean(user.city?.trim())],
+  ]} />;
+}
+
+function animalBasicChecks(animal, t) {
+  const ageAnswered = animal.ageMonths != null && String(animal.ageMonths).trim() !== '' && Number.isFinite(Number(animal.ageMonths));
+  return [
+    [t('profile.checklistName'), Boolean(animal.name?.trim())],
+    [t('profile.checklistSpecies'), Boolean(animal.species?.trim())],
+    [t('profile.checklistBreed'), Boolean(animal.breed?.trim())],
+    [t('profile.checklistSex'), Boolean(animal.sex?.trim())],
+    [t('profile.checklistAge'), ageAnswered],
+    [t('profile.checklistSize'), Boolean(animal.sizeLabel?.trim())],
+    [t('profile.checklistPhoto'), Boolean(animal.photoUrls?.[0])],
+  ];
+}
+
+function AnimalChecklist({ animal, t, justCompleted, onEdit }) {
+  return <Checklist t={t} checks={animalBasicChecks(animal, t)} justCompleted={justCompleted} onEdit={onEdit} />;
+}
+
+function useDraftDirty(draft) {
+  const initial = useRef('');
+  useEffect(() => {
+    if (!draft) { initial.current = ''; return; }
+    if (!initial.current) initial.current = JSON.stringify(draft);
+  }, [draft]);
+  return Boolean(draft && initial.current && initial.current !== JSON.stringify(draft));
 }
 
 function FormField({ label, value, onChange, type = 'text', placeholder = '' }) {
@@ -151,46 +211,59 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function ProfileEditModal({ draft, t, onChange, onClose, onSave }) {
+function ProfileEditModal({ draft, t, onChange, onClose, onSave, busy = false, error }) {
+  const dirty = useDraftDirty(draft);
+  const { requestClose, discardDialog } = useDiscardGuard({ dirty, busy, onClose });
+
   return (
-    <Modal open={Boolean(draft)} onClose={onClose}>
+    <>
+      <Modal open={Boolean(draft)} onClose={requestClose}>
       {draft && (
         <div className="p-5 space-y-4">
           <div>
             <h2 className="text-lg font-bold text-[#1F2924] font-heading">{t('profile.editProfileTitle')}</h2>
             <p className="text-xs text-[#57645C] mt-1">{t('profile.editProfileDesc')}</p>
           </div>
-          <div className="space-y-3">
+          <fieldset disabled={busy} className="space-y-3">
             <FormField label={t('profile.displayName')} value={draft.displayName} onChange={(value) => onChange({ displayName: value })} />
             <FormField label={t('profile.city')} value={draft.city} onChange={(value) => onChange({ city: value })} />
             <FormField label={t('profile.coarseArea')} value={draft.coarseArea} onChange={(value) => onChange({ coarseArea: value })} />
-          </div>
+          </fieldset>
+          {error && <p role="alert" className="text-sm text-[#9B4650]">{error}</p>}
           <div className="grid grid-cols-2 gap-2 pt-1">
-            <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
-            <PrimaryButton onClick={onSave}>{t('profile.saveChanges')}</PrimaryButton>
+            <SecondaryButton onClick={requestClose} disabled={busy}>{t('common.cancel')}</SecondaryButton>
+            <PrimaryButton onClick={onSave} disabled={busy}>{t(busy ? 'common.loading' : 'profile.saveChanges')}</PrimaryButton>
           </div>
         </div>
       )}
-    </Modal>
+      </Modal>
+      {discardDialog}
+    </>
   );
 }
 
-function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
+function AnimalEditModal({ draft, t, onChange, onClose, onSave, busy = false, error }) {
   const previewUrl = draft?.photoPreviewUrl || draft?.photoUrls?.[0] || null;
+  const localPreview = draft?.photoPreviewUrl;
+  useEffect(() => () => { if (localPreview) URL.revokeObjectURL(localPreview); }, [localPreview]);
+  const reduced = useReducedPetMotion();
+  const dirty = useDraftDirty(draft);
+  const { requestClose, discardDialog } = useDiscardGuard({ dirty, busy, onClose });
 
   return (
-    <Modal open={Boolean(draft)} onClose={onClose}>
+    <>
+      <Modal open={Boolean(draft)} onClose={requestClose}>
       {draft && (
         <div className="p-5 space-y-4">
           <div>
             <h2 className="text-lg font-bold text-[#1F2924] font-heading">{t('profile.editAnimalTitle')}</h2>
             <p className="text-xs text-[#57645C] mt-1">{t('profile.editAnimalDesc')}</p>
           </div>
-          <div className="space-y-3">
+          <fieldset disabled={busy} className="space-y-3">
             <div className="flex items-center gap-4 rounded-2xl border border-[#E4E2DC] bg-[#F8F7F4] p-3">
               <div className="w-20 h-20 overflow-hidden rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
                 {previewUrl ? (
-                  <img src={previewUrl} alt={draft.name || t('profile.photo')} className="h-full w-full object-cover" />
+                  <motion.img key={previewUrl} initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} src={previewUrl} alt={draft.name || t('profile.photo')} className="h-full w-full object-cover" />
                 ) : draft.species === 'CAT' ? (
                   <Cat size={28} className="text-[#9BAE96]" />
                 ) : (
@@ -233,7 +306,11 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
                 { value: 'CAT', label: t('common.cat') },
               ]}
             />
-            <FormField label={t('profile.breed')} value={draft.breed} onChange={(value) => onChange({ breed: value })} />
+            <div className="flex items-end gap-2">
+              <div className="min-w-0 flex-1"><FormField label={t('profile.breed')} value={draft.breed} onChange={(value) => onChange({ breed: value })} /></div>
+              <button type="button" data-testid="breed-unknown" className="mb-0.5 min-h-11 shrink-0 rounded-xl border border-[#E4E2DC] bg-white px-3 text-xs font-semibold text-[#57645C]"
+                onClick={() => onChange({ breed: 'Unknown' })}>{t('common.unknown')}</button>
+            </div>
             <SelectField
               label={t('profile.sex')}
               value={draft.sex}
@@ -260,14 +337,18 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave }) {
                 { value: 'LARGE', label: t('common.large') },
               ]}
             />
-          </div>
+          </fieldset>
+          {localPreview && <p className="text-xs text-[#57645C]">{t('motion.photoPreview')}</p>}
+          {error && <p role="alert" className="text-sm text-[#9B4650]">{error}</p>}
           <div className="grid grid-cols-2 gap-2 pt-1">
-            <SecondaryButton onClick={onClose}>{t('common.cancel')}</SecondaryButton>
-            <PrimaryButton onClick={onSave}>{t('profile.saveChanges')}</PrimaryButton>
+            <SecondaryButton onClick={requestClose} disabled={busy}>{t('common.cancel')}</SecondaryButton>
+            <PrimaryButton onClick={onSave} disabled={busy}>{t(busy ? 'common.loading' : 'profile.saveChanges')}</PrimaryButton>
           </div>
         </div>
       )}
-    </Modal>
+      </Modal>
+      {discardDialog}
+    </>
   );
 }
 
@@ -313,7 +394,7 @@ function getSexLabel(sex, t) {
 }
 
 function formatProfileAge(months, t) {
-  if (!months) return t('common.unknown');
+  if (months == null || months === '') return t('common.unknown');
   if (months < 12) {
     return `${months} ${months === 1 ? t('common.month') : t('common.months')}`;
   }
@@ -340,12 +421,6 @@ function getRoleLabel(role, t) {
   return roleLabels[role] || role;
 }
 
-function VerificationSection({ t }) {
-  return <div className="space-y-3 p-4 bg-white rounded-xl border">
-    <p>{t('care.boundary')}</p><p>{t('care.matePaused')}</p>
-  </div>;
-}
-
 function PreferenceDetailScreen({ title, description, rows, notice, t, onBack }) {
   return (
     <div className="flex-1 flex flex-col">
@@ -369,12 +444,14 @@ function PreferenceDetailScreen({ title, description, rows, notice, t, onBack })
   );
 }
 
-function ToggleRow({ label, description, enabled, onToggle, t }) {
+function ToggleRow({ label, description, enabled, onToggle, t, disabled = false }) {
+  const reduced = useReducedPetMotion();
   return (
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center justify-between gap-4 border-b border-[#E4E2DC]/50 py-3 first:pt-0 last:border-0 last:pb-0"
+      disabled={disabled}
+      className={`flex w-full items-center justify-between gap-4 border-b border-[#E4E2DC]/50 py-3 first:pt-0 last:border-0 last:pb-0 ${disabled ? 'cursor-wait opacity-60' : ''}`}
       aria-pressed={enabled}
     >
       <div className="text-left">
@@ -382,14 +459,16 @@ function ToggleRow({ label, description, enabled, onToggle, t }) {
         {description && <span className="mt-0.5 block text-xs leading-relaxed text-[#57645C]">{description}</span>}
       </div>
       <span className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors ${enabled ? 'bg-[#2C402B]' : 'bg-[#D8D4CC]'}`}>
-        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+        <motion.span className="absolute left-0 top-1 h-5 w-5 rounded-full bg-white shadow-sm" initial={false}
+          animate={{ x: enabled ? 24 : 4 }} transition={reduced ? { duration: 0 } : motionSpring} />
       </span>
       <span className="sr-only">{enabled ? t('profile.enabled') : t('profile.disabled')}</span>
     </button>
   );
 }
 
-function NotificationPreferenceScreen({ prefs, onToggle, t, onBack, environment }) {
+function NotificationPreferenceScreen({ prefs, onToggle, t, onBack, environment, reduceMotion, onReduceMotionToggle,
+  showTypingActivity, onTypingToggle, typingBusy, preferenceError }) {
   const rows = [
     ['push', t('profile.pushNotifications'), t('profile.pushNotificationsDesc')],
     environment === 'foster'
@@ -400,12 +479,27 @@ function NotificationPreferenceScreen({ prefs, onToggle, t, onBack, environment 
 
   return (
     <div className="flex-1 flex flex-col">
-      <ScreenHeader title={t('profile.notifications')} onBack={onBack} />
+      <ScreenHeader title={t('motion.preferences')} onBack={onBack} />
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20 space-y-4">
         <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4">
           <p className="text-sm leading-relaxed text-[#57645C]">{t('profile.notificationPreferencesDesc')}</p>
         </div>
         <div className="rounded-2xl border border-[#E4E2DC] bg-white p-4 shadow-sm">
+          <ToggleRow
+            label={t('motion.reduceMotion')}
+            description={t('motion.reduceMotionDescription')}
+            enabled={reduceMotion}
+            onToggle={onReduceMotionToggle}
+            t={t}
+          />
+          <ToggleRow
+            label={t('motion.shareTyping')}
+            description={t('motion.shareTypingDescription')}
+            enabled={showTypingActivity}
+            onToggle={onTypingToggle}
+            disabled={typingBusy}
+            t={t}
+          />
           {rows.map(([key, label, description]) => (
             <ToggleRow
               key={key}
@@ -417,6 +511,7 @@ function NotificationPreferenceScreen({ prefs, onToggle, t, onBack, environment 
             />
           ))}
         </div>
+        <NoticeBanner message={preferenceError} />
         <NoticeBanner message={t('profile.notificationPreferencesNotice')} />
         <SecondaryButton onClick={onBack}>{t('common.back')}</SecondaryButton>
       </div>
@@ -584,6 +679,7 @@ export default function ProfileTab({ environment = 'match' }) {
     paymentReturnNotice,
     clearPaymentReturnNotice,
     activeScreen, screenParams, goBack, setActiveTab,
+    reduceMotion, setReduceMotion, setShowTypingActivity,
   } = useApp();
   const isFosterEnvironment = environment === 'foster';
   const [activeSection, setActiveSection] = useState(null);
@@ -591,6 +687,11 @@ export default function ProfileTab({ environment = 'match' }) {
   const [profileDraft, setProfileDraft] = useState(null);
   const [animalDraft, setAnimalDraft] = useState(null);
   const [deleteDraft, setDeleteDraft] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingAnimal, setSavingAnimal] = useState(false);
+  const [completedDetails, setCompletedDetails] = useState(null);
+  const [typingBusy, setTypingBusy] = useState(false);
+  const [preferenceError, setPreferenceError] = useState('');
   const [notificationPrefs, setNotificationPrefs] = useState({
     push: true,
     matches: true,
@@ -603,7 +704,6 @@ export default function ProfileTab({ environment = 'match' }) {
 
   useEffect(() => {
     if (!activeScreen) return;
-    if (activeScreen === 'verification') setActiveSection('verification');
     if (activeScreen === 'editAnimal' || activeScreen === 'createAnimal') {
       const animal = myAnimals.find(item => item.id === screenParams?.animalId);
       setActiveSection('animals');
@@ -623,6 +723,18 @@ export default function ProfileTab({ environment = 'match' }) {
 
   const toggleNotificationPref = (key) => {
     setNotificationPrefs((current) => ({ ...current, [key]: !current[key] }));
+  };
+  const toggleTypingActivity = async () => {
+    if (typingBusy) return;
+    setPreferenceError('');
+    setTypingBusy(true);
+    try {
+      await setShowTypingActivity(user.showTypingActivity === false);
+    } catch (error) {
+      setPreferenceError(error.message || t('motion.preferenceError'));
+    } finally {
+      setTypingBusy(false);
+    }
   };
   const openHelpTopic = (topic) => {
     setNotice('');
@@ -684,8 +796,8 @@ export default function ProfileTab({ environment = 'match' }) {
       name: animal.name || '',
       species: animal.species || 'DOG',
       breed: animal.breed || '',
-      sex: animal.sex || 'MALE',
-      ageMonths: String(animal.ageMonths || ''),
+      sex: animal.sex || 'UNKNOWN',
+      ageMonths: String(animal.ageMonths ?? ''),
       sizeLabel: animal.sizeLabel || 'MEDIUM',
       activeMatchModes: animal.activeMatchModes || [],
       photoUrls: animal.photoUrls || [],
@@ -710,15 +822,22 @@ export default function ProfileTab({ environment = 'match' }) {
     });
   };
   const saveProfileDraft = async () => {
+    if (!profileDraft || savingProfile) return;
+    setSavingProfile(true);
     try {
-      await updateUserProfile(profileDraft);
+      const saved = await updateUserProfile(profileDraft);
+      setCompletedDetails(saved.displayName?.trim() && saved.city?.trim() && !(user.displayName?.trim() && user.city?.trim()) ? 'owner' : null);
       setProfileDraft(null);
       showNotice(t('profile.profileSaved'));
     } catch (error) {
       showNotice(error.message || t('profile.profileSaveFailed'));
+    } finally {
+      setSavingProfile(false);
     }
   };
   const saveAnimalDraft = async () => {
+    if (!animalDraft || savingAnimal) return;
+    setSavingAnimal(true);
     const normalizedAge = Number.parseInt(animalDraft.ageMonths, 10);
     const existingAnimal = myAnimals.find((animal) => animal.id === animalDraft.id);
     const nextAnimal = {
@@ -752,11 +871,15 @@ export default function ProfileTab({ environment = 'match' }) {
     };
 
     try {
-      await saveAnimalProfile(nextAnimal);
+      const saved = await saveAnimalProfile(nextAnimal);
+      setCompletedDetails(animalBasicChecks(saved, t).every(([, answered]) => answered)
+        && (!existingAnimal || !animalBasicChecks(existingAnimal, t).every(([, answered]) => answered)) ? saved.id : null);
       setAnimalDraft(null);
       showNotice(t('profile.animalSaved'));
     } catch (error) {
       showNotice(error.message || t('profile.animalSaveFailed'));
+    } finally {
+      setSavingAnimal(false);
     }
   };
   const showMatchSettingsNotice = animal => openAnimalEditor(animal);
@@ -862,6 +985,8 @@ export default function ProfileTab({ environment = 'match' }) {
         onChange={(patch) => setProfileDraft((current) => ({ ...current, ...patch }))}
         onClose={() => setProfileDraft(null)}
         onSave={saveProfileDraft}
+        busy={savingProfile}
+        error={notice}
       />
       <AnimalEditModal
         draft={animalDraft}
@@ -869,6 +994,8 @@ export default function ProfileTab({ environment = 'match' }) {
         onChange={(patch) => setAnimalDraft((current) => ({ ...current, ...patch }))}
         onClose={() => setAnimalDraft(null)}
         onSave={saveAnimalDraft}
+        busy={savingAnimal}
+        error={notice}
       />
       <DeleteAnimalModal
         animal={deleteDraft}
@@ -878,18 +1005,6 @@ export default function ProfileTab({ environment = 'match' }) {
       />
     </>
   );
-
-  if (activeSection === 'verification') {
-    return (
-      <div className="flex-1 flex flex-col">
-        <ScreenHeader title={t('profile.verification')} onBack={() => setActiveSection(null)} />
-      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-20">
-          <VerificationSection user={user} animals={myAnimals} t={t} environment={environment} />
-        </div>
-        {renderEditModals()}
-      </div>
-    );
-  }
 
   if (activeSection === 'animals') {
     return (
@@ -924,6 +1039,7 @@ export default function ProfileTab({ environment = 'match' }) {
                 key={a.id}
                 animal={a}
                 t={t}
+                justCompleted={completedDetails === a.id}
                 onEditAnimal={openAnimalEditor}
                 onMatchSettings={showMatchSettingsNotice}
                 onDeleteAnimal={requestDeleteAnimal}
@@ -1088,6 +1204,12 @@ export default function ProfileTab({ environment = 'match' }) {
         onToggle={toggleNotificationPref}
         t={t}
         environment={environment}
+        reduceMotion={reduceMotion}
+        onReduceMotionToggle={() => { setPreferenceError(''); setReduceMotion(!reduceMotion); }}
+        showTypingActivity={user.showTypingActivity !== false}
+        onTypingToggle={toggleTypingActivity}
+        typingBusy={typingBusy}
+        preferenceError={preferenceError}
         onBack={() => setActiveSection(null)}
       />
     );
@@ -1123,6 +1245,7 @@ export default function ProfileTab({ environment = 'match' }) {
               </div>
             </div>
           </div>
+          <OwnerChecklist user={user} t={t} justCompleted={completedDetails === 'owner'} onEdit={openProfileEditor} />
           <button
             type="button"
             onClick={openProfileEditor}
@@ -1153,6 +1276,7 @@ export default function ProfileTab({ environment = 'match' }) {
                     key={a.id}
                     animal={a}
                     t={t}
+                    justCompleted={completedDetails === a.id}
                     onEditAnimal={openAnimalEditor}
                     onMatchSettings={showMatchSettingsNotice}
                     onDeleteAnimal={requestDeleteAnimal}
@@ -1164,17 +1288,16 @@ export default function ProfileTab({ environment = 'match' }) {
         )}
 
         <PlatformAdminEntry />
-        <VerificationSection t={t} />
 
         <div>
-          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('profile.preferences')}</h3>
+          <h3 className="text-xs font-semibold text-[#57645C] uppercase tracking-wider mb-2">{t('motion.preferences')}</h3>
           <div className="bg-white rounded-2xl border border-[#E4E2DC] overflow-hidden">
             {isFosterEnvironment ? (
               <SectionItem icon={Home} label={t('care.home')} onClick={() => setActiveTab('foster-home')} />
             ) : (
               <SectionItem icon={Heart} label={t('profile.matchPreferences')} onClick={() => setActiveSection('matchPreferences')} />
             )}
-            <SectionItem icon={Bell} label={t('profile.notifications')} onClick={() => setActiveSection('notificationPreferences')} />
+            <SectionItem icon={Bell} label={t('motion.preferences')} onClick={() => setActiveSection('notificationPreferences')} />
           </div>
         </div>
 

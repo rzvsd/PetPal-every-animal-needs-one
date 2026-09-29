@@ -2,18 +2,30 @@ import React, { act, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useMessaging } from './useMessaging';
 import { supabase } from './supabaseClient';
-import { loadConversations, loadConversationMessages, sendSupabaseConversationMessage } from './supabaseApi';
+import {
+  loadConversations,
+  loadConversationMessages,
+  sendSupabaseConversationMessage,
+  setSupabaseConversationTyping,
+  loadSupabaseConversationTyping,
+} from './supabaseApi';
 
 jest.mock('./supabaseClient', () => ({ supabase: { rpc: jest.fn(), from: jest.fn(), channel: jest.fn(), removeChannel: jest.fn() } }));
-jest.mock('./supabaseApi', () => ({ loadConversations: jest.fn(), loadConversationMessages: jest.fn(), sendSupabaseConversationMessage: jest.fn() }));
+jest.mock('./supabaseApi', () => ({
+  loadConversations: jest.fn(),
+  loadConversationMessages: jest.fn(),
+  sendSupabaseConversationMessage: jest.fn(),
+  setSupabaseConversationTyping: jest.fn(),
+  loadSupabaseConversationTyping: jest.fn(),
+}));
 jest.mock('@capacitor/core', () => ({ Capacitor: { isNativePlatform: () => false } }));
 jest.mock('@capacitor/app', () => ({ App: { addListener: jest.fn() } }));
 
 let root; let api; let rows; let host;
-function Harness({ accountId = 'alice' }) {
-  const [conversations, setConversations] = useState([{ id: 'chat', messages: [], lastReadSequence: 0 }]);
+function Harness({ accountId = 'alice', showTypingActivity = true, conversationIds = ['chat'] }) {
+  const [conversations, setConversations] = useState(conversationIds.map(id => ({ id, messages: [], lastReadSequence: 0 })));
   rows = conversations;
-  api = useMessaging({ accountId, live: true, conversations, setConversations });
+  api = useMessaging({ accountId, live: true, conversations, setConversations, showTypingActivity });
   return null;
 }
 
@@ -23,6 +35,8 @@ beforeEach(async () => {
   Object.defineProperty(global, 'crypto', { configurable: true, value: { randomUUID: () => 'request-uuid' } });
   loadConversations.mockImplementation(async ({ id }) => id ? [{ id, lastReadSequence: 0 }] : []);
   loadConversationMessages.mockResolvedValue([]);
+  setSupabaseConversationTyping.mockResolvedValue(true);
+  loadSupabaseConversationTyping.mockResolvedValue({ isTyping: false, updatedAt: null });
   supabase.rpc.mockResolvedValue({ data: [], error: null });
   const channel = { on: jest.fn().mockReturnThis(), subscribe: jest.fn().mockReturnThis() };
   supabase.channel.mockReturnValue(channel);
@@ -76,4 +90,151 @@ test('a later outgoing acceptance does not skip an earlier incoming message duri
   await act(async () => api.loadThread('chat'));
   expect(loadConversationMessages).toHaveBeenLastCalledWith('chat', { before: undefined, after: 5 });
   expect(rows[0].messages.map(message => message.sequence)).toEqual([5, 6, 7]);
+});
+
+test('typing activity starts immediately, refreshes while active, and stops after inactivity', async () => {
+  jest.useFakeTimers();
+  try {
+    await act(async () => api.openThread('chat'));
+    await act(async () => api.startTyping('chat'));
+    expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', true);
+
+    await act(async () => { jest.advanceTimersByTime(2500); });
+    await act(async () => api.startTyping('chat'));
+    await act(async () => { jest.advanceTimersByTime(500); });
+    expect(setSupabaseConversationTyping.mock.calls.filter(([, typing]) => typing)).toHaveLength(2);
+
+    await act(async () => { jest.advanceTimersByTime(2500); });
+    expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', false);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test('typing polling exposes only fresh activity for the active thread and expires it locally', async () => {
+  jest.useFakeTimers();
+  try {
+    loadSupabaseConversationTyping.mockResolvedValue({ isTyping: true, updatedAt: new Date().toISOString() });
+    await act(async () => {
+      api.openThread('chat');
+      await Promise.resolve();
+    });
+    expect(api.typingByConversation.chat).toEqual(expect.objectContaining({ expiresAt: expect.any(Number) }));
+
+    await act(async () => { jest.advanceTimersByTime(6001); });
+    expect(api.typingByConversation).toEqual({});
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test('typing activity respects the sharing preference and account generation', async () => {
+  await act(async () => api.openThread('chat'));
+  await act(async () => root.render(<Harness showTypingActivity={false} />));
+  await act(async () => api.startTyping('chat'));
+  expect(setSupabaseConversationTyping).not.toHaveBeenCalledWith('chat', true);
+
+  await act(async () => root.render(<Harness showTypingActivity />));
+  await act(async () => api.startTyping('chat'));
+  expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', true);
+  await act(async () => root.render(<Harness accountId="bob" />));
+  expect(setSupabaseConversationTyping).not.toHaveBeenLastCalledWith('chat', false);
+});
+
+test('switching threads stops the old session and immediately starts the new one', async () => {
+  await act(async () => root.render(<Harness conversationIds={['chat', 'other']} />));
+  await act(async () => api.openThread('chat'));
+  await act(async () => api.startTyping('chat'));
+  await act(async () => api.openThread('other'));
+  await act(async () => api.startTyping('other'));
+
+  expect(setSupabaseConversationTyping.mock.calls).toEqual(expect.arrayContaining([
+    ['chat', true], ['chat', false], ['other', true],
+  ]));
+  expect(setSupabaseConversationTyping.mock.calls.some(([id, typing]) => id === 'other' && typing)).toBe(true);
+});
+
+test('typing stop waits for an in-flight start and sends the latest state', async () => {
+  let resolveStart;
+  setSupabaseConversationTyping.mockImplementationOnce(() => new Promise(resolve => { resolveStart = resolve; }));
+  await act(async () => api.openThread('chat'));
+  await act(async () => api.startTyping('chat'));
+  await act(async () => api.stopTyping('chat'));
+  expect(setSupabaseConversationTyping).toHaveBeenCalledTimes(1);
+  expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', true);
+
+  await act(async () => {
+    resolveStart(true);
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', false);
+});
+
+test('queued typing state from an old account is discarded after account switch', async () => {
+  let resolveStart;
+  setSupabaseConversationTyping.mockImplementationOnce(() => new Promise(resolve => { resolveStart = resolve; }));
+  await act(async () => api.openThread('chat'));
+  await act(async () => api.startTyping('chat'));
+  await act(async () => api.stopTyping('chat'));
+  await act(async () => root.render(<Harness accountId="bob" />));
+  await act(async () => {
+    resolveStart(true);
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  expect(setSupabaseConversationTyping).toHaveBeenCalledTimes(1);
+  expect(setSupabaseConversationTyping).toHaveBeenLastCalledWith('chat', true);
+});
+
+test('stopping outgoing typing leaves an incoming typing indicator intact', async () => {
+  loadSupabaseConversationTyping.mockResolvedValue({ isTyping: true, updatedAt: new Date().toISOString() });
+  await act(async () => {
+    api.openThread('chat');
+    await Promise.resolve();
+  });
+  expect(api.typingByConversation.chat).toEqual(expect.objectContaining({ expiresAt: expect.any(Number) }));
+
+  await act(async () => api.startTyping('chat'));
+  await act(async () => root.render(<Harness showTypingActivity={false} />));
+  expect(api.typingByConversation.chat).toEqual(expect.objectContaining({ expiresAt: expect.any(Number) }));
+});
+
+test('typing polling stops in the background and ignores a late response until foregrounded', async () => {
+  jest.useFakeTimers();
+  const previousVisibility = document.visibilityState;
+  const pending = [];
+  Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+  loadSupabaseConversationTyping.mockImplementation(() => new Promise(resolve => pending.push(resolve)));
+  try {
+    await act(async () => {
+      api.openThread('chat');
+      await Promise.resolve();
+    });
+    expect(pending).toHaveLength(1);
+
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')));
+    await act(async () => { jest.advanceTimersByTime(6001); });
+    expect(pending).toHaveLength(1);
+
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')));
+    expect(pending).toHaveLength(1);
+    await act(async () => {
+      pending.shift()({ isTyping: true, updatedAt: new Date().toISOString() });
+      await Promise.resolve();
+    });
+    expect(api.typingByConversation).toEqual({});
+    await act(async () => { jest.advanceTimersByTime(2000); });
+    expect(pending).toHaveLength(1);
+    await act(async () => {
+      pending.shift()({ isTyping: true, updatedAt: new Date().toISOString() });
+      await Promise.resolve();
+    });
+    expect(api.typingByConversation.chat).toEqual(expect.objectContaining({ expiresAt: expect.any(Number) }));
+  } finally {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: previousVisibility });
+    jest.useRealTimers();
+  }
 });

@@ -3,6 +3,16 @@ import { fosterCoordination } from './fosterCoordination';
 
 export const translations = {
   en: {
+    motion: {
+      discardTitle: 'Discard changes?', discardDescription: 'Your unsaved edits will be lost.',
+      keepEditing: 'Keep editing', discard: 'Discard', reduceMotion: 'Reduce motion',
+      reduceMotionDescription: 'Use quieter transitions. Your device accessibility setting also applies.',
+      shareTyping: 'Share my typing activity', shareTypingDescription: 'Let other participants see when you are typing.',
+      typing: 'Someone is typing…', preferences: 'Comfort & privacy',
+      photoPreview: 'Selected photo preview. Save the form to attach it.',
+      sayHello: 'Say hello',
+      preferenceError: 'Could not save this setting. Please try again.',
+    },
     care: fosterCoordination.en,
     readiness: matchReadiness.en,
     tabs: { matches: 'Matches', foster: 'Foster', messages: 'Messages', profile: 'Profile' },
@@ -334,7 +344,12 @@ export const translations = {
       daysShort: 'd',
     },
     profile: {
-      title: 'Profile',
+        title: 'Profile',
+        checklistTitle: 'Basic details', checklistPhoto: 'Saved photo', checklistName: 'Name',
+        checklistSpecies: 'Species', checklistBreed: 'Breed or mix', checklistSex: 'Sex',
+        checklistAge: 'Age', checklistSize: 'Size', checklistCity: 'City',
+        checklistHint: 'These are participant-provided details, not PetPal certification.',
+        checklistComplete: '{count}/{total} complete',
       matchSpaceSubtitle: 'Manage animals and Animal Match preferences.',
       fosterSpaceSubtitle: 'Manage your account and Foster Network settings.',
       myAccount: 'My account',
@@ -555,6 +570,16 @@ export const translations = {
     },
   },
   ro: {
+    motion: {
+      discardTitle: 'Renunți la modificări?', discardDescription: 'Modificările nesalvate se vor pierde.',
+      keepEditing: 'Continuă editarea', discard: 'Renunță', reduceMotion: 'Redu mișcarea',
+      reduceMotionDescription: 'Folosește tranziții discrete. Se aplică și setarea de accesibilitate a dispozitivului.',
+      shareTyping: 'Arată când scriu', shareTypingDescription: 'Permite celorlalți participanți să vadă când scrii.',
+      typing: 'Cineva scrie…', preferences: 'Confort și confidențialitate',
+      photoPreview: 'Previzualizarea fotografiei alese. Salvează formularul pentru a o atașa.',
+      sayHello: 'Salută-i',
+      preferenceError: 'Setarea nu a putut fi salvată. Încearcă din nou.',
+    },
     care: fosterCoordination.ro,
     readiness: matchReadiness.ro,
     tabs: { matches: 'Potriviri', foster: 'Foster', messages: 'Mesaje', profile: 'Profil' },
@@ -886,7 +911,12 @@ export const translations = {
       daysShort: 'z',
     },
     profile: {
-      title: 'Profil',
+        title: 'Profil',
+        checklistTitle: 'Date de bază', checklistPhoto: 'Fotografie salvată', checklistName: 'Nume',
+        checklistSpecies: 'Specie', checklistBreed: 'Rasă sau metis', checklistSex: 'Sex',
+        checklistAge: 'Vârstă', checklistSize: 'Talie', checklistCity: 'Oraș',
+        checklistHint: 'Acestea sunt date declarate de participanți, nu o certificare PetPal.',
+        checklistComplete: '{count}/{total} completate',
       matchSpaceSubtitle: 'Gestionează animalele și preferințele Animal Match.',
       fosterSpaceSubtitle: 'Gestionează contul și setările Foster Network.',
       myAccount: 'Contul meu',

@@ -78,7 +78,7 @@ function PlatformAdmin({ role, onClose }) {
       {selected.type === 'LISTING' && <div className="foster-stack"><p>{item.responsible_name}</p><p>{t(`care.${item.status}`)}</p>
         <button type="button" className="foster-danger" onClick={() => choose(item.status === 'PAUSED' ? 'RESTORE' : 'PAUSE')}>{t(item.status === 'PAUSED' ? 'care.RESTORE' : 'care.PAUSE')}</button></div>}
     </div></FosterScreen>}
-    {decision && selected && <FosterForm title={t(`care.${decision.action}`)} submitLabel="care.confirmDecision" onClose={() => setDecision(null)}
+    {decision && selected && <FosterForm values={reason} title={t(`care.${decision.action}`)} submitLabel="care.confirmDecision" onClose={() => setDecision(null)}
       onSaved={() => { setSelected(null); setRevision(value => value + 1); }} onSave={() => fosterRpc('moderate_platform', {
         kind_input: decision.kind, item_id_input: item.id, action_input: decision.action, expected_updated_at_input: item.updated_at, reason_input: reason,
       })}>

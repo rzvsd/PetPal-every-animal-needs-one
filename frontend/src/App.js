@@ -9,6 +9,7 @@ import ProfileTab from './tabs/ProfileTab';
 import AuthScreen from './screens/AuthScreen';
 import EnvironmentChooser from './screens/EnvironmentChooser';
 import { EnvironmentBottomTabs, EnvironmentHeader } from './components/EnvironmentNavigation';
+import { BrandEntrance, PetMotionProvider } from './components/Motion';
 import {
   getEnvironmentConversationSource,
   getEnvironmentHomeTab,
@@ -39,6 +40,7 @@ function AppContent() {
   };
 
   const leaveEnvironment = () => {
+    if (dismissTopLayer()) return;
     setEnvironment(null);
   };
 
@@ -132,6 +134,7 @@ function AppContent() {
     <div className="petpal-container">
       <div className="petpal-frame">
         <div className={`petpal-screen ${environment === 'foster' ? 'foster-environment' : ''}`}>
+          <BrandEntrance skip={Boolean(requestedConversation)} />
           {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
           {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
             <div className="flex flex-1 items-center justify-center bg-[#F8F7F4] px-8 text-center">
@@ -171,7 +174,7 @@ function AppContent() {
 function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <PetMotionProvider><AppContent /></PetMotionProvider>
     </AppProvider>
   );
 }

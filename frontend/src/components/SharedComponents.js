@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useReducedPetMotion } from './Motion';
 import DialogLayer from './DialogLayer';
 import { useBackHandler } from '../navigation/backNavigation';
 import { useApp } from '../context/AppContext';
@@ -105,12 +107,13 @@ export function ScreenHeader({ title, onBack, right }) {
 }
 
 export function EmptyState({ icon: Icon, title, description, action, onAction }) {
+  const reduced = useReducedPetMotion();
   return (
     <div data-testid="empty-state" className="flex flex-col items-center justify-center py-16 px-8 text-center">
       {Icon && (
-        <div className="w-16 h-16 rounded-2xl bg-[#E3ECE4] flex items-center justify-center mb-5">
+        <motion.div initial={reduced ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }} className="w-16 h-16 rounded-2xl bg-[#E3ECE4] flex items-center justify-center mb-5">
           <Icon size={28} className="text-[#9BAE96]" />
-        </div>
+        </motion.div>
       )}
       <h3 className="text-lg font-semibold text-[#1F2924] mb-2 font-heading">{title}</h3>
       <p className="text-sm text-[#57645C] leading-relaxed mb-6 max-w-[260px]">{description}</p>
@@ -157,12 +160,11 @@ export function CoverageChips({ food, vet, transport }) {
   );
 }
 
-export function FilterSheet({ open, onClose, title, children, footer }) {
+export function FilterSheet({ open, onClose, title, children, footer, draggable = true }) {
   const { t } = useApp();
 
-  if (!open) return null;
   return (
-    <DialogLayer open={open} onClose={onClose} sheet label={title}>
+    <DialogLayer open={open} onClose={onClose} sheet label={title} draggable={draggable}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E2DC]">
           <h3 className="text-lg font-semibold text-[#1F2924] font-heading">{title}</h3>
           <button type="button" data-testid="close-filter-sheet" aria-label={t('common.close')} onClick={onClose} className="p-2 rounded-lg hover:bg-[#F0EDE8]">
@@ -178,7 +180,6 @@ export function FilterSheet({ open, onClose, title, children, footer }) {
 }
 
 export function Modal({ open, onClose, children }) {
-  if (!open) return null;
   return (
     <DialogLayer open={open} onClose={onClose}>
       <div className="min-h-0 overflow-y-auto">
@@ -199,9 +200,8 @@ export function DemoBanner({ text }) {
 export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) {
   const { t } = useApp();
 
-  if (!open) return null;
   return (
-    <DialogLayer open={open} onClose={onClose} sheet label={t('messages.safetyMenu')}>
+    <DialogLayer open={open} onClose={onClose} sheet label={t('messages.safetyMenu')} draggable>
       <div className="bg-white rounded-t-3xl border-t border-[#E4E2DC] shadow-xl">
         <div className="w-10 h-1 bg-[#E4E2DC] rounded-full mx-auto mt-3" />
         <div className="p-4 space-y-1">
@@ -228,6 +228,7 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
 
 export function AnimalSelector({ animals, selectedId, onSelect, compact = false }) {
   const { t } = useApp();
+  const reduced = useReducedPetMotion();
   const [open, setOpen] = useState(false);
   const selected = animals.find(a => a.id === selectedId);
   useBackHandler(open, () => setOpen(false), 20);
@@ -254,8 +255,9 @@ export function AnimalSelector({ animals, selectedId, onSelect, compact = false 
         {!compact && <span className="text-xs text-[#57645C]">{selected?.breed}</span>}
         <ChevronDown size={16} className={`ml-auto text-[#57645C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && (
-        <div className="absolute top-full right-0 min-w-[240px] max-h-[60vh] mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-y-auto" role="listbox" aria-label={t('common.selectAnimal')}>
+      <AnimatePresence>{open && (
+        <motion.div initial={{ opacity: 0, y: reduced ? 0 : -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduced ? 0 : -6 }} transition={{ duration: 0.18 }}
+          className="absolute top-full right-0 min-w-[240px] max-h-[60vh] mt-1 bg-white rounded-xl border border-[#E4E2DC] shadow-lg z-20 overflow-y-auto" role="listbox" aria-label={t('common.selectAnimal')}>
           {animals.map(a => (
             <button
               type="button"
@@ -280,8 +282,8 @@ export function AnimalSelector({ animals, selectedId, onSelect, compact = false 
               {a.id === selectedId && <CheckCircle2 size={16} className="ml-auto text-[#9BAE96]" />}
             </button>
           ))}
-        </div>
-      )}
+        </motion.div>
+      )}</AnimatePresence>
     </div>
   );
 }

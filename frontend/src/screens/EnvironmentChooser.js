@@ -1,16 +1,23 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Heart, Home, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { motionSpring, PetGreeting, useReducedPetMotion } from '../components/Motion';
 import { FOSTER_ENVIRONMENT, MATCH_ENVIRONMENT } from '../navigation/environments';
 
-function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick, testId }) {
+function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick, testId, reducedMotion, delay }) {
   const isMatch = tone === 'match';
 
   return (
-    <button
+    <motion.button
       type="button"
       data-testid={testId}
       onClick={onClick}
+      initial={reducedMotion ? false : { opacity: 0, y: 28, rotate: isMatch ? -2 : 2 }}
+      animate={{ opacity: 1, y: 0, rotate: 0 }}
+      whileHover={reducedMotion ? undefined : { y: -2 }}
+      whileTap={reducedMotion ? undefined : { scale: 0.96 }}
+      transition={reducedMotion ? { duration: 0 } : { ...motionSpring, delay }}
       className="w-full rounded-2xl border border-[#E4E2DC] bg-white p-5 text-left shadow-sm transition-all hover:border-[#9BAE96] hover:shadow-md active:scale-[0.99]"
     >
       <div className="flex items-start gap-4">
@@ -27,24 +34,25 @@ function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick
           </span>
         </div>
       </div>
-    </button>
+    </motion.button>
   );
 }
 
 export default function EnvironmentChooser({ onSelect }) {
   const { t } = useApp();
+  const reducedMotion = useReducedPetMotion();
 
   return (
     <div data-testid="environment-chooser" className="min-h-0 flex-1 overflow-y-auto no-scrollbar bg-[#F8F7F4] px-5 py-7">
       <div className="mx-auto flex min-h-full max-w-sm flex-col justify-center">
-        <div className="mb-7 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#E3ECE4]">
-            <Heart size={30} className="text-[#2C402B]" fill="#9BAE96" />
-          </div>
-          <h1 className="mt-4 font-heading text-3xl font-bold text-[#1F2924]">{t('environment.title')}</h1>
-          <p className="mx-auto mt-2 max-w-[310px] text-sm leading-relaxed text-[#57645C]">
+        <div className="mb-5 text-center">
+          <PetGreeting />
+          <motion.h1 initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={reducedMotion ? { duration: 0 } : { ...motionSpring, delay: 0.05 }} className="mt-2 font-heading text-3xl font-bold text-[#1F2924]">{t('environment.title')}</motion.h1>
+          <motion.p initial={reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={reducedMotion ? { duration: 0 } : { ...motionSpring, delay: 0.08 }} className="mx-auto mt-2 max-w-[310px] text-sm leading-relaxed text-[#57645C]">
             {t('environment.subtitle')}
-          </p>
+          </motion.p>
         </div>
 
         <div className="space-y-3">
@@ -55,6 +63,8 @@ export default function EnvironmentChooser({ onSelect }) {
             action={t('environment.matchAction')}
             tone="match"
             testId="choose-match-environment"
+            reducedMotion={reducedMotion}
+            delay={0.1}
             onClick={() => onSelect(MATCH_ENVIRONMENT)}
           />
           <EnvironmentCard
@@ -64,6 +74,8 @@ export default function EnvironmentChooser({ onSelect }) {
             action={t('environment.fosterAction')}
             tone="foster"
             testId="choose-foster-environment"
+            reducedMotion={reducedMotion}
+            delay={0.16}
             onClick={() => onSelect(FOSTER_ENVIRONMENT)}
           />
         </div>

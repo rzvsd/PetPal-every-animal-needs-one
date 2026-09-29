@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Check, Clock, MessageCircle, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { fosterRpc, loadFosterPlacement, loadMoreFosterJournal, loadMoreFosterTasks } from '../services/fosterApi';
@@ -27,21 +28,29 @@ export function FosterTeam({ home, members, spaces, onClose, onChanged }) {
     <h3>{t('care.spaces')}</h3>
     {spaces.map(space => <div className="foster-card" key={space.id}><h3>{space.name}</h3>{space.isolation && <FosterStatus value="ISOLATION" />}</div>)}
     {owner && <button type="button" className="foster-secondary" onClick={() => { setSpaceName(''); setIsolation(false); setForm({ type: 'space' }); }}><Plus size={17} />{t('care.addSpace')}</button>}
-    {form?.type === 'invite' && <FosterForm title={t('care.inviteMember')} onClose={() => setForm(null)} onSaved={onChanged}
-      onSave={() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: profileId.trim(), action_input: 'INVITE', role_input: role })}>
-      <FosterField label={t('care.memberId')} required pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" value={profileId} onChange={e => setProfileId(e.target.value)} />
-      <p className="foster-muted">{t('care.memberIdHint')}</p>
-      <FosterSelect label={t('care.role')} value={role} onChange={setRole} options={['CARER', 'READER'].map(value => [value, t(`care.${value}`)])} />
-    </FosterForm>}
-    {form?.type === 'space' && <FosterForm title={t('care.addSpace')} onClose={() => setForm(null)} onSaved={onChanged}
-      onSave={() => fosterRpc('save_foster_space', { home_id_input: home.id, name_input: spaceName, isolation_input: isolation })}>
-      <FosterField label={t('care.name')} required maxLength={80} value={spaceName} onChange={e => setSpaceName(e.target.value)} />
-      <FosterCheck label={t('care.isolation')} checked={isolation} onChange={setIsolation} />
-    </FosterForm>}
-    {form?.type === 'revoke' && <FosterReasonForm title={t('care.revokeMember')} description={form.member.display_name} requireReason={false}
-      onClose={() => setForm(null)} onSaved={onChanged} onSave={() => fosterRpc('manage_foster_member', {
-        home_id_input: home.id, profile_id_input: form.member.profile_id, action_input: 'REVOKE',
-      })} />}
+    <AnimatePresence mode="wait" initial={false}>
+      {form?.type === 'invite' && <div className="foster-screen-host" key="invite">
+        <FosterForm values={{ profileId, role }} title={t('care.inviteMember')} onClose={() => setForm(null)} onSaved={onChanged}
+          onSave={() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: profileId.trim(), action_input: 'INVITE', role_input: role })}>
+          <FosterField label={t('care.memberId')} required pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" value={profileId} onChange={e => setProfileId(e.target.value)} />
+          <p className="foster-muted">{t('care.memberIdHint')}</p>
+          <FosterSelect label={t('care.role')} value={role} onChange={setRole} options={['CARER', 'READER'].map(value => [value, t(`care.${value}`)])} />
+        </FosterForm>
+      </div>}
+      {form?.type === 'space' && <div className="foster-screen-host" key="space">
+        <FosterForm values={{ spaceName, isolation }} title={t('care.addSpace')} onClose={() => setForm(null)} onSaved={onChanged}
+          onSave={() => fosterRpc('save_foster_space', { home_id_input: home.id, name_input: spaceName, isolation_input: isolation })}>
+          <FosterField label={t('care.name')} required maxLength={80} value={spaceName} onChange={e => setSpaceName(e.target.value)} />
+          <FosterCheck label={t('care.isolation')} checked={isolation} onChange={setIsolation} />
+        </FosterForm>
+      </div>}
+      {form?.type === 'revoke' && <div className="foster-screen-host" key="revoke">
+        <FosterReasonForm title={t('care.revokeMember')} description={form.member.display_name} requireReason={false}
+          onClose={() => setForm(null)} onSaved={onChanged} onSave={() => fosterRpc('manage_foster_member', {
+            home_id_input: home.id, profile_id_input: form.member.profile_id, action_input: 'REVOKE',
+          })} />
+      </div>}
+    </AnimatePresence>
   </div></FosterScreen>;
 }
 
@@ -129,13 +138,25 @@ export default function FosterCare({ id, homes, team, spaces, onClose, onChanged
           </div>}
         </>}
     </div>
-    {form && p && !['CARE', 'TASK', 'REVIEW', 'COMPLETE_TASK'].includes(form.type) && <FosterReasonForm title={form.title} description={form.description} requireReason={form.requireReason}
-      onClose={() => setForm(null)} onSave={body => mutate(form.type, body)} onSaved={changed} />}
-    {form?.type === 'CARE' && <CareAssignment placement={p} members={members} spaces={homeSpaces} onClose={() => setForm(null)} onSaved={changed} />}
-    {form?.type === 'TASK' && <CareTask placement={p} members={members} onClose={() => setForm(null)} onSaved={changed} />}
-    {form?.type === 'COMPLETE_TASK' && <FosterReasonForm title={t('care.completeTask')} description={form.task.title} requireReason={false} onClose={() => setForm(null)} onSaved={changed}
-      onSave={() => fosterRpc('save_foster_task', { task_id_input: form.task.id, placement_id_input: p.id, data_input: { completed: true } })} />}
-    {form?.type === 'REVIEW' && <CareReview placement={p} existing={data.reviews.find(r => r.reviewer_id === user.id)} onClose={() => setForm(null)} onSaved={changed} />}
+    <AnimatePresence mode="wait" initial={false}>
+      {form && p && !['CARE', 'TASK', 'REVIEW', 'COMPLETE_TASK'].includes(form.type) && <div className="foster-screen-host" key={form.type}>
+        <FosterReasonForm title={form.title} description={form.description} requireReason={form.requireReason}
+          onClose={() => setForm(null)} onSave={body => mutate(form.type, body)} onSaved={changed} />
+      </div>}
+      {form?.type === 'CARE' && <div className="foster-screen-host" key="CARE">
+        <CareAssignment placement={p} members={members} spaces={homeSpaces} onClose={() => setForm(null)} onSaved={changed} />
+      </div>}
+      {form?.type === 'TASK' && <div className="foster-screen-host" key="TASK">
+        <CareTask placement={p} members={members} onClose={() => setForm(null)} onSaved={changed} />
+      </div>}
+      {form?.type === 'COMPLETE_TASK' && <div className="foster-screen-host" key="COMPLETE_TASK">
+        <FosterReasonForm title={t('care.completeTask')} description={form.task.title} requireReason={false} onClose={() => setForm(null)} onSaved={changed}
+          onSave={() => fosterRpc('save_foster_task', { task_id_input: form.task.id, placement_id_input: p.id, data_input: { completed: true } })} />
+      </div>}
+      {form?.type === 'REVIEW' && <div className="foster-screen-host" key="REVIEW">
+        <CareReview placement={p} existing={data.reviews.find(r => r.reviewer_id === user.id)} onClose={() => setForm(null)} onSaved={changed} />
+      </div>}
+    </AnimatePresence>
   </FosterScreen>;
 }
 
@@ -144,7 +165,7 @@ function CareAssignment({ placement, members, spaces, onClose, onSaved }) {
   const [careState, setCareState] = useState(placement.care_state);
   const [carerId, setCarerId] = useState(placement.carer_id || '');
   const [spaceId, setSpaceId] = useState(placement.space_id || '');
-  return <FosterForm title={t('care.care')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('update_foster_placement', {
+  return <FosterForm values={{ careState, carerId, spaceId }} title={t('care.care')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('update_foster_placement', {
     placement_id_input: placement.id, action_input: 'CARE', data_input: { careState, carerId, spaceId, expectedUpdatedAt: placement.updated_at },
   })}>
     <FosterSelect label={t('care.careState')} value={careState} onChange={setCareState} options={['NORMAL', 'ISOLATION', 'MEDICAL'].map(v => [v, t(`care.${v}`)])} />
@@ -159,7 +180,7 @@ function CareTask({ placement, members, onClose, onSaved }) {
   const [title, setTitle] = useState('');
   const [due, setDue] = useState('');
   const [assigneeId, setAssigneeId] = useState(placement.carer_id || '');
-  return <FosterForm title={t('care.addTask')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('save_foster_task', {
+  return <FosterForm values={{ title, due, assigneeId }} title={t('care.addTask')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('save_foster_task', {
     task_id_input: id, placement_id_input: placement.id, data_input: { title, dueAt: due ? new Date(due).toISOString() : null, assigneeId },
   })}>
     <FosterField label={t('care.taskTitle')} required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} />
@@ -173,7 +194,7 @@ function CareReview({ placement, existing, onClose, onSaved }) {
   const { t } = useApp();
   const [rating, setRating] = useState(existing?.rating || '5');
   const [comment, setComment] = useState(existing?.comment || '');
-  return <FosterForm title={t('care.review')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('review_foster_placement', {
+  return <FosterForm values={{ rating: String(rating), comment }} title={t('care.review')} onClose={onClose} onSaved={onSaved} onSave={() => fosterRpc('review_foster_placement', {
     placement_id_input: placement.id, rating_input: Number(rating), comment_input: comment,
   })}>
     <p className="foster-muted">{t('care.reviewHint')}</p>
