@@ -1,6 +1,6 @@
 begin;
 
-select plan(33);
+select plan(28);
 
 select has_table('public', 'animal_match_likes', 'animal match likes table exists');
 select has_table('public', 'animal_matches', 'animal matches table exists');
@@ -10,7 +10,7 @@ select has_table('public', 'foster_home_reviews', 'foster home reviews table exi
 select has_table('public', 'payment_sessions', 'payment sessions table exists');
 
 select has_view('public', 'match_candidates_view', 'match candidates view exists');
-select has_view('public', 'foster_home_profiles_view', 'foster home profiles view exists');
+select hasnt_view('public', 'foster_home_profiles_view', 'legacy foster home profiles view is removed');
 select has_view('public', 'my_foster_invites_view', 'my foster invites view exists');
 
 select has_function(
@@ -155,108 +155,17 @@ select ok(
   'match conversation appears with source-aware context'
 );
 
-select is(
-  (
-    select count(*)::integer
-    from public.foster_home_profiles_view
-  ),
-  1,
-  'demo data exposes one available foster home profile'
-);
-
-select ok(
-  exists (
-    select 1
-    from public.foster_home_profiles_view
-    where id = '60000000-0000-4000-8000-000000000001'
-      and display_name = 'Ana Popescu'
-      and verified_status = 'VERIFIED'
-      and 'CAT' = any(accepts_species)
-  ),
-  'foster home profile view exposes safe public foster-home details'
-);
-
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
 
-create temp table m18_invite as
-select public.send_foster_invite(
-  '40000000-0000-4000-8000-000000000001',
-  '60000000-0000-4000-8000-000000000001',
-  'Bruno needs a calm temporary foster home.'
-) as invite_id;
-
 select ok(
-  exists (
-    select 1
-    from public.foster_invites fi
-    join m18_invite inv on inv.invite_id = fi.id
-    where fi.status = 'SENT'
-      and fi.sent_by_user_id = '10000000-0000-4000-8000-000000000001'
-  ),
-  'case manager can invite a foster home for a case'
-);
-
-select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
-
-select ok(
-  exists (
-    select 1
-    from public.my_foster_invites_view
-    where id = (select invite_id from m18_invite)
-      and status = 'SENT'
-  ),
-  'foster home owner can see incoming foster invite'
-);
-
-create temp table m18_invite_response as
-select public.respond_to_foster_invite(
-  (select invite_id from m18_invite),
-  'ACCEPTED'
-) as conversation_id;
-
-select ok(
-  exists (
-    select 1
-    from public.conversations c
-    join m18_invite_response response on response.conversation_id = c.id
-    where c.source = 'FOSTER_INVITE'
-      and c.foster_invite_id = (select invite_id from m18_invite)
-      and c.application_id is null
-  ),
-  'accepted foster invite creates an invite-scoped conversation'
+  not has_function_privilege('authenticated', 'public.send_foster_invite(uuid,uuid,text)', 'execute')
+  and not has_function_privilege('authenticated', 'public.respond_to_foster_invite(uuid,text)', 'execute'),
+  'legacy foster invites are closed to clients; foster requests replace them'
 );
 
 select ok(
-  exists (
-    select 1
-    from public.my_conversations_view
-    where conversation_id = (select conversation_id from m18_invite_response)
-      and source = 'FOSTER_INVITE'
-      and animal_name = 'Luna'
-      and related_animal_name = 'Ana Popescu'
-  ),
-  'accepted foster invite appears in conversation summaries with context'
-);
-
-select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
-
-create temp table m18_review as
-select public.rate_foster_home(
-  '60000000-0000-4000-8000-000000000001',
-  '40000000-0000-4000-8000-000000000001',
-  5,
-  'Ana was responsive and safe in the foster flow.'
-) as review_id;
-
-select ok(
-  exists (
-    select 1
-    from public.foster_home_reviews fhr
-    join m18_review review on review.review_id = fhr.id
-    where fhr.rating = 5
-      and fhr.reviewer_id = '10000000-0000-4000-8000-000000000001'
-  ),
-  'foster home rating is persisted'
+  not has_function_privilege('authenticated', 'public.rate_foster_home(uuid,uuid,integer,text)', 'execute'),
+  'legacy foster home rating is closed to clients; placement reviews replace it'
 );
 
 create temp table m18_payment as

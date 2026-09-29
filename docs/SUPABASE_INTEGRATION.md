@@ -87,6 +87,8 @@ FCM_SERVICE_ACCOUNT_JSON=...
 PUSH_FUNCTION_SECRET=...
 ```
 
+The function refuses every request when `PUSH_FUNCTION_SECRET` is unset. Whatever invokes it (scheduler or operator) must send the same value in the `x-petpal-push-secret` header.
+
 For temporary local delivery checks only, `FCM_DRY_RUN=true` lets the Edge Function process queue rows without calling FCM. A real Android device notification requires a Firebase Android app, `google-services.json` in the Android project, and matching FCM server credentials in Supabase secrets.
 
 ## Backend Rules

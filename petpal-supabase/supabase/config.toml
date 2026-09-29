@@ -403,3 +403,15 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Edge Function gateway auth. Callers need a valid Supabase JWT except the
+# Stripe webhook, which Stripe calls unauthenticated and which verifies the
+# `stripe-signature` header itself.
+[functions.create-payment-session]
+verify_jwt = true
+
+[functions.send-push-notifications]
+verify_jwt = true
+
+[functions.stripe-payment-webhook]
+verify_jwt = false

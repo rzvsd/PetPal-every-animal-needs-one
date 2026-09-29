@@ -200,8 +200,12 @@ Deno.serve(async (request) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Fail closed: without a configured secret anyone could trigger test pushes.
   const expectedSecret = getEnv('PUSH_FUNCTION_SECRET');
-  if (expectedSecret && request.headers.get('x-petpal-push-secret') !== expectedSecret) {
+  if (!expectedSecret) {
+    return jsonResponse({ error: 'Push sender is not configured' }, 500);
+  }
+  if (request.headers.get('x-petpal-push-secret') !== expectedSecret) {
     return jsonResponse({ error: 'Unauthorized push sender' }, 401);
   }
 

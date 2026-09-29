@@ -51,6 +51,17 @@ function normalizeAmount(amount?: number) {
   return value;
 }
 
+// Only known, short string metadata is stored and forwarded to Stripe.
+function pickClientMetadata(input: unknown) {
+  const source = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
+  const picked: Record<string, string> = {};
+  for (const key of ['app', 'source']) {
+    const value = source[key];
+    if (typeof value === 'string' && value.length > 0 && value.length <= 64) picked[key] = value;
+  }
+  return picked;
+}
+
 function createStripeFormBody(input: {
   paymentSessionId: string;
   profileId: string;
@@ -182,9 +193,10 @@ Deno.serve(async (request) => {
     auth: { persistSession: false },
   });
 
+  const clientMetadata = pickClientMetadata(body.metadata);
   const metadata = {
-    ...(body.metadata || {}),
-    source: body.metadata?.source || 'mobile',
+    ...clientMetadata,
+    source: clientMetadata.source || 'mobile',
     checkoutProvider: provider,
   };
 
@@ -203,7 +215,8 @@ Deno.serve(async (request) => {
     .single();
 
   if (insertError || !paymentSession) {
-    return jsonResponse({ error: insertError?.message || 'Payment session could not be created' }, 500);
+    console.error('payment_sessions insert failed', insertError);
+    return jsonResponse({ error: 'Payment session could not be created' }, 500);
   }
 
   try {
@@ -228,26 +241,31 @@ Deno.serve(async (request) => {
       .single();
 
     if (updateError || !updatedPaymentSession) {
-      return jsonResponse({ error: updateError?.message || 'Payment checkout URL could not be saved' }, 500);
+      console.error('payment_sessions update failed', updateError);
+      return jsonResponse({ error: 'Payment checkout URL could not be saved' }, 500);
     }
 
     return jsonResponse({ ok: true, paymentSession: updatedPaymentSession });
   } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const requiresConfiguration = /not configured/i.test(detail);
+    // Provider details stay in server logs; the session row is readable by the user.
+    console.error('Stripe checkout failed', detail);
     await adminClient
       .from('payment_sessions')
       .update({
         status: 'FAILED',
         metadata: {
           ...metadata,
-          error: error instanceof Error ? error.message : String(error),
+          error: requiresConfiguration ? 'provider_not_configured' : 'checkout_failed',
         },
         updated_at: new Date().toISOString(),
       })
       .eq('id', paymentSession.id);
 
     return jsonResponse({
-      error: error instanceof Error ? error.message : String(error),
-      requiresConfiguration: /not configured/i.test(error instanceof Error ? error.message : String(error)),
+      error: 'Payment checkout could not be started',
+      requiresConfiguration,
     }, 502);
   }
 });
