@@ -14,6 +14,7 @@ import { fadeThrough } from './ui/motion';
 import { Art, Button, Empty } from './ui/kit';
 import { PetMotionProvider } from './components/Motion';
 import Launch from './screens/Launch';
+import NewPassword from './screens/NewPassword';
 import NotificationAsk from './components/NotificationAsk';
 import { getEnvironmentHomeTab } from './navigation/environments';
 import './App.css';
@@ -21,7 +22,7 @@ import { dismissTopLayer } from './navigation/backNavigation';
 import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
 
 function AppContent() {
-  const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, dataSource,
+  const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, handleRecoveryLink, passwordRecovery, dataSource,
     backendStatus, refreshSupabaseData, requestedConversation } = useApp();
   const [environment, setEnvironment] = useState(null);
   const [introDone, setIntroDone] = useState(false);
@@ -109,7 +110,7 @@ function AppContent() {
     let listener;
 
     CapacitorApp.addListener('appUrlOpen', (event) => {
-      handlePaymentReturn(event?.url);
+      if (!handlePaymentReturn(event?.url)) handleRecoveryLink(event?.url);
     }).then((handle) => {
       listener = handle;
     });
@@ -117,7 +118,7 @@ function AppContent() {
     return () => {
       listener?.remove();
     };
-  }, [handlePaymentReturn]);
+  }, [handlePaymentReturn, handleRecoveryLink]);
 
   useEffect(() => {
     const resize = () => document.documentElement.style.setProperty(
@@ -139,6 +140,8 @@ function AppContent() {
           {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
           {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
             <div className="pp-state" role="status"><Art name="paw" size={72} play={false} /><p className="ui-small">{t('auth.loading')}</p></div>
+          ) : passwordRecovery ? (
+            <NewPassword />
           ) : authRequired ? (
             <AuthScreen />
           ) : backendStatus.message === 'readiness.loadError' ? (

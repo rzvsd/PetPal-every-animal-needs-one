@@ -3,16 +3,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
-import { deleteSupabaseAccount, exportSupabaseData, loadSupabaseDeletionBlockers } from '../services/supabaseApi';
+import { deleteSupabaseAccount, exportSupabaseData, loadSupabaseBlockedProfiles, loadSupabaseDeletionBlockers, unblockSupabaseProfile } from '../services/supabaseApi';
 import { useReducedPetMotion } from '../components/Motion';
 import { useDiscardGuard } from '../components/FormGuard';
 import { FilterSheet } from '../components/SharedComponents';
 import { Screen } from '../foster/ui';
 import { Toggle } from '../foster/Wizard';
-import { Avatar, Button, Notice, Row, Section, Segment, TextField, fmt } from '../ui/kit';
+import { Avatar, Button, Empty, Notice, Row, Section, Segment, Skeleton, TextField, fmt } from '../ui/kit';
 import { list, listItem } from '../ui/motion';
 import {
-  Bell, CheckCircle2, Circle, Download, Heart, HelpCircle, Home, Languages, Lock, LogOut, Plus, Shield, Trash2,
+  Ban, Bell, CheckCircle2, Circle, Download, Heart, HelpCircle, Home, Languages, Lock, LogOut, Plus, Shield, Trash2,
 } from 'lucide-react';
 import './profile.css';
 
@@ -258,6 +258,38 @@ function SupportScreen({ t, onBack, onCreateDonation, paymentSessions = [] }) {
   </Screen>;
 }
 
+// The people this account has blocked, each with a way back.
+function BlockedScreen({ t, onBack, lang }) {
+  const [people, setPeople] = useState(null);
+  const [error, setError] = useState('');
+  const [busyId, setBusyId] = useState(null);
+  useEffect(() => {
+    loadSupabaseBlockedProfiles().then(setPeople).catch(failure => { setPeople([]); setError(friendlyError(failure, t)); });
+  }, [t]);
+  const unblock = async person => {
+    setBusyId(person.id); setError('');
+    try {
+      await unblockSupabaseProfile(person.id);
+      setPeople(current => current.filter(item => item.id !== person.id));
+    } catch (failure) {
+      setError(friendlyError(failure, t, t('profile.unblockFailed')));
+    } finally {
+      setBusyId(null);
+    }
+  };
+  const locale = lang === 'ro' ? 'ro-RO' : 'en-GB';
+  return <Screen title={t('profile.blockedPeople')} onBack={onBack}>
+    <p className="ui-small ui-gutter">{t('profile.blockedPeopleDesc')}</p>
+    {error && <div className="ui-gutter"><Notice tone="error">{error}</Notice></div>}
+    {!people ? <div className="ui-list pp-screen-list">{[0, 1].map(n => <Skeleton key={n} height={64} />)}</div>
+      : people.length ? <div className="ui-list pp-screen-list">{people.map(person => <Row key={person.id}
+        leading={<Avatar name={person.displayName} size={48} />} title={person.displayName || t('common.deletedUser')}
+        subtitle={`${t('profile.blockedOn')} ${new Date(person.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}`}
+        trailing={<Button variant="secondary" busy={busyId === person.id} onClick={() => unblock(person)}>{t('profile.unblock')}</Button>} />)}</div>
+        : <Empty art="paw" title={t('profile.noBlockedPeople')} text={t('profile.noBlockedPeopleDesc')} />}
+  </Screen>;
+}
+
 function ComfortScreen({ t, onBack, environment, prefs, onToggle, reduceMotion, onReduceMotionToggle, showTypingActivity, onTypingToggle, typingBusy, preferenceError }) {
   const rows = [
     ['push', t('profile.pushNotifications'), t('profile.pushNotificationsDesc')],
@@ -481,6 +513,8 @@ export default function ProfileTab({ environment = 'match' }) {
       onToggle={key => setNotificationPrefs(current => ({ ...current, [key]: !current[key] }))}
       reduceMotion={reduceMotion} onReduceMotionToggle={() => { setPreferenceError(''); setReduceMotion(!reduceMotion); }}
       showTypingActivity={user.showTypingActivity !== false} onTypingToggle={toggleTypingActivity} typingBusy={typingBusy} preferenceError={preferenceError} />;
+  } else if (page === 'blocked') {
+    screen = <BlockedScreen key="blocked" t={t} lang={lang} onBack={back} />;
   } else if (page === 'support') {
     screen = <SupportScreen key="support" t={t} onBack={back} onCreateDonation={createDonation} paymentSessions={paymentSessions} />;
   } else if (page === 'deleteAccount') {
@@ -540,6 +574,7 @@ export default function ProfileTab({ environment = 'match' }) {
         <motion.div variants={listItem}><Section title={t('profile.help')}>
           <div className="ui-list pp-list">
             <Row leading={icon(Shield)} title={t('profile.helpAndRules')} subtitle={t('profile.helpAndRulesDesc')} onClick={() => setPage('help')} />
+            {dataSource === 'supabase' && <Row leading={icon(Ban)} title={t('profile.blockedPeople')} onClick={() => setPage('blocked')} />}
             <Row leading={icon(Heart)} title={t('profile.supportPetPal')} onClick={() => setPage('support')} />
           </div>
         </Section></motion.div>

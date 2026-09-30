@@ -170,6 +170,8 @@
 .pp-wordmark { margin-top: 6px; font-size: 46px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; }
 .pp-auth-brand .ui-lede { margin-top: 10px; }
 .pp-auth-modes { margin-top: auto; }
+.pp-auth-reset-intro { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+.pp-auth-link { align-self: flex-start; min-height: 44px; margin-top: -8px; font-size: 14.5px; font-weight: 650; color: var(--pp-green); text-decoration: underline; text-underline-offset: 3px; }
 .pp-auth-form { display: flex; flex-direction: column; gap: 16px; padding-top: 22px; }
 .pp-auth-group { display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
 .pp-auth-pair { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 10px; }
