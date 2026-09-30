@@ -68,7 +68,7 @@ function AnimalCard({
             <button
               type="button"
               onClick={() => onEditAnimal(animal)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--pp-bg)] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
             >
               <Edit3 size={12} />{t('profile.editAnimal')}
             </button>
@@ -76,7 +76,7 @@ function AnimalCard({
               <button
                 type="button"
                 onClick={() => onMatchSettings(animal)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8F7F4] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--pp-bg)] border border-[#E4E2DC] text-xs font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
               >
                 <Settings size={12} />{t('profile.matchSettings')}
               </button>
@@ -131,7 +131,7 @@ function Checklist({ checks, t, justCompleted = false, onEdit }) {
     .replace('{total}', String(checks.length));
 
   return (
-    <details className="mt-2 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3">
+    <details className="mt-2 rounded-xl border border-[#E4E2DC] bg-[var(--pp-bg)] px-3">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-[#2C402B]">
         <span>{t('profile.checklistTitle')}</span><span className="flex items-center gap-1">{justCompleted && <SavedCheck />}{summary}</span>
       </summary>
@@ -190,7 +190,7 @@ function FormField({ label, value, onChange, type = 'text', placeholder = '' }) 
         value={value ?? ''}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[var(--pp-bg)] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
       />
     </label>
   );
@@ -203,7 +203,7 @@ function SelectField({ label, value, onChange, options }) {
       <select
         value={value ?? ''}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
+        className="w-full rounded-xl border border-[#E4E2DC] bg-[var(--pp-bg)] px-3.5 py-3 text-sm text-[#1F2924] outline-none transition-colors focus:border-[#9BAE96] focus:bg-white"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -262,7 +262,7 @@ function AnimalEditModal({ draft, t, onChange, onClose, onSave, busy = false, er
             <p className="text-xs text-[#57645C] mt-1">{t('profile.editAnimalDesc')}</p>
           </div>
           <fieldset disabled={busy} className="space-y-3">
-            <div className="flex items-center gap-4 rounded-2xl border border-[#E4E2DC] bg-[#F8F7F4] p-3">
+            <div className="flex items-center gap-4 rounded-2xl border border-[#E4E2DC] bg-[var(--pp-bg)] p-3">
               <div className="w-20 h-20 overflow-hidden rounded-2xl bg-[#E3ECE4] flex items-center justify-center">
                 {previewUrl ? (
                   <motion.img key={previewUrl} initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} src={previewUrl} alt={draft.name || t('profile.photo')} className="h-full w-full object-cover" />
@@ -671,7 +671,7 @@ function SupportPetPalScreen({ t, onBack, onCreateDonation, paymentSessions = []
                 className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${
                   selectedAmount === amount
                     ? 'border-[#2C402B] bg-[#E3ECE4] text-[#2C402B]'
-                    : 'border-[#E4E2DC] bg-[#F8F7F4] text-[#57645C]'
+                    : 'border-[#E4E2DC] bg-[var(--pp-bg)] text-[#57645C]'
                 }`}
               >
                 {amount / 100} RON
@@ -700,7 +700,7 @@ function SupportPetPalScreen({ t, onBack, onCreateDonation, paymentSessions = []
           {paymentSessions.length > 0 ? (
             <div className="mt-3 space-y-2">
               {paymentSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#E4E2DC] bg-[#F8F7F4] px-3 py-2">
+                <div key={session.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#E4E2DC] bg-[var(--pp-bg)] px-3 py-2">
                   <div>
                     <p className="text-sm font-semibold text-[#1F2924]">{formatPaymentAmount(session)}</p>
                     <p className="text-xs text-[#57645C]">{session.provider} · {formatPaymentDate(session.createdAt)}</p>
@@ -1301,7 +1301,7 @@ export default function ProfileTab({ environment = 'match' }) {
 
   return (
     <div data-testid="profile-tab" className="min-h-0 flex-1 flex flex-col">
-      <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
+      <div className="px-5 pt-4 pb-3 bg-[var(--pp-bg)]">
         <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('profile.title')}</h1>
         <p className="mt-1 text-sm leading-relaxed text-[#57645C]">
           {isFosterEnvironment ? t('profile.fosterSpaceSubtitle') : t('profile.matchSpaceSubtitle')}
@@ -1333,7 +1333,7 @@ export default function ProfileTab({ environment = 'match' }) {
           <button
             type="button"
             onClick={openProfileEditor}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F8F7F4] border border-[#E4E2DC] text-sm font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
+            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--pp-bg)] border border-[#E4E2DC] text-sm font-medium text-[#57645C] hover:bg-[#EFEDE8] transition-colors"
           >
             <Edit3 size={14} />{t('profile.editProfile')}
           </button>

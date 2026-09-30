@@ -31,7 +31,7 @@ export async function loadFosterOverview(accountId) {
     organizations: organizations.data.filter(row => ['OWNER', 'MANAGER'].includes(row.role)) };
 }
 
-export async function loadFosterDirectory({ type, query = '', species = '', urgent = false, page = 0, savedIds, ownerId }) {
+export async function loadFosterDirectory({ type, query = '', species = '', urgent = false, page = 0, savedIds, ownerId, excludeOwnerId }) {
   let request = supabase.from(type === 'homes' ? 'foster_homes_directory' : 'foster_cases_directory').select('*', { count: 'exact' });
   if (type === 'homes') {
     request = request.eq('published', true);
@@ -39,6 +39,7 @@ export async function loadFosterDirectory({ type, query = '', species = '', urge
   } else {
     if (ownerId) request = request.eq('responsible_id', ownerId);
     else request = request.eq('status', 'ACTIVE');
+    if (excludeOwnerId) request = request.neq('responsible_id', excludeOwnerId);
     if (species) request = request.eq('species', species);
     if (urgent) request = request.eq('urgency', 'HIGH');
   }
@@ -89,6 +90,16 @@ export async function loadFosterPlacement(id) {
     result(supabase.from('foster_reviews_view').select('*').eq('placement_id', id)),
   ]);
   return { placement: placement.data, journal: journal.data, tasks: tasks.data, reviews: reviews.data };
+}
+
+// Open tasks due by the end of tomorrow, for the Today screen.
+export async function loadDueFosterTasks(placementIds) {
+  if (!placementIds.length) return [];
+  const until = new Date();
+  until.setDate(until.getDate() + 2);
+  until.setHours(0, 0, 0, 0);
+  return (await result(supabase.from('foster_tasks').select('*').in('placement_id', placementIds).is('completed_at', null)
+    .lt('due_at', until.toISOString()).order('due_at').limit(50))).data;
 }
 
 export async function loadMoreFosterJournal(placementId, offset) {

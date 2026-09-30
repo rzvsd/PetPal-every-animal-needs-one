@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc, loadPlatformAudit, loadPlatformItem, loadPlatformQueue, loadPlatformRole } from '../services/fosterApi';
 import { FosterField, FosterForm, FosterPager, FosterScreen } from './FosterComponents';
+import '../foster.css';
 
 export default function PlatformAdminEntry() {
   const { user, dataSource, t } = useApp();

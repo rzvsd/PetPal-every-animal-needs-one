@@ -1,10 +1,9 @@
 import React from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
-import { ArrowLeft, Compass, ClipboardList, Heart, Home, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, Heart, Home, MessageCircle, PawPrint, Search, Sun, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AnimalSelector } from './SharedComponents';
 import { useReducedPetMotion } from './Motion';
-import { dismissTopLayer } from '../navigation/backNavigation';
 import {
   FOSTER_ENVIRONMENT,
   getEnvironmentConversations,
@@ -22,27 +21,16 @@ export function EnvironmentHeader({ environment, onBack }) {
     <div className="ml-auto min-w-0 max-w-[48%]"><AnimalSelector animals={myAnimals} selectedId={selectedAnimalId} onSelect={setSelectedAnimalId} compact /></div>
   </header>;
 
+  // A slim bar on the page's own background: which space you are in, and one
+  // tap to switch. Pages carry their own big titles below it.
   return (
-    <header className={`flex min-h-14 items-center gap-3 border-b border-[#E4E2DC]/70 bg-white/90 px-4 backdrop-blur-xl ${isFoster ? 'foster-header' : ''}`}>
-      <button
-        type="button"
-        data-testid="back-to-environments"
-        onClick={onBack}
-        aria-label={t('environment.backToSpaces')}
-        title={t('environment.backToSpaces')}
-        className="flex h-11 w-11 items-center justify-center rounded-xl text-[#2C402B] transition-colors hover:bg-[#F0EDE8]"
-      >
-        <ArrowLeft size={20} />
+    <header className="petpal-space-bar">
+      <button type="button" data-testid="back-to-environments" onClick={onBack} className="petpal-space-pill"
+        aria-label={t('environment.switchSpace')} title={t('environment.switchSpace')}>
+        <span className={`petpal-space-icon ${isFoster ? 'is-foster' : ''}`}><Icon size={15} /></span>
+        <span>{isFoster ? t('environment.fosterTitle') : t('environment.matchTitle')}</span>
+        <ArrowLeftRight size={14} className="petpal-space-switch" />
       </button>
-      <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isFoster ? 'bg-[#F5DDD0]' : 'bg-[#E3ECE4]'}`}>
-        <Icon size={17} className={isFoster ? 'text-[#8B4C2F]' : 'text-[#2C402B]'} />
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-xs font-semibold uppercase tracking-wider text-[#57645C]">{t('environment.currentSpace')}</p>
-        <p className="truncate font-heading text-sm font-bold text-[#1F2924]">
-          {isFoster ? t('environment.fosterTitle') : t('environment.matchTitle')}
-        </p>
-      </div>
     </header>
   );
 }
@@ -55,11 +43,11 @@ export function EnvironmentBottomTabs({ environment }) {
   const tabs = [
     {
       key: homeTab,
-      icon: isFoster ? Compass : Heart,
-      label: isFoster ? t('care.explore') : t('readiness.discover'),
+      icon: isFoster ? Sun : Heart,
+      label: isFoster ? t('fx.tabToday') : t('readiness.discover'),
     },
-    ...(isFoster ? [{ key: 'foster-home', icon: Home, label: t('care.home') },
-      { key: 'foster-requests', icon: ClipboardList, label: t('care.requests') }] : []),
+    ...(isFoster ? [{ key: 'foster-find', icon: Search, label: t('fx.tabFind') },
+      { key: 'foster-mine', icon: PawPrint, label: t('fx.tabMine') }] : []),
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
@@ -79,7 +67,7 @@ export function EnvironmentBottomTabs({ environment }) {
             type="button"
             key={tab.key}
             data-testid={`tab-${tab.key}`}
-            onClick={() => { if (activeTab !== tab.key && !dismissTopLayer()) setActiveTab(tab.key); }}
+            onClick={() => { if (activeTab !== tab.key) setActiveTab(tab.key); }}
             whileTap={reduced ? undefined : { scale: 0.98 }}
             aria-label={tab.label}
             aria-current={isActive ? 'page' : undefined}

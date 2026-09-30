@@ -228,7 +228,7 @@ function ConversationThread({ conv, onBack, t }) {
           onChange={event => { const value = event.target.value; setInput(value); if (value.trim()) startTyping(conv.id); else stopTyping(conv.id); if (!saveDraft(conv.id, value)) setSendError(t('readiness.storageFailed')); }}
           onBlur={() => stopTyping(conv.id)}
           aria-label={t('messages.messageInput')} placeholder={t(conv.blocked ? 'messages.blockedPlaceholder' : 'messages.typeMessage')}
-          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#D5D5CE] bg-[#F8F7F4] p-3 text-base max-h-32"
+          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#D5D5CE] bg-[var(--pp-bg)] p-3 text-base max-h-32"
           onInput={event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(128, event.target.scrollHeight)}px`; }} />
         <button type="button" data-testid="send-message-btn" onClick={handleSend} disabled={!input.trim() || [...input].length > 4000 || !canWrite}
           aria-label={t('messages.send')} className="chat-send"><Send size={21} /></button>
@@ -352,7 +352,7 @@ export default function MessagesTab({ source = 'MATCH' }) {
       data-message-source={source}
       className="min-h-0 flex-1 flex flex-col"
     >
-      <div className="px-5 pt-4 pb-3 bg-[#F8F7F4]">
+      <div className="px-5 pt-4 pb-3 bg-[var(--pp-bg)]">
         <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{title}</h1>
         <p className="mt-1 text-sm leading-relaxed text-[#57645C]">{subtitle}</p>
       </div>

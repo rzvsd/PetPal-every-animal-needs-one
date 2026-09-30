@@ -1,5 +1,6 @@
 import { matchReadiness } from './matchReadiness';
 import { fosterCoordination } from './fosterCoordination';
+import { fosterExperience } from './fosterExperience';
 
 export const translations = {
   en: {
@@ -14,6 +15,12 @@ export const translations = {
       preferenceError: 'Could not save this setting. Please try again.',
     },
     care: fosterCoordination.en,
+    fx: fosterExperience.en,
+    intro: {
+      skip: 'Skip', start: 'Start', word1: 'Every', word2: 'animal', word3: 'needs', word4: 'one.',
+      match: 'Playdates and social walks', foster: 'A temporary home. Shared care.', community: 'Kind people. Safe together.',
+      tagline: 'Every animal needs one.',
+    },
     errors: {
       network: 'No connection. Check your internet and try again.',
       generic: 'Something went wrong. Please try again.',
@@ -29,8 +36,7 @@ export const translations = {
       fosterTitle: 'Foster Network',
       fosterDescription: 'Find animals needing temporary homes, foster homes, applications, and placements.',
       fosterAction: 'Go to Foster Network',
-      currentSpace: 'Current space',
-      backToSpaces: 'Back to PetPal spaces',
+      backToSpaces: 'Back to PetPal spaces', switchSpace: 'Switch space',
       switchNote: 'Each space has its own home, messages, preferences, and help. You can switch at any time.',
     },
     auth: {
@@ -577,6 +583,12 @@ export const translations = {
       preferenceError: 'Setarea nu a putut fi salvată. Încearcă din nou.',
     },
     care: fosterCoordination.ro,
+    fx: fosterExperience.ro,
+    intro: {
+      skip: 'Sari peste', start: 'Începe', word1: 'Fiecare', word2: 'animal', word3: 'are nevoie', word4: 'de cineva.',
+      match: 'Joacă și plimbări împreună', foster: 'O casă temporară. O grijă împărțită.', community: 'Oameni buni. În siguranță, împreună.',
+      tagline: 'Fiecare animal are nevoie de cineva.',
+    },
     errors: {
       network: 'Nu există conexiune. Verifică internetul și încearcă din nou.',
       generic: 'Ceva nu a mers. Încearcă din nou.',
@@ -592,8 +604,7 @@ export const translations = {
       fosterTitle: 'Reteaua Foster',
       fosterDescription: 'Gaseste animale care au nevoie de casa temporara, case foster, cereri si plasamente.',
       fosterAction: 'Mergi la Reteaua Foster',
-      currentSpace: 'Spatiul curent',
-      backToSpaces: 'Inapoi la spatiile PetPal',
+      backToSpaces: 'Înapoi la spațiile PetPal', switchSpace: 'Schimbă spațiul',
       switchNote: 'Fiecare spatiu are propriul ecran principal, mesaje, preferinte si ajutor. Poti schimba oricand.',
     },
     auth: {

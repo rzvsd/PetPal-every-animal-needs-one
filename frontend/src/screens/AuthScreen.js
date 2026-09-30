@@ -106,7 +106,7 @@ export default function AuthScreen() {
   const message = localError || authError;
 
   return (
-    <div data-testid="auth-screen" className="flex-1 overflow-y-auto no-scrollbar bg-[#F8F7F4] px-5 py-6">
+    <div data-testid="auth-screen" className="flex-1 overflow-y-auto no-scrollbar bg-[var(--pp-bg)] px-5 py-6">
       <div className="min-h-full flex flex-col justify-center space-y-6">
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#E3ECE4]">
@@ -209,7 +209,7 @@ export default function AuthScreen() {
                   checked={form.termsAccepted}
                   onChange={(value) => update('termsAccepted', value)}
                 />
-                <details className="rounded-xl bg-[#F8F7F4] px-3 py-2 text-xs text-[#57645C]">
+                <details className="rounded-xl bg-[var(--pp-bg)] px-3 py-2 text-xs text-[#57645C]">
                   <summary className="cursor-pointer font-semibold text-[#2C402B]">{t('auth.readTerms')}</summary>
                   <ul className="mt-2 list-disc space-y-1 pl-4">
                     {[1, 2, 3, 4].map((n) => <li key={`terms-${n}`}>{t(`profile.termsBullet${n}`)}</li>)}

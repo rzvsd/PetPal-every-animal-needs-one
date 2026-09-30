@@ -66,7 +66,7 @@ export function SecondaryButton({ children, onClick, disabled, className = '', i
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`w-full bg-[#F8F7F4] text-[#2C402B] py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 border border-[#E4E2DC] hover:bg-[#EFEDE8] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`w-full bg-[var(--pp-bg)] text-[#2C402B] py-3.5 rounded-xl font-semibold text-base flex items-center justify-center gap-2 border border-[#E4E2DC] hover:bg-[#EFEDE8] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {Icon && <Icon size={18} />}
       {children}
@@ -199,7 +199,7 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
       <div className="bg-white rounded-t-3xl border-t border-[#E4E2DC] shadow-xl">
         <div className="w-10 h-1 bg-[#E4E2DC] rounded-full mx-auto mt-3" />
         <div className="p-4 space-y-1">
-          {onViewContext && <button type="button" data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F4] transition-colors">
+          {onViewContext && <button type="button" data-testid="safety-view-context" onClick={onViewContext} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--pp-bg)] transition-colors">
             <Info size={18} className="text-[#57645C]" />
             <span className="text-sm font-medium text-[#1F2924]">{t('messages.viewContext')}</span>
           </button>}
@@ -211,7 +211,7 @@ export function SafetyMenu({ open, onClose, onReport, onBlock, onViewContext }) 
             <XCircle size={18} className="text-[#CD7A7E]" />
             <span className="text-sm font-medium text-[#CD7A7E]">{t('messages.block')}</span>
           </button>
-          <button type="button" data-testid="safety-close" onClick={onClose} className="w-full p-3 rounded-xl text-sm font-medium text-[#57645C] hover:bg-[#F8F7F4] transition-colors mt-1">
+          <button type="button" data-testid="safety-close" onClick={onClose} className="w-full p-3 rounded-xl text-sm font-medium text-[#57645C] hover:bg-[var(--pp-bg)] transition-colors mt-1">
             {t('common.cancel')}
           </button>
         </div>
@@ -260,7 +260,7 @@ export function AnimalSelector({ animals, selectedId, onSelect, compact = false 
               onClick={() => { onSelect(a.id); setOpen(false); }}
               role="option"
               aria-selected={a.id === selectedId}
-              className={`w-full flex items-center gap-2.5 px-4 py-3 hover:bg-[#F8F7F4] transition-colors ${a.id === selectedId ? 'bg-[#E3ECE4]/50' : ''}`}
+              className={`w-full flex items-center gap-2.5 px-4 py-3 hover:bg-[var(--pp-bg)] transition-colors ${a.id === selectedId ? 'bg-[#E3ECE4]/50' : ''}`}
             >
               {a.photoUrls?.[0] ? (
                 <img src={a.photoUrls[0]} alt={a.name} className="w-8 h-8 rounded-lg object-cover" />

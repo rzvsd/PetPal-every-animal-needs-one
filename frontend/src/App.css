@@ -13,7 +13,7 @@
   max-width: 430px;
   height: var(--app-height, 100dvh);
   position: relative;
-  background: #F8F7F4;
+  background: var(--pp-bg);
   box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
@@ -57,7 +57,7 @@
   overflow: hidden;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  background: #F8F7F4;
+  background: var(--pp-bg);
   padding-bottom: 68px;
 }
 
@@ -92,10 +92,6 @@
 }
 
 .petpal-thread-open .petpal-screen { padding-bottom: 0; }
-.petpal-entrance { position: absolute; inset: 0; z-index: 90; pointer-events: none; display: grid; place-items: center; background: #F8F7F4; color: #2C402B; text-align: center; }
-.petpal-entrance .font-heading { display: block; margin-top: 14px; font-size: 30px; font-weight: 700; letter-spacing: -.04em; }
-.petpal-entrance-mark { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 24px; background: #E3ECE4; }
-.petpal-entrance-paw { position: absolute; display: grid; place-items: center; }
 .dialog-drag-handle { display: flex; justify-content: center; padding: 10px 0 6px; touch-action: none; cursor: grab; }
 .dialog-drag-handle span { width: 36px; height: 4px; border-radius: 4px; background: #D5D5CE; }
 .petpal-nav-indicator { position: absolute; top: 7px; width: 44px; height: 32px; border-radius: 13px; background: #E3ECE4; pointer-events: none; }
@@ -130,7 +126,7 @@
   details[open]::details-content { height: auto; }
 }
 .petpal-screen:has(> .data-source-banner) .petpal-fullscreen { top: 19px; }
-.petpal-fullscreen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: #F8F7F4; }
+.petpal-fullscreen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--pp-bg); }
 .petpal-fullscreen > [data-testid="screen-header"] { flex-shrink: 0; }
 .dialog-layer { position: fixed; inset: 0; height: var(--app-height, 100dvh); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .dialog-layer.dialog-sheet { align-items: flex-end; padding: 0; }
@@ -139,7 +135,7 @@
 .dialog-content > .overflow-y-auto { flex-shrink: 1; }
 .dialog-content > .min-h-0 { flex-shrink: 1; }
 .data-source-banner { flex-shrink: 0; padding: 2px 8px; text-align: center; font-size: 10px; background: #E3ECE4; color: #2C402B; }
-.match-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; flex-shrink: 0; background: #F8F7F4; }
+.match-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; flex-shrink: 0; background: var(--pp-bg); }
 .match-header [data-testid="animal-selector"] { padding: 6px 8px; min-height: 44px; border-radius: 24px; }
 .match-header [data-testid="animal-selector"] > span { overflow: hidden; text-overflow: ellipsis; }
 .match-controls { padding: 4px 16px 8px; }
@@ -164,7 +160,7 @@
 .match-actions button:disabled { opacity: .55; }
 .match-actions svg { flex-shrink: 0; }
 .match-mutual-hint { padding: 10px 20px 14px; text-align: center; font-size: .75rem; color: #57645C; }
-.chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; flex-shrink: 0; background: #F8F7F4; }
+.chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; flex-shrink: 0; background: var(--pp-bg); }
 .chat-icon-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; }
 .chat-context { margin: 0 16px 8px; padding: 0 12px; border: 1px solid #E4E2DC; border-radius: 14px; font-size: .875rem; flex-shrink: 0; max-height: 30%; overflow: auto; }
 .chat-bubble { max-width: 85%; padding: 10px 14px; border: 1px solid #E4E2DC; background: white; border-radius: 18px 18px 18px 4px; overflow-wrap: anywhere; }
@@ -184,3 +180,10 @@
     max-width: none;
   }
 }
+.petpal-space-bar { flex-shrink: 0; display: flex; align-items: center; padding: 8px 16px 0; background: var(--pp-bg); }
+.petpal-space-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 12px 4px 4px; border-radius: 999px;
+  font-size: 13px; font-weight: 650; color: var(--pp-ink); background: var(--pp-surface); box-shadow: var(--pp-shadow); transition: box-shadow .2s; }
+.petpal-space-pill:hover { box-shadow: var(--pp-shadow-lift); }
+.petpal-space-icon { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; color: var(--pp-green-strong); background: var(--pp-green-soft); }
+.petpal-space-icon.is-foster { color: #8f4a2f; background: var(--pp-clay-soft); }
+.petpal-space-switch { color: var(--pp-faint); }

@@ -44,7 +44,9 @@ function loadTranslations() {
   const readiness = Function(readinessSource.replace('export const matchReadiness =', 'const matchReadiness =') + '\nreturn matchReadiness;')();
   const fosterSource = read(path.join(root, 'src', 'i18n', 'fosterCoordination.js'));
   const foster = Function(fosterSource.replace('export const fosterCoordination =', 'const fosterCoordination =') + '\nreturn fosterCoordination;')();
-  Function('module', 'matchReadiness', 'fosterCoordination', normalized)(moduleShim, readiness, foster);
+  const experienceSource = read(path.join(root, 'src', 'i18n', 'fosterExperience.js'));
+  const experience = Function(experienceSource.replace('export const fosterExperience =', 'const fosterExperience =') + '\nreturn fosterExperience;')();
+  Function('module', 'matchReadiness', 'fosterCoordination', 'fosterExperience', normalized)(moduleShim, readiness, foster, experience);
   return moduleShim.exports;
 }
 
