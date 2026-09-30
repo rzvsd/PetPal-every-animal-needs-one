@@ -758,6 +758,52 @@ export async function blockSupabaseProfile(profileId) {
   if (error && error.code !== '23505') throw error;
 }
 
+export async function loadSupabaseBlockedProfiles() {
+  const { data, error } = await supabase.rpc('my_blocked_profiles');
+  if (error) throw error;
+  return (data || []).map(row => ({ id: row.blocked_id, displayName: row.display_name, createdAt: row.created_at }));
+}
+
+export async function unblockSupabaseProfile(profileId) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase.from('blocks').delete().match({ blocker_id: userData.user?.id, blocked_id: profileId });
+  if (error) throw error;
+}
+
+// Password reset. The email link brings the phone back through petpal://reset
+// (the web build comes back to its own origin), then the person sets a new password.
+export const PASSWORD_RESET_LINK = 'petpal://reset';
+
+export async function requestSupabasePasswordReset(email, native) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: native ? PASSWORD_RESET_LINK : window.location.origin });
+  if (error) throw error;
+}
+
+// Turns the tokens carried by the reset link into a session. Resolves false
+// when the link carries no tokens at all.
+export async function openSupabaseRecoveryLink(url) {
+  const parsed = new URL(url);
+  const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+  if (hash.get('error_description')) throw new Error(hash.get('error_description'));
+  const code = parsed.searchParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    return true;
+  }
+  const access_token = hash.get('access_token');
+  const refresh_token = hash.get('refresh_token');
+  if (!access_token || !refresh_token) return false;
+  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+  if (error) throw error;
+  return true;
+}
+
+export async function updateSupabasePassword(password) {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
 export async function reportSupabaseConversation(conversationId, details = '') {
   const { data, error } = await supabase.rpc('report_conversation', {
     conversation_id_input: conversationId,

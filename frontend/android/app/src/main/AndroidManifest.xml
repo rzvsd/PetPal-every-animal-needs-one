@@ -29,6 +29,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="petpal" android:host="payments" />
+                <data android:scheme="petpal" android:host="reset" />
             </intent-filter>
 
         </activity>

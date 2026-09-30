@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { translations } from '../i18n/translations';
 import { demoAnimals, demoMatchCandidates, demoFosterCases, demoConversations, demoFosterApplications, demoUser } from '../data/mockData';
 import {
@@ -6,6 +7,9 @@ import {
   loadSupabaseAppData,
   signInWithSupabase,
   signUpWithSupabase,
+  requestSupabasePasswordReset,
+  openSupabaseRecoveryLink,
+  updateSupabasePassword,
   signInWithDemoSupabase,
   signOutOfSupabase,
   updateSupabaseProfile,
@@ -67,6 +71,8 @@ export function AppProvider({ children }) {
   const [authNotice, setAuthNotice] = useState('');
   const [paymentReturnNotice, setPaymentReturnNotice] = useState('');
   const [localDemoSession, setLocalDemoSession] = useState(false);
+  // True between opening a password reset link and saving the new password.
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [pushStatus, setPushStatus] = useState({ status: 'idle', message: null });
   // The system permission prompt waits for a moment where it clearly helps.
   const [pushAllowed, setPushAllowed] = useState(false);
@@ -86,16 +92,17 @@ export function AppProvider({ children }) {
   const [screenParams, setScreenParams] = useState(null);
   const [skippedMatches, setSkippedMatches] = useState({});
   const [requestedConversation, setRequestedConversation] = useState(null);
-  const [motionPreferences, setMotionPreferences] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('petpal:reduce-motion') || '{}') || {}; }
-    catch { return {}; }
+  // Reduced motion is a property of the person holding the phone, so it is
+  // stored once per device, not per account. Older builds stored a map by account.
+  const [reduceMotion, setReduceMotionState] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('petpal:reduce-motion') || 'false');
+      return saved && typeof saved === 'object' ? Object.values(saved).some(Boolean) : Boolean(saved);
+    } catch { return false; }
   });
-  const preferenceAccount = authSession?.user?.id || (localDemoSession ? 'demo' : 'device');
-  const reduceMotion = Boolean(motionPreferences[preferenceAccount] ?? motionPreferences.device);
   const setReduceMotion = enabled => {
-    const next = { ...motionPreferences, [preferenceAccount]: Boolean(enabled) };
-    setMotionPreferences(next);
-    try { localStorage.setItem('petpal:reduce-motion', JSON.stringify(next)); } catch { /* Current session still honors the preference. */ }
+    setReduceMotionState(Boolean(enabled));
+    try { localStorage.setItem('petpal:reduce-motion', JSON.stringify(Boolean(enabled))); } catch { /* Current session still honors the preference. */ }
   };
   const authVersion = useRef(0);
   const sessionAccount = useRef(null);
@@ -235,6 +242,9 @@ export function AppProvider({ children }) {
 
     const { data: authListener } = isSupabaseConfigured
       ? supabase.auth.onAuthStateChange((_event, session) => {
+          // The web build reads the reset link itself and reports it this way.
+          if (_event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+          if (_event === 'SIGNED_OUT') setPasswordRecovery(false);
           if (_event === 'SIGNED_OUT' && sessionAccount.current) {
             try { clearChatStorage(sessionAccount.current); }
             catch { setAuthError('readiness.storageFailed'); }
@@ -609,6 +619,52 @@ export function AppProvider({ children }) {
 
   const clearPaymentReturnNotice = () => setPaymentReturnNotice('');
 
+  // The phone opens petpal://reset from the email; the tokens in it sign the
+  // person in, and the app asks for the new password before anything else.
+  const handleRecoveryLink = useCallback(async (url) => {
+    if (!url || !url.startsWith('petpal://reset')) return false;
+    setAuthError('');
+    setAuthLoading(true);
+    try {
+      if (await openSupabaseRecoveryLink(url)) setPasswordRecovery(true);
+    } catch (error) {
+      setAuthError(friendlyError(error, t, t('auth.resetLinkInvalid')));
+    } finally {
+      setAuthLoading(false);
+    }
+    return true;
+  }, [t]);
+
+  const requestPasswordReset = async (email) => {
+    setAuthError('');
+    setAuthNotice('');
+    setAuthLoading(true);
+    try {
+      await requestSupabasePasswordReset(email, Capacitor.isNativePlatform());
+      setAuthNotice(t('auth.resetEmailSent'));
+    } catch (error) {
+      setAuthError(friendlyError(error, t, t('auth.resetFailed')));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const saveNewPassword = async (password) => {
+    setAuthError('');
+    setAuthLoading(true);
+    try {
+      await updateSupabasePassword(password);
+      setPasswordRecovery(false);
+      setAuthNotice(t('auth.passwordUpdated'));
+      await refreshSupabaseData();
+      setActiveTab('matches');
+    } catch (error) {
+      setAuthError(friendlyError(error, t, t('auth.passwordUpdateFailed')));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const signIn = async ({ email, password }) => {
     setAuthError('');
     setAuthNotice('');
@@ -848,6 +904,7 @@ export function AppProvider({ children }) {
       paymentReturnNotice,
       handlePaymentReturn,
       clearPaymentReturnNotice,
+      handleRecoveryLink, requestPasswordReset, saveNewPassword, passwordRecovery,
       signIn,
       signUp,
       signInDemo,
