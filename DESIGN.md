@@ -4,37 +4,43 @@ The one source for how PetPal looks, moves and speaks. The code that implements
 it lives in `frontend/src/ui/` (tokens in `frontend/src/index.css`). Older drafts
 are kept in `docs/history/` for reference only.
 
-## Direction: a field journal about animals
+## Direction: alive
 
-Warm paper, ink text, and photographs of the animals as the protagonists.
-Structure comes from type, alignment and space, not from boxes. The app must look
-finished with every animation turned off; motion only adds refinement.
+Real animals, real footage, bold colour. The app opens on a short film of
+happy animals, lands on two living video doors (Match and Foster), and each
+world has its own saturated palette. Inside, the photo is the screen: the
+Match card, Foster's hero card and the animal shelves put the animal's picture
+edge to edge with the words on top.
 
 Rules that follow from this:
 
-- **Don't make every section a card.** Lists are rows on the paper separated by
-  hairlines that start under the text, never under the picture.
-- **Only floating things are raised:** sheets, the tab bar, toasts, and the one
-  panel laid over a photo. Nothing else gets a shadow.
-- **Photos carry the page.** The Match card is the photo; detail pages open on a
-  full-bleed photo; lists lead with the animal's picture.
-- **One accent per job.** Green means act. Clay means look here (unread, urgent,
-  attention). Sun is used sparingly, for small highlights on dark ground.
-- **No decoration without a role.** No gradients, blobs, emoji icons or looping
-  animations.
+- **Footage, not illustration, for the big moments.** Launch, doors and bursts
+  use short muted clips (`frontend/public/film/`, Pexels licence, 540×960,
+  under 1 MB each). The 3D characters are kept for small empty states.
+- **Two worlds, one system.** `[data-world='match']` (sunset: coral, amber, hot
+  pink on peach) and `[data-world='foster']` (forest: green, gold on mint)
+  override the same tokens, so every component recolours with the world.
+- **Photos carry the page.** Name and actions sit on the picture with a
+  gradient; lists of animals are photo tiles, not text rows.
+- **Only floating things are raised,** and nothing blurs over a moving
+  surface (backdrop filters on the Match card cost 30% of frames on device).
+- **Moments people record:** hearts from under the thumb on like, the
+  full-screen sunset match, the world burst on entering.
 
 ## Tokens (`frontend/src/index.css`)
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--pp-bg` | `#f5f0e6` | The paper every screen sits on |
+| `--pp-night` | `#0e1612` | Launch, doors, tab bar |
+| `--pp-bg` | world tint (peach `#ffe9d6` / mint `#dff1de`) | Page background inside a world |
 | `--pp-bg-deep` | `#ece4d6` | Fields, segmented tracks, skeletons, secondary buttons |
 | `--pp-surface` | `#fffdf8` | Sheets, tab bar, raised panels |
 | `--pp-ink` | `#1b2520` | Text (13.9:1 on paper) |
 | `--pp-muted` | `#5a665f` | Secondary text (5.3:1 on paper, 4.75:1 on deep) |
 | `--pp-faint` | `#8b948d` | Chevrons and decorative marks only (2.75:1, never text) |
 | `--pp-line` | `#e2d8c7` | Hairlines |
-| `--pp-green` / `-strong` / `-soft` | `#2e5b45` / `#21442f` / `#e1ebe2` | Actions, selection, success |
+| `--pp-green` / `--pp-accent` | coral `#ff5a3c` / green `#157a45` | The world's action colour; text on it is `--pp-on-accent` |
+| `--pp-accent-2` | amber `#ffb347` / gold `#f7c948` | Tags, active tab, highlights |
 | `--pp-clay` / `-soft` | `#a94f33` / `#f4e2d8` | Unread counts, urgency, attention |
 | `--pp-sun` / `-soft` | `#edc063` / `#fbf0d6` | Highlights on dark ground |
 | `--pp-danger` / `-soft` | `#a8402f` / `#f6deda` | Errors and destructive actions |

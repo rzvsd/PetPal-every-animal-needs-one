@@ -12,15 +12,12 @@ const careBadge = {
 };
 
 function AnimalRow({ photo, name, species, subtitle, badges = [], onClick }) {
-  return <Card onClick={onClick}>
-    <div className="fx-row">
-      <Photo src={photo} name={name} species={species} className="fx-photo-md" />
-      <div className="fx-grow">
-        <h3>{name}</h3>
-        {subtitle && <p className="fx-muted">{subtitle}</p>}
-        {badges.length > 0 && <div className="fx-row" style={{ gap: 6, marginTop: 6, flexWrap: 'wrap' }}>{badges}</div>}
-      </div>
-      <ChevronRight size={20} className="fx-chevron" />
+  return <Card onClick={onClick} className="fx-tile">
+    <Photo src={photo} name={name} species={species} className="fx-tile-photo" />
+    <div className="fx-tile-info">
+      <h3>{name}</h3>
+      {subtitle && <p>{subtitle}</p>}
+      {badges.length > 0 && <div className="fx-tile-badges">{badges}</div>}
     </div>
   </Card>;
 }
@@ -77,13 +74,13 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
       <Button icon={Plus} onClick={onPostAnimal} style={{ marginTop: 8 }}>{t('fx.postAnimal')}</Button></Empty></div>}
 
     {coming.length > 0 && <><SectionTitle count={coming.length}>{t('fx.comingToMe')}</SectionTitle>
-      <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">{coming.map(placementRow)}</motion.div></>}
+      <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">{coming.map(placementRow)}</motion.div></>}
 
     {inCare.length > 0 && <><SectionTitle>{t('fx.inMyCare')}</SectionTitle>
-      <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">{inCare.map(placementRow)}</motion.div></>}
+      <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">{inCare.map(placementRow)}</motion.div></>}
 
     {data.placedElsewhere.length > 0 && <><SectionTitle>{t('fx.withFoster')}</SectionTitle>
-      <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+      <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">
         {data.placedElsewhere.map(r => <AnimalRow key={r.id} photo={r.photo} name={r.animal_name} species={r.species}
           subtitle={fmt(t('fx.atHome'), { home: r.home_name })}
           badges={[<span key="s" className="fx-badge">{t(r.placement_status === 'RESERVED' ? 'fx.stepAgreed' : 'fx.stepInCare')}</span>]}
@@ -92,7 +89,7 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
 
     {(looking.length > 0 || hasAnything) && <SectionTitle action={<Button variant="soft" className="fx-button-small" icon={Plus} onClick={onPostAnimal}>{t('fx.postAnimal')}</Button>}>
       {t('fx.lookingForHome')}</SectionTitle>}
-    {looking.length > 0 && <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+    {looking.length > 0 && <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">
       {looking.map(c => {
         const offers = data.offersByCase[c.id] || 0;
         return <AnimalRow key={c.id} photo={c.photo} name={c.name} species={c.species} subtitle={durationLabel(c.duration, t)}
@@ -104,7 +101,7 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
     </motion.div>}
 
     {data.finished.length > 0 && <><SectionTitle>{t('fx.finished')}</SectionTitle>
-      <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+      <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">
         {data.finished.map(p => <AnimalRow key={p.id} photo={p.photo} name={p.name} species={p.species} subtitle={p.home_name}
           onClick={() => onOpenPlacement(p.id)} />)}
       </motion.div></>}

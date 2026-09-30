@@ -8,7 +8,7 @@ const dialogs = [];
 const topDialog = () => [...dialogs].sort((a, b) => b.priority - a.priority || dialogs.indexOf(b) - dialogs.indexOf(a))[0];
 const syncInert = () => dialogs.forEach(item => { item.element.inert = item !== topDialog(); });
 
-function DialogSurface({ onClose, children, sheet, label, priority, draggable }) {
+function DialogSurface({ onClose, children, sheet, label, priority, draggable, className = '' }) {
   const dialog = useRef(null);
   const close = useRef(onClose);
   const present = useIsPresent();
@@ -61,7 +61,7 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
         drag={sheet && draggable && !reduced ? 'y' : false} dragControls={dragControls} dragListener={false}
         dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.3 }} dragSnapToOrigin
         onDragEnd={(_, info) => { if (info.offset.y > 80 || (info.velocity.y > 600 && info.offset.y > 20)) close.current(); }}
-        className={`dialog-content ${sheet ? 'rounded-t-3xl' : 'rounded-3xl'}`}>
+        className={`dialog-content ${sheet ? 'rounded-t-3xl' : 'rounded-3xl'} ${className}`}>
         {sheet && draggable && <div className="dialog-drag-handle" aria-hidden="true" onPointerDown={event => dragControls.start(event)}><span /></div>}
         {children}
       </motion.div>
@@ -69,6 +69,6 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
   );
 }
 
-export default function DialogLayer({ open, onClose, children, sheet = false, label, priority = 20, draggable = false }) {
-  return createPortal(<AnimatePresence>{open && <DialogSurface key="dialog" {...{ onClose, children, sheet, label, priority, draggable }} />}</AnimatePresence>, document.body);
+export default function DialogLayer({ open, onClose, children, sheet = false, label, priority = 20, draggable = false, className = '' }) {
+  return createPortal(<AnimatePresence>{open && <DialogSurface key="dialog" {...{ onClose, children, sheet, label, priority, draggable, className }} />}</AnimatePresence>, document.body);
 }

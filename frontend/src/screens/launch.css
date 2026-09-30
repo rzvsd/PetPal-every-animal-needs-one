@@ -1,0 +1,28 @@
+.pp-launch { position: absolute; inset: 0; z-index: 200; overflow: hidden; background: var(--pp-night); color: #fff; }
+.pp-launch-film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pp-launch-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(14 22 18 / 25%), transparent 30%, transparent 55%, rgb(14 22 18 / 85%)); }
+.pp-launch-name { position: absolute; left: 24px; right: 24px; bottom: 14%; text-align: center; }
+.pp-launch-name h1 { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 76px; line-height: 1; font-weight: 640; letter-spacing: -0.035em;
+  text-shadow: 0 6px 40px rgb(0 0 0 / 45%); }
+.pp-launch-name p { margin-top: 10px; font-size: 18px; font-weight: 500; opacity: .92; text-shadow: 0 2px 16px rgb(0 0 0 / 50%); }
+.pp-launch-skip { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 16px; min-height: 40px; padding: 0 16px; border-radius: 20px;
+  background: rgb(255 255 255 / 16%); color: #fff; font-size: 14px; font-weight: 700; backdrop-filter: blur(10px); }
+
+/* The doors: two living worlds. Tap one and it takes the whole screen. */
+.pp-doors { position: absolute; inset: 0; z-index: 150; display: flex; flex-direction: column; gap: 6px; padding: 6px; background: var(--pp-night); color: #fff; }
+.pp-door { position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 26px; text-align: left; color: #fff; isolation: isolate; }
+.pp-door video, .pp-door img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pp-door-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 5%) 30%, rgb(0 0 0 / 70%)); }
+.pp-door-text { position: absolute; left: 22px; right: 22px; bottom: 22px; display: flex; flex-direction: column; gap: 6px; }
+.pp-door-kicker { font-size: 12.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--door-accent, #ffb347); }
+.pp-door-title { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 46px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; text-shadow: 0 4px 30px rgb(0 0 0 / 40%); }
+.pp-door-sub { font-size: 16px; line-height: 1.35; max-width: calc(100% - 64px); opacity: .92; text-shadow: 0 2px 12px rgb(0 0 0 / 50%); }
+.pp-door-go { position: absolute; right: 18px; bottom: 22px; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--door-accent, #ffb347); color: #0e1612; }
+.pp-door-count { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 10px; border-radius: 15px; background: #fff; color: #0e1612; font-size: 14px; font-weight: 800; }
+.pp-door-hello { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 22px; z-index: 2; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: .9; text-shadow: 0 2px 10px rgb(0 0 0 / 50%); }
+
+/* The burst: two seconds of that world's happiest moments, edge to edge. */
+.pp-burst { position: absolute; inset: 0; z-index: 160; background: var(--pp-night); overflow: hidden; }
+.pp-burst-shot, .pp-burst-shot img, .pp-burst-shot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pp-burst-word { position: absolute; left: 24px; right: 24px; bottom: 16%; color: #fff; text-align: center; font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-size: 44px; line-height: 1.05; font-weight: 640; letter-spacing: -0.03em; text-shadow: 0 6px 40px rgb(0 0 0 / 55%); }

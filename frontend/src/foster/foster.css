@@ -15,7 +15,7 @@
 .fx-lead svg { vertical-align: -2px; }
 .fx-section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; margin: 30px 0 2px; }
 .fx-section-title h2 { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-muted); }
-.fx-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11.5px; font-weight: 750; letter-spacing: 0; color: #fff; background: var(--pp-clay); }
+.fx-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11.5px; font-weight: 750; letter-spacing: 0; color: var(--pp-on-clay); background: var(--pp-clay); }
 .fx-muted { font-size: 14px; line-height: 1.45; color: var(--pp-muted); }
 .fx-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-muted); }
 .fx-stack { display: flex; flex-direction: column; gap: 12px; }
@@ -34,7 +34,7 @@
 
 /* Raised panels: the one next step, and content laid over a photo. */
 .fx-card.fx-lift { margin: -28px 6px 0; padding: 18px 18px 16px; border-radius: 22px; background: var(--pp-surface); box-shadow: var(--pp-shadow); }
-.fx-card.fx-next { margin-top: 16px; padding: 18px; border-radius: 22px; color: #fff; background: var(--pp-green); }
+.fx-card.fx-next { margin-top: 16px; padding: 18px; border-radius: 22px; color: var(--pp-on-accent); background: var(--pp-green); }
 .fx-next .fx-muted, .fx-next p { color: rgb(255 255 255 / 88%); }
 .fx-next .fx-eyebrow { color: var(--pp-sun); }
 .fx-next .fx-button-primary { background: #fff; color: var(--pp-green-strong); }
@@ -44,7 +44,7 @@
 /* Buttons: the same shapes as the rest of the app. */
 .fx-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 14px;
   font-size: 16px; font-weight: 650; line-height: 1.2; text-align: center; transition: background-color .15s, color .15s, opacity .15s; }
-.fx-button-primary { background: var(--pp-green); color: #fff; }
+.fx-button-primary { background: var(--pp-green); color: var(--pp-on-accent); }
 .fx-button-primary:active:not(:disabled) { background: var(--pp-green-strong); }
 .fx-button-secondary { background: var(--pp-bg-deep); color: var(--pp-ink); }
 .fx-button-soft { background: var(--pp-green-soft); color: var(--pp-green-strong); }
@@ -75,7 +75,7 @@
 .fx-choices-3 { display: grid; grid-template-columns: repeat(3, 1fr); }
 .fx-choice { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 48px; padding: 0 16px; border-radius: 12px;
   font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--pp-ink); background: var(--pp-bg-deep); transition: background-color .15s, color .15s; }
-.fx-choice[aria-pressed=true] { color: #fff; background: var(--pp-green); }
+.fx-choice[aria-pressed=true] { color: var(--pp-on-accent); background: var(--pp-green); }
 .fx-choice-check { display: grid; place-items: center; flex-shrink: 0; }
 .fx-choices-3 .fx-choice { padding: 10px 8px; font-size: 14px; text-align: center; }
 
@@ -239,3 +239,34 @@ html:not([data-petpal-reduced-motion='true']) .fx-skeleton { animation: ui-breat
 .fx-toggle-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fx-toggle-text small { font-size: 13.5px; font-weight: 500; line-height: 1.4; color: var(--pp-muted); }
 .fx-toggle:disabled { opacity: .6; }
+
+/* Alive: photos carry the Foster screens. */
+.fx-hello h1 { font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 40px; }
+.fx-section-title h2 { color: var(--pp-accent); }
+.fx-button-primary { box-shadow: 0 8px 24px var(--pp-glow); }
+.fx-card.fx-hero-card { position: relative; min-height: 420px; padding: 0; margin: 4px 0 8px; border-radius: var(--pp-radius-xl); overflow: hidden; color: #fff;
+  background: var(--pp-night-2); box-shadow: var(--pp-shadow-lift); justify-content: flex-end; }
+.fx-hero-card-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fx-hero-card::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgb(0 0 0 / 10%), transparent 30%, transparent 40%, rgb(0 0 0 / 85%)); pointer-events: none; }
+.fx-hero-card .fx-todo-head, .fx-hero-card .fx-quote, .fx-hero-card .fx-actions { position: relative; z-index: 2; margin-left: 18px; margin-right: 18px; }
+.fx-hero-card .fx-todo-head { margin-top: auto; }
+.fx-hero-card .fx-todo-head h3 { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 28px; line-height: 1.08; font-weight: 640; letter-spacing: -0.02em; text-shadow: 0 4px 24px rgb(0 0 0 / 45%); }
+.fx-hero-card .fx-todo-head p { color: rgb(255 255 255 / 88%); text-shadow: 0 2px 10px rgb(0 0 0 / 45%); }
+.fx-hero-card .fx-quote { border-left-color: var(--pp-accent-2); color: #fff; text-shadow: 0 2px 10px rgb(0 0 0 / 45%); }
+.fx-hero-card .fx-actions { margin-bottom: 18px; }
+.fx-hero-card .fx-button-secondary, .fx-hero-card .fx-button-soft { background: rgb(255 255 255 / 18%); color: #fff; }
+.fx-stack:has(> .fx-hero-card) > .fx-card + .fx-card { border-top: 0; }
+
+.fx-shelf { display: flex; gap: 12px; overflow-x: auto; margin: 0 calc(var(--pp-gutter) * -1); padding: 6px var(--pp-gutter) 10px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.fx-shelf::-webkit-scrollbar { display: none; }
+.fx-card.fx-tile { position: relative; flex: 0 0 168px; width: 168px; aspect-ratio: 4 / 5; padding: 0; border-radius: var(--pp-radius-lg); overflow: hidden; scroll-snap-align: start; color: #fff;
+  background: var(--pp-night-2); box-shadow: var(--pp-shadow); border-top: 0 !important; }
+.fx-tile-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fx-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgb(0 0 0 / 82%)); pointer-events: none; }
+.fx-tile-info { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 1; display: flex; flex-direction: column; gap: 3px; }
+.fx-tile-info h3 { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 22px; font-weight: 640; color: #fff; text-shadow: 0 2px 12px rgb(0 0 0 / 45%); }
+.fx-tile-info p { font-size: 13px; color: rgb(255 255 255 / 88%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-tile-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.fx-tile .fx-badge { font-size: 11.5px; padding: 2px 7px; }
+.fx-animal-info h2 { font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 24px; }
+.fx-choice[aria-pressed=true] { box-shadow: 0 6px 18px var(--pp-glow); }

@@ -28,6 +28,10 @@ export const translations = {
       match: 'Playdates and social walks', foster: 'A temporary home. Shared care.', community: 'Kind people. Safe together.',
       tagline: 'Every animal needs one.',
     },
+    doors: {
+      matchKicker: 'Playdates & walks', fosterKicker: 'A home for a while',
+      matchWord2: 'Someone to run with.', fosterWord2: 'Somewhere safe to land.',
+    },
     errors: {
       network: 'No connection. Check your internet and try again.',
       generic: 'Something went wrong. Please try again.',
@@ -342,6 +346,10 @@ export const translations = {
       skip: 'Sari peste', start: 'Începe', word1: 'Fiecare', word2: 'animal', word3: 'are nevoie', word4: 'de cineva.',
       match: 'Joacă și plimbări împreună', foster: 'O casă temporară. O grijă împărțită.', community: 'Oameni buni. În siguranță, împreună.',
       tagline: 'Fiecare animal are nevoie de cineva.',
+    },
+    doors: {
+      matchKicker: 'Joacă și plimbări', fosterKicker: 'O casă pentru o vreme',
+      matchWord2: 'Cineva cu care să alergi.', fosterWord2: 'Un loc sigur unde să ajungi.',
     },
     errors: {
       network: 'Nu există conexiune. Verifică internetul și încearcă din nou.',

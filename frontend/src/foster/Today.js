@@ -70,9 +70,10 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       {needsCount > 0 && <>
         <SectionTitle count={needsCount}>{t('fx.needsYou')}</SectionTitle>
         <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
-          {offers.map(request => <Card key={request.id} className="fx-todo">
+          {offers.map((request, index) => <Card key={request.id} className={`fx-todo ${index === 0 ? 'fx-hero-card' : ''}`}>
+            {index === 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">
-              <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />
+              {index > 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />}
               <div className="fx-grow">
                 <h3>{fmt(t(request.kind === 'INVITE' ? 'fx.inviteReceived' : 'fx.offerReceived'), { name: person(request.sender_name, t), animal: request.animal_name })}</h3>
                 <p>{t('fx.offerReceivedHint')}</p>
@@ -87,9 +88,10 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
             </div>
           </Card>)}
 
-          {arriving.map(placement => <Card key={placement.id} className="fx-todo">
+          {arriving.map((placement, index) => <Card key={placement.id} className={`fx-todo ${!offers.length && index === 0 ? 'fx-hero-card' : ''}`}>
+            {!offers.length && index === 0 && <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">
-              <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-photo-sm" />
+              {(offers.length || index > 0) && <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-photo-sm" />}
               <div className="fx-grow"><h3>{fmt(t('fx.arriving'), { animal: placement.name })}</h3>
                 <p>{fmt(t('fx.arrivingHint'), { animal: placement.name })}</p></div>
             </div>

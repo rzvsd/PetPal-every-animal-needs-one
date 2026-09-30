@@ -61,3 +61,13 @@
 .pp-status.is-good { color: var(--pp-green); }
 .pp-status.is-bad { color: var(--pp-danger); }
 .pp-check { color: var(--pp-green); }
+
+/* Alive: the person on a colour block. */
+.pp-identity { align-items: center; padding-top: 22px; padding-bottom: 26px; margin-bottom: 4px; color: #fff;
+  background: linear-gradient(150deg, var(--pp-accent), var(--pp-accent-2)); border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
+.pp-initial { width: 76px; height: 76px; font-size: 36px; color: var(--pp-accent); background: #fff; box-shadow: 0 10px 30px rgb(0 0 0 / 20%); }
+.pp-identity-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 36px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; color: var(--pp-on-accent); }
+.pp-identity-sub { margin-top: 6px; font-size: 14.5px; color: var(--pp-on-accent); opacity: .9; }
+.pp-identity .pp-edit { color: var(--pp-on-accent); text-decoration: underline; text-underline-offset: 3px; }
+.pp-profile .ui-overline { color: var(--pp-accent); }
+.pp-row-icon { color: var(--pp-accent); background: var(--pp-green-soft); }

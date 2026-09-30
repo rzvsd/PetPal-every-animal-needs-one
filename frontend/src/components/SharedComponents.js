@@ -74,9 +74,9 @@ export function FilterSheet({ open, onClose, title, children, footer, draggable 
   );
 }
 
-export function Modal({ open, onClose, children }) {
+export function Modal({ open, onClose, children, className = '' }) {
   return (
-    <DialogLayer open={open} onClose={onClose}>
+    <DialogLayer open={open} onClose={onClose} className={className}>
       <div className="min-h-0 overflow-y-auto">
         {children}
       </div>

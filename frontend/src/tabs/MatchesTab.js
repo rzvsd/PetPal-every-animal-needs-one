@@ -62,7 +62,7 @@ function MatchCard({ candidate, t, onOpen, onSafety, onSwipe, busy }) {
     onDragStart={() => { dragged.current = true; }}
     onDragEnd={(_, info) => {
       window.setTimeout(() => { dragged.current = false; }, 0);
-      if (info.offset.x > 110 || info.velocity.x > 700) onSwipe('like');
+      if (info.offset.x > 110 || info.velocity.x > 700) onSwipe('like', { x: info.point.x, y: info.point.y });
       else if (info.offset.x < -110 || info.velocity.x < -700) onSwipe('pass');
     }}>
     <button type="button" data-testid="match-details-btn" className="pp-card-photo" aria-label={`${t('readiness.about')} ${animal.name}`}
@@ -76,21 +76,33 @@ function MatchCard({ candidate, t, onOpen, onSafety, onSwipe, busy }) {
       </>}
     </button>
     <div className="pp-card-info">
-      <div className="pp-card-head">
-        <h2 className="ui-title-l">{animal.name}</h2>
-        <IconButton icon={MoreHorizontal} label={t('readiness.safetyOptions')} onClick={onSafety} data-testid="match-safety-btn" />
-      </div>
+      <h2 className="pp-card-name">{animal.name}</h2>
       <p className="pp-card-meta">{metaLine(animal, t)}</p>
-      <p className="pp-card-meta"><MapPin size={14} aria-hidden="true" />{place(animal) || t('common.unknown')}{tags && <span className="pp-card-tags"> · {tags}</span>}</p>
+      <p className="pp-card-meta"><MapPin size={14} aria-hidden="true" />{place(animal) || t('common.unknown')}</p>
+      {tags && <p className="pp-card-tags">{tags}</p>}
     </div>
+    <IconButton icon={MoreHorizontal} variant="glass" label={t('readiness.safetyOptions')} onClick={onSafety} data-testid="match-safety-btn" className="pp-card-more" />
   </motion.article>;
+}
+
+// Hearts that fly out from where the thumb pressed "like".
+function HeartBurst({ burst }) {
+  const reduced = useReducedPetMotion();
+  if (reduced) return null;
+  return <AnimatePresence>{burst && <div key={burst.id} className="pp-hearts" style={{ left: burst.x, top: burst.y }} aria-hidden="true">
+    {[...Array(9)].map((_, i) => { const a = (i / 9) * Math.PI * 2 + 0.4; const d = 70 + (i % 3) * 32;
+      return <motion.span key={i} initial={{ x: 0, y: 0, scale: 0.3, opacity: 1 }}
+        animate={{ x: Math.cos(a) * d, y: Math.sin(a) * d - 40, scale: [0.3, 1.1, 0.9], opacity: [1, 1, 0], rotate: (i % 2 ? 1 : -1) * 25 }}
+        transition={{ duration: 0.85, ease: 'easeOut' }}><Heart size={16 + (i % 3) * 6} fill="currentColor" /></motion.span>; })}
+  </div>}</AnimatePresence>;
 }
 
 function ActionBar({ onLike, onPass, onSave, isSaved, busy, social, t }) {
   const reduced = useReducedPetMotion();
   return <div className="pp-actions">
     <IconButton icon={X} size={26} variant="ring" label={t('matches.notNow')} onClick={onPass} disabled={busy} data-testid="match-pass-btn" className="pp-action-round" />
-    <Button className="pp-action-main" icon={social ? MessageCircle : Heart} busy={busy} onClick={onLike} data-testid="match-like-btn">
+    <Button className="pp-action-main" icon={social ? MessageCircle : Heart} busy={busy} data-testid="match-like-btn"
+      onClick={event => onLike(event.clientX && event.clientY ? { x: event.clientX, y: event.clientY } : null)}>
       {t(social ? 'readiness.proposeWalk' : 'matches.like')}</Button>
     <motion.button type="button" whileTap={reduced ? undefined : { scale: 0.92 }} data-testid="match-save-btn" onClick={onSave} disabled={busy}
       aria-pressed={isSaved} aria-label={t(isSaved ? 'readiness.unsave' : 'readiness.savedLabel')} className="ui-icon-btn ui-icon-btn-ring pp-action-round">
@@ -147,12 +159,17 @@ function MatchCelebration({ matchSuccess, t, onOpenMessages, onClose }) {
   const theirs = matchSuccess?.theirAnimal;
   const slide = from => ({ initial: reduced ? false : { opacity: 0, x: from, rotate: from > 0 ? 8 : -8 }, animate: { opacity: 1, x: 0, rotate: 0, transition: springPage } });
   return <div className="pp-celebrate">
+    {!reduced && [...Array(14)].map((_, i) => <motion.span key={i} className="pp-celebrate-heart" aria-hidden="true"
+      style={{ left: `${6 + (i * 37) % 88}%` }} initial={{ y: 40, opacity: 0, scale: 0.5 }}
+      animate={{ y: -560, opacity: [0, 1, 1, 0], scale: 0.6 + (i % 4) * 0.25, rotate: (i % 2 ? 1 : -1) * 30 }}
+      transition={{ duration: 2.6 + (i % 5) * 0.4, delay: 0.2 + (i % 7) * 0.18, ease: 'easeOut' }}><Heart fill="currentColor" size={18 + (i % 3) * 10} /></motion.span>)}
     <div className="pp-celebrate-pair" aria-hidden="true">
-      <motion.span {...slide(-40)}><Avatar src={mine?.photoUrls?.[0]} species={mine?.species} size={96} className="is-round" /></motion.span>
-      <motion.span {...slide(40)}><Avatar src={theirs?.photoUrls?.[0]} species={theirs?.species} size={96} className="is-round" /></motion.span>
+      <motion.span {...slide(-60)}><Avatar src={mine?.photoUrls?.[0]} species={mine?.species} size={150} className="is-round" /></motion.span>
+      <motion.span {...slide(60)}><Avatar src={theirs?.photoUrls?.[0]} species={theirs?.species} size={150} className="is-round" /></motion.span>
     </div>
-    <h2 className="ui-title-l">{t('matches.matchSuccess')}</h2>
-    <p className="ui-small">{fmt(t('matches.matchSuccessDesc'), { mine: mine?.name || '', theirs: theirs?.name || '' })}</p>
+    <motion.h2 className="pp-celebrate-title" initial={reduced ? false : { opacity: 0, y: 30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ ...springPage, delay: 0.25 }}>{t('matches.matchSuccess')}</motion.h2>
+    <p className="pp-celebrate-text">{fmt(t('matches.matchSuccessDesc'), { mine: mine?.name || '', theirs: theirs?.name || '' })}</p>
     <div className="pp-celebrate-actions">
       <Button block icon={MessageCircle} onClick={() => { const id = matchSuccess.conversationId; onClose(); onOpenMessages(id); }}>{t('matches.openMessages')}</Button>
       <Button block variant="secondary" onClick={onClose}>{t('matches.continueBrowsing')}</Button>
@@ -185,6 +202,7 @@ export default function MatchesTab() {
   const [walkBody, setWalkBody] = useState('');
   const [safetyTarget, setSafetyTarget] = useState(null);
   const [notice, setNotice] = useState('');
+  const [burst, setBurst] = useState(null);
   const actionLock = useRef(false);
   const closeWalk = useCallback(() => {
     setWalkTarget(null); setWalkBody(''); setActionError('');
@@ -276,7 +294,12 @@ export default function MatchesTab() {
     } catch { setActionError(t('readiness.walkError')); }
     finally { actionLock.current = false; setBusy(false); }
   };
-  const actions = item => <ActionBar onLike={() => act('like', item)} onPass={() => act('pass', item)} onSave={() => act('save', item)}
+  const like = (item, at) => {
+    const stage = document.querySelector('.pp-match-stage')?.getBoundingClientRect();
+    if (at && stage && !reducedMotion) setBurst({ id: Date.now(), x: at.x - stage.left, y: at.y - stage.top });
+    return act('like', item);
+  };
+  const actions = item => <ActionBar onLike={at => like(item, at)} onPass={() => act('pass', item)} onSave={() => act('save', item)}
     isSaved={savedAnimals.includes(item.animal.id)} busy={busy} social={matchMode === 'SOCIAL'} t={t} />;
   const toggleDraft = (name, value) => setDraft(d => ({ ...d, [name]: d[name] === value ? emptyMatchFilters[name] : value }));
   const clear = () => { setFilters({ ...emptyMatchFilters }); setDraft({ ...emptyMatchFilters }); };
@@ -290,7 +313,7 @@ export default function MatchesTab() {
     : page.loading && !current ? <motion.div key={'loading'} {...fade}><CardSkeleton /></motion.div>
       : page.error ? <motion.div key={'error'} {...fade}><Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => loadPage(true)}>{t('readiness.retry')}</button>}>{page.error}</Notice></motion.div>
         : current ? <MatchCard key={current.animal.id} candidate={current} t={t} busy={busy}
-          onOpen={() => setDetail(current)} onSafety={() => setSafetyTarget(current)} onSwipe={type => act(type, current)} />
+          onOpen={() => setDetail(current)} onSafety={() => setSafetyTarget(current)} onSwipe={(type, at) => (type === 'like' ? like(current, at) : act(type, current))} />
           : <motion.div key={`empty-${view}`} {...fade}><Empty art={view === 'saved' ? 'heart' : 'dog'} title={t(view === 'saved' ? 'readiness.noSaved' : 'readiness.noCandidates')}
             text={t(view === 'saved' ? 'readiness.noSavedHint' : 'readiness.noCandidatesHint')}
             action={activeFilters > 0 && <Button variant="secondary" onClick={clear}>{t('readiness.clearFilters')}</Button>} /></motion.div>;
@@ -312,13 +335,14 @@ export default function MatchesTab() {
       <div className="pp-match-stage">
         {/* Every state shares one grid cell, so the next card rises where the last one left. */}
         <AnimatePresence initial={false} custom={cardAction}>{stage}</AnimatePresence>
+        <HeartBurst burst={burst} />
+        {current && eligible && !page.error && <div className="pp-match-float">{actions(current)}</div>}
       </div>
       <AnimatePresence>{(actionError || notice) && <div className="pp-match-notice">
         {actionError ? <Notice key="error" tone="error" onClose={() => setActionError('')}>{actionError}</Notice>
           : <Notice key="notice" tone="success" onClose={() => setNotice('')}>{notice}</Notice>}
       </div>}</AnimatePresence>
-      {current && eligible && !page.error && <>{actions(current)}
-        <p className="pp-match-hint">{t(matchMode === 'SOCIAL' ? 'readiness.walkHintShort' : 'readiness.mutualHint')}</p></>}
+      {current && eligible && !page.error && <p className="pp-match-hint">{t(matchMode === 'SOCIAL' ? 'readiness.walkHintShort' : 'readiness.mutualHint')}</p>}
     </>}
     <FilterSheet open={Boolean(walkTarget)} onClose={requestWalkClose} draggable={false} title={t('readiness.proposeWalk')}
       footer={<Button block onClick={sendWalkRequest} busy={busy} disabled={!walkBody.trim() || [...walkBody].length > 4000}>{t('readiness.sendWalkRequest')}</Button>}>
@@ -341,7 +365,7 @@ export default function MatchesTab() {
     <OverScreen><AnimatePresence>
       {detail && <MatchDetail key="detail" candidate={detail} t={t} onBack={() => setDetail(null)} onSafety={() => setSafetyTarget(detail)} actions={actions(detail)} />}
     </AnimatePresence></OverScreen>
-    <Modal open={Boolean(matchSuccess)} onClose={() => setMatchSuccess(null)}>
+    <Modal open={Boolean(matchSuccess)} onClose={() => setMatchSuccess(null)} className="pp-celebrate-full">
       <MatchCelebration matchSuccess={matchSuccess} t={t} onClose={() => setMatchSuccess(null)} onOpenMessages={requestOpenConversation} />
     </Modal>
     <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} title={t('readiness.filters')} footer={<>

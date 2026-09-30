@@ -36,7 +36,7 @@
 .pp-msg-bubble { padding: 10px 14px; border-radius: 20px; background: var(--pp-surface); color: var(--pp-ink); box-shadow: 0 1px 1px rgb(27 37 32 / 5%); }
 .pp-msg-bubble p { font-size: 16px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pp-msg:not(.is-mine).ends .pp-msg-bubble { border-bottom-left-radius: 6px; }
-.pp-msg.is-mine .pp-msg-bubble { background: var(--pp-green); color: #fff; box-shadow: none; }
+.pp-msg.is-mine .pp-msg-bubble { background: var(--pp-green); color: var(--pp-on-accent); box-shadow: none; }
 .pp-msg.is-mine.ends .pp-msg-bubble { border-bottom-right-radius: 6px; }
 .pp-msg.is-sending .pp-msg-bubble { opacity: .72; }
 .pp-msg[data-status='failed'] .pp-msg-bubble { background: var(--pp-danger-soft); color: var(--pp-danger); }
@@ -56,10 +56,19 @@
   background: var(--pp-bg-deep); font-size: 16px; line-height: 1.4; color: var(--pp-ink); resize: none; transition: border-color .15s, background-color .15s; }
 .pp-composer-input:focus { background: var(--pp-surface); border-color: var(--pp-green); outline: none; }
 .pp-composer-input::placeholder { color: var(--pp-muted); opacity: .8; }
-.pp-send { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--pp-green); color: #fff; flex-shrink: 0;
+.pp-send { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--pp-green); color: var(--pp-on-accent); flex-shrink: 0;
   transition: background-color .15s, opacity .15s; }
 .pp-send:disabled { background: var(--pp-bg-deep); color: var(--pp-muted); }
 .pp-composer-count { font-size: 12px; color: var(--pp-muted); padding-left: 8px; }
 .pp-composer-count.is-over { color: var(--pp-danger); font-weight: 700; }
 .pp-walk-answer { display: flex; flex-direction: column; gap: 10px; }
 .pp-walk-answer-row { display: flex; gap: 10px; }
+
+/* Alive */
+.pp-inbox .ui-row-lead .ui-avatar { width: 64px !important; height: 64px !important; border-radius: 20px; box-shadow: var(--pp-shadow); }
+.pp-inbox .ui-list-inset .ui-row { --row-inset: 78px; }
+.pp-inbox .ui-row.is-unread::after { content: ''; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--pp-accent); }
+.pp-inbox .ui-row-overline { color: var(--pp-accent); }
+.pp-thread-head { background: var(--pp-surface); }
+.pp-msg.is-mine .pp-msg-bubble { background: linear-gradient(135deg, var(--pp-accent), var(--pp-accent-2)); color: var(--pp-on-accent); box-shadow: 0 6px 18px var(--pp-glow); }
+.pp-send { box-shadow: 0 6px 18px var(--pp-glow); }

@@ -8,30 +8,36 @@
   padding: 0;
 }
 
-/* One design language for the whole app (see DESIGN.md): warm paper that
-   flows behind every screen, ink for text, green for actions and clay for
-   what needs attention. Spaces are told apart by small accents, never by
-   blocks of colour that cut the page. */
+/* PetPal "Alive": night for the launch film and the doors, then one bold
+   world palette per space. Every component reads these variables, so the
+   whole app changes colour with the world you walk into. */
 :root {
-  --pp-bg: #f5f0e6;
-  --pp-bg-deep: #ece4d6;
-  --pp-surface: #fffdf8;
-  --pp-surface-soft: #faf6ee;
-  --pp-ink: #1b2520;
-  --pp-muted: #5a665f;
-  --pp-faint: #8b948d;
-  --pp-line: #e2d8c7;
-  --pp-green: #2e5b45;
-  --pp-green-strong: #21442f;
-  --pp-green-soft: #e1ebe2;
-  --pp-clay: #a94f33;
-  --pp-clay-soft: #f4e2d8;
-  --pp-clay-ink: #8c3f27;
-  --pp-sun: #edc063;
-  --pp-sun-soft: #fbf0d6;
-  --pp-sky-soft: #e3edf0;
-  --pp-danger: #a8402f;
-  --pp-danger-soft: #f6deda;
+  --pp-night: #0e1612;
+  --pp-night-2: #17221c;
+  --pp-bg: #ffe9d6;
+  --pp-bg-deep: #ffd9bd;
+  --pp-surface: #fff7ef;
+  --pp-surface-soft: #fff1e4;
+  --pp-ink: #2a1208;
+  --pp-muted: #7a4a36;
+  --pp-faint: #b48a78;
+  --pp-line: #f2c9ad;
+  --pp-green: #ff5a3c;
+  --pp-green-strong: #d8391f;
+  --pp-green-soft: #ffd0c4;
+  --pp-clay: #ff3d7f;
+  --pp-clay-soft: #ffd6e3;
+  --pp-clay-ink: #b3134f;
+  --pp-sun: #ffb347;
+  --pp-sun-soft: #ffe7c2;
+  --pp-sky-soft: #ffe0cf;
+  --pp-danger: #c81e1e;
+  --pp-danger-soft: #ffd9d9;
+  --pp-accent: #ff5a3c;
+  --pp-accent-2: #ffb347;
+  --pp-glow: rgb(255 90 60 / 45%);
+  --pp-on-accent: #2a1208;
+  --pp-on-clay: #2a1208;
   --pp-font-display: 'Fraunces Variable', Georgia, serif;
   --pp-font-text: 'DM Sans Variable', system-ui, -apple-system, sans-serif;
   --pp-gutter: 20px;
@@ -39,9 +45,37 @@
   --pp-radius-lg: 20px;
   --pp-radius: 14px;
   --pp-radius-sm: 10px;
-  --pp-shadow: 0 1px 2px rgb(27 37 32 / 5%), 0 8px 24px rgb(27 37 32 / 7%);
-  --pp-shadow-lift: 0 2px 6px rgb(27 37 32 / 7%), 0 18px 44px rgb(27 37 32 / 14%);
+  --pp-shadow: 0 2px 4px rgb(42 18 8 / 8%), 0 12px 32px rgb(42 18 8 / 14%);
+  --pp-shadow-lift: 0 4px 10px rgb(42 18 8 / 12%), 0 24px 60px rgb(42 18 8 / 24%);
   --pp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Foster world: forest, moss, gold. */
+[data-world='foster'] {
+  --pp-bg: #dff1de;
+  --pp-bg-deep: #c6e6c6;
+  --pp-surface: #f3fbf1;
+  --pp-surface-soft: #e9f6e6;
+  --pp-ink: #082616;
+  --pp-muted: #2f5a3f;
+  --pp-faint: #7fa88c;
+  --pp-line: #b6dcb8;
+  --pp-green: #157a45;
+  --pp-green-strong: #0c5a31;
+  --pp-green-soft: #bfe8cc;
+  --pp-clay: #e2891a;
+  --pp-clay-soft: #ffe3b8;
+  --pp-clay-ink: #8a4d00;
+  --pp-sun: #f7c948;
+  --pp-sun-soft: #fff0bf;
+  --pp-sky-soft: #d4efe0;
+  --pp-accent: #157a45;
+  --pp-accent-2: #f7c948;
+  --pp-glow: rgb(21 122 69 / 45%);
+  --pp-on-accent: #ffffff;
+  --pp-on-clay: #082616;
+  --pp-shadow: 0 2px 4px rgb(8 38 22 / 10%), 0 12px 32px rgb(8 38 22 / 16%);
+  --pp-shadow-lift: 0 4px 10px rgb(8 38 22 / 14%), 0 24px 60px rgb(8 38 22 / 26%);
 }
 
 html {

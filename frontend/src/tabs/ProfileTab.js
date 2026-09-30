@@ -9,7 +9,7 @@ import { useDiscardGuard } from '../components/FormGuard';
 import { FilterSheet } from '../components/SharedComponents';
 import { Screen } from '../foster/ui';
 import { Toggle } from '../foster/Wizard';
-import { Avatar, Button, Notice, PageTitle, Row, Section, Segment, TextField, fmt } from '../ui/kit';
+import { Avatar, Button, Notice, Row, Section, Segment, TextField, fmt } from '../ui/kit';
 import { list, listItem } from '../ui/motion';
 import {
   Bell, CheckCircle2, Circle, Download, Heart, HelpCircle, Home, Languages, Lock, LogOut, Plus, Shield, Trash2,
@@ -489,15 +489,14 @@ export default function ProfileTab({ environment = 'match' }) {
 
   return <div data-testid="profile-tab" className="pp-profile ui-page">
     <div className="ui-scroll">
-      <PageTitle title={t('profile.title')} />
       <AnimatePresence>{notice && <div className="ui-gutter"><Notice tone={notice.tone} onClose={() => setNotice(null)}>{notice.text}</Notice></div>}</AnimatePresence>
 
       <motion.div variants={list} initial={reduced ? false : 'hidden'} animate="show">
         <motion.section variants={listItem} className="pp-identity ui-gutter">
           <span className="pp-initial" aria-hidden="true">{(user.displayName || '?').trim().charAt(0).toUpperCase()}</span>
           <div className="ui-grow">
-            <h2 className="ui-title-l">{user.displayName}</h2>
-            <p className="ui-small">{[user.coarseArea, user.city].filter(Boolean).join(', ')}{roles && ` · ${roles}`}</p>
+            <h1 className="pp-identity-name">{user.displayName}</h1>
+            <p className="pp-identity-sub">{[user.coarseArea, user.city].filter(Boolean).join(', ')}{roles && ` · ${roles}`}</p>
             <Button variant="quiet" className="pp-edit" onClick={() => { setSheetError(''); setProfileDraft({ displayName: user.displayName || '', city: user.city || '', coarseArea: user.coarseArea || '' }); }}>
               {t('profile.editProfile')}</Button>
           </div>

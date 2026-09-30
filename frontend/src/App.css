@@ -122,8 +122,9 @@
 /* Shell: a quiet bar that says where you are, tabs that say where you can go. */
 .pp-tab-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .pp-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 6px 12px 0 10px; background: var(--pp-bg); }
+.pp-bar-space { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 22px !important; font-weight: 640 !important; letter-spacing: -0.02em; }
 .pp-bar-space { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px 0 4px; border-radius: 14px;
-  font-size: 15.5px; font-weight: 700; color: var(--pp-ink); }
+  font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 22px; font-weight: 640; letter-spacing: -0.02em; color: var(--pp-ink); }
 .pp-bar-space:active, .pp-bar-animal:active { background: var(--pp-bg-deep); }
 .pp-bar-space svg { color: var(--pp-muted); }
 .pp-bar-dot { position: absolute; top: 8px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--pp-clay); box-shadow: 0 0 0 2px var(--pp-bg); }
@@ -136,13 +137,13 @@
 .pp-check { color: var(--pp-green); flex-shrink: 0; }
 
 .pp-tabs { display: flex; align-items: stretch; justify-content: space-around; height: calc(64px + env(safe-area-inset-bottom)); padding: 0 8px env(safe-area-inset-bottom);
-  background: var(--pp-surface); border-top: 1px solid var(--pp-line); z-index: 50; }
-.pp-tab { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; color: var(--pp-muted); }
-.pp-tab[aria-current='page'] { color: var(--pp-green); }
-.pp-tab-mark { position: absolute; top: -1px; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--pp-green); }
-.pp-tab-icon { position: relative; display: grid; place-items: center; }
-.pp-tab-icon .ui-count-float { top: -6px; right: -12px; box-shadow: 0 0 0 2px var(--pp-surface); }
-.pp-tab-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  background: var(--pp-night); color: #fff; z-index: 50; }
+.pp-tab { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; color: rgb(255 255 255 / 62%); }
+.pp-tab[aria-current='page'] { color: var(--pp-accent-2); }
+.pp-tab-mark { position: absolute; top: 8px; width: 44px; height: 32px; border-radius: 12px; background: rgb(255 255 255 / 12%); }
+.pp-tab-icon { position: relative; z-index: 1; display: grid; place-items: center; }
+.pp-tab-icon .ui-count-float { top: -6px; right: -12px; box-shadow: 0 0 0 2px var(--pp-night); }
+.pp-tab-label { position: relative; z-index: 1; font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .pp-tab[aria-current='page'] .pp-tab-label { font-weight: 750; }
 
 /* Space chooser: two doors, both in reach without scrolling. */
