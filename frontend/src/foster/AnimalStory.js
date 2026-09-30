@@ -6,6 +6,7 @@ import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterPlacement } from '../services/fosterApi';
 import { Button, Card, Celebrate, Choices, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, TaskCheck, fmt, itemMotion, listMotion } from './ui';
 import { dueLabel } from './Today';
+import { person } from '../ui/kit';
 
 const stepIndex = { RESERVED: 1, IN_CARE: 3, COMPLETED: 4, CANCELLED: 1 };
 
@@ -65,20 +66,20 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
   const request = [...data.incoming, ...data.outgoing].find(r => r.id === p?.request_id);
   const members = data.team.filter(m => m.home_id === p?.home_id && m.status === 'ACTIVE' && ['OWNER', 'CARER'].includes(m.role));
   const spaces = data.spaces.filter(s => s.home_id === p?.home_id);
-  const other = caseSide ? home?.name || p?.home_name : request?.sender_id === user.id ? request?.recipient_name : request?.sender_name;
+  const other = caseSide ? home?.name || p?.home_name : request?.sender_id === user.id ? person(request?.recipient_name, t) : person(request?.sender_name, t);
   const date = value => new Date(value).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' });
   // The journal also records system events; show notes as written and
   // milestones as short lines. Task creation is already in the checklist.
   const milestone = { RESERVED: 'fx.diaryReserved', RECEIVE: 'fx.diaryArrived', CARE: 'fx.diaryCare', END: 'fx.diaryEnded',
     CANCEL: 'fx.diaryCancelled', DISPUTE: 'fx.diaryDispute', CLARIFY: 'fx.diaryClarify' };
   const diary = (story?.journal || []).filter(entry => entry.event !== 'TASK_CREATED').map(entry => {
-    if (entry.event === 'NOTE') return { id: entry.id, created_at: entry.created_at, title: entry.actor_name, text: entry.body };
+    if (entry.event === 'NOTE') return { id: entry.id, created_at: entry.created_at, title: person(entry.actor_name, t), text: entry.body };
     if (entry.event === 'TASK_COMPLETED') return { id: entry.id, created_at: entry.created_at, milestone: true,
-      title: fmt(t('fx.diaryTaskDone'), { task: entry.body }), text: entry.actor_name };
+      title: fmt(t('fx.diaryTaskDone'), { task: entry.body }), text: person(entry.actor_name, t) };
     const withReason = ['END', 'CANCEL', 'DISPUTE', 'CLARIFY'].includes(entry.event);
     return { id: entry.id, created_at: entry.created_at, milestone: true,
       title: fmt(t(milestone[entry.event] || 'fx.diaryCare'), { animal: p?.name || '' }),
-      text: withReason ? `${entry.actor_name}: ${entry.body}` : entry.actor_name };
+      text: withReason ? `${person(entry.actor_name, t)}: ${entry.body}` : person(entry.actor_name, t) };
   });
 
   const run = async (action, success) => {
@@ -143,7 +144,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
         : <motion.div variants={listMotion} initial="hidden" animate="show">
           <div className="fx-hero"><Photo src={p.photo} name={p.name} species={p.species} className="fx-photo-hero" /></div>
 
-          <Card className="fx-lift" style={{ margin: '-26px 4px 0' }}>
+          <Card className="fx-lift">
             <div className="fx-row">
               <div className="fx-grow"><h2 className="fx-page-title" style={{ fontSize: 24 }}>{p.name}</h2>
                 <p className="fx-muted">{p.home_name}{p.space_name ? ` · ${p.space_name}` : ''}</p></div>
@@ -171,7 +172,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
               options={spaces.map(s => [s.id, s.name])} /></div>}
             {members.length > 1 && <><p className="fx-muted" style={{ margin: '14px 2px 8px' }}>{fmt(t('fx.whoLooksAfter'), { animal: p.name })}</p>
               <Choices label={t('fx.team')} value={p.carer_id || ''} onChange={value => setAssignment('carerId', value)}
-                options={members.map(m => [m.profile_id, m.display_name])} /></>}
+                options={members.map(m => [m.profile_id, person(m.display_name, t)])} /></>}
           </>}
 
           {(canCare || story.tasks.length > 0) && p.status !== 'CANCELLED' && <>

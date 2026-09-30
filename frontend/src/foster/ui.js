@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Cat, Check, Dog } from 'lucide-react';
@@ -8,10 +8,8 @@ import { useBackHandler } from '../navigation/backNavigation';
 import { animalPhotoUrl } from '../services/supabaseApi';
 import { useApp } from '../context/AppContext';
 
-// Fills {name}-style placeholders in translated copy.
-export function fmt(text, values = {}) {
-  return String(text).replace(/\{(\w+)\}/g, (match, key) => (values[key] ?? match));
-}
+import { Art } from '../ui/kit';
+export { fmt } from '../ui/kit';
 
 // A list that flows in item by item, so a screen reads as one movement.
 export const listMotion = {
@@ -64,8 +62,9 @@ export function Choices({ options, value, onChange, multiple = false, label, col
   return <div role="group" aria-label={label} className={`fx-choices ${columns ? `fx-choices-${columns}` : ''}`}>
     {options.map(([option, text, Icon]) => <motion.button type="button" key={option} aria-pressed={selected(option)}
       whileTap={reduced ? undefined : { scale: 0.95 }} onClick={() => toggle(option)} className="fx-choice">
-      {Icon && <Icon size={20} aria-hidden="true" />}<span>{text}</span>
-      {selected(option) && <motion.span initial={reduced ? false : { scale: 0 }} animate={{ scale: 1 }} className="fx-choice-check"><Check size={13} /></motion.span>}
+      {/* The check says "chosen" without relying on colour alone. */}
+      {selected(option) ? <motion.span initial={reduced ? false : { scale: 0.4 }} animate={{ scale: 1 }} className="fx-choice-check"><Check size={17} strokeWidth={2.6} /></motion.span>
+        : Icon && <Icon size={19} aria-hidden="true" />}<span>{text}</span>
     </motion.button>)}
   </div>;
 }
@@ -84,15 +83,26 @@ export function Screen(props) {
 function ScreenPage({ title, onBack, action, children, footer, tone }) {
   const { t } = useApp();
   const reduced = useReducedPetMotion();
+  const body = useRef(null);
+  // Pages that open on a big photo carry their own large title; the bar's
+  // title rises into place once that one scrolls away, so it never repeats.
+  const [barTitle, setBarTitle] = useState(true);
+  const showBarTitle = () => {
+    const element = body.current;
+    setBarTitle(!element?.querySelector('.fx-hero') || element.scrollTop > 300);
+  };
+  // Checked again when the content changes: the photo may arrive after a loading state.
+  useLayoutEffect(showBarTitle, [children]);
   useBackHandler(true, onBack, 15);
-  return <motion.section className={`fx-screen ${tone ? `fx-screen-${tone}` : ''}`}
+  return <motion.section className={`fx-screen ${tone ? `fx-screen-${tone}` : ''}`} aria-label={typeof title === 'string' ? title : undefined}
     initial={reduced ? { opacity: 0 } : { x: '100%' }} animate={{ x: 0, opacity: 1 }}
     exit={reduced ? { opacity: 0 } : { x: '100%' }} transition={reduced ? { duration: 0.12 } : motionSpring}>
     <header className="fx-screen-header">
-      <button type="button" className="fx-icon-button" onClick={onBack} aria-label={t('common.back')}><ArrowLeft size={20} /></button>
-      <h1>{title}</h1>{action || <span className="fx-header-spacer" />}
+      <button type="button" className="fx-icon-button" onClick={onBack} aria-label={t('common.back')}><ArrowLeft size={22} /></button>
+      <motion.h1 initial={false} animate={{ opacity: barTitle ? 1 : 0, y: barTitle ? 0 : 8 }} transition={{ duration: 0.18 }}
+        aria-hidden={!barTitle || undefined}>{title}</motion.h1>{action || <span className="fx-header-spacer" />}
     </header>
-    <div className="fx-screen-body">{children}</div>
+    <div className="fx-screen-body" ref={body} onScroll={showBarTitle}>{children}</div>
     {footer && <footer className="fx-screen-footer">{footer}</footer>}
   </motion.section>;
 }
@@ -147,9 +157,9 @@ export function Notice({ tone = 'info', children, onClose }) {
   </motion.div>;
 }
 
-export function Empty({ icon: Icon, title, text, children }) {
+export function Empty({ art = 'paw', title, text, children }) {
   return <motion.div variants={itemMotion} className="fx-empty">
-    {Icon && <span className="fx-empty-icon"><Icon size={26} aria-hidden="true" /></span>}
+    <Art name={art} size={96} />
     <h3>{title}</h3>{text && <p>{text}</p>}{children}
   </motion.div>;
 }

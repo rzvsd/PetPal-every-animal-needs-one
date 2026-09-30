@@ -6,8 +6,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        body: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['"Fraunces Variable"', 'Georgia', 'serif'],
+        body: ['"DM Sans Variable"', 'system-ui', 'sans-serif'],
       },
     },
   },

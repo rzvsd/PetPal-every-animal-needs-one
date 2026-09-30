@@ -25,7 +25,7 @@ These documents describe the product as it is now. When anything else disagrees 
 
 ## Design
 
-The design system is being rewritten. Until then, the tokens in `frontend/tailwind.config.js` and `frontend/src/index.css` are what the app actually uses; `DESIGN.md`, `docs/design/` and `design_guidelines.json` are older drafts.
+`DESIGN.md` describes the design system: tokens, type, components, motion, illustration and copy. The code lives in `frontend/src/ui/` and the tokens in `frontend/src/index.css`. Older design drafts are in `docs/history/design/`.
 
 ## Product Boundary
 

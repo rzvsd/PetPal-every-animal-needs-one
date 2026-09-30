@@ -12,13 +12,13 @@ export function useDiscardGuard({ dirty, busy, onClose }) {
   }, [busy, dirty, onClose]);
   const discardDialog = <DialogLayer open={confirm} onClose={() => setConfirm(false)}
     label={t('motion.discardTitle')} priority={40}>
-    <div className="p-5 space-y-4">
-      <h2 className="font-heading text-xl font-semibold">{t('motion.discardTitle')}</h2>
-      <p className="text-sm text-[#57645C]">{t('motion.discardDescription')}</p>
-      <div className="grid grid-cols-2 gap-3">
-        <button type="button" className="petpal-button-primary" onClick={() => setConfirm(false)}>{t('motion.keepEditing')}</button>
-        <button type="button" className="petpal-button-danger" disabled={busy}
+    <div className="pp-confirm">
+      <h2 className="ui-title-m">{t('motion.discardTitle')}</h2>
+      <p className="ui-small">{t('motion.discardDescription')}</p>
+      <div className="pp-confirm-actions">
+        <button type="button" className="ui-btn ui-btn-danger" disabled={busy}
           onClick={() => { if (!busy) { setConfirm(false); onClose(); } }}>{t('motion.discard')}</button>
+        <button type="button" className="ui-btn ui-btn-primary" onClick={() => setConfirm(false)}>{t('motion.keepEditing')}</button>
       </div>
     </div>
   </DialogLayer>;

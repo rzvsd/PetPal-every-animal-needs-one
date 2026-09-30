@@ -51,26 +51,6 @@ function mapFosterCase(row) {
   };
 }
 
-function mapApplication(row) {
-  return {
-    id: row.application_id,
-    fosterCaseId: row.listing_id,
-    animalName: row.animal_name,
-    rescuerName: row.organization_name,
-    applicantId: 'supabase-user',
-    status: row.status,
-    housingType: row.housing_type || '',
-    availability: '',
-    experience: row.animal_experience || '',
-    otherPets: row.other_pets || '',
-    childrenInHome: row.children_in_home || '',
-    canTransport: null,
-    canHandleMedicalNeeds: null,
-    motivation: row.motivation || '',
-    createdAt: row.created_at,
-  };
-}
-
 function mapOwnerAnimal(row) {
   return {
     id: row.id,
@@ -418,17 +398,6 @@ export async function loadMatchCandidates({ animalId, mode, filters = {}, savedO
   return (data || []).map(mapMatchCandidate);
 }
 
-async function loadApplications() {
-  const { data, error } = await supabase
-    .from('my_applications_view')
-    .select('*')
-    .eq('mode', 'FOSTER')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return (data || []).map(mapApplication);
-}
-
 async function loadMyAnimals() {
   const { data, error } = await supabase
     .from('my_animal_profiles_view')
@@ -560,16 +529,15 @@ export async function loadSupabaseAppData() {
   if (session) await completeOnboardingFromSignUp(session.user);
 
   const fosterCases = await loadFosterCases();
-  const [profile, myAnimals, matchCandidates, fosterApplications, conversations, paymentSessions] = session
+  const [profile, myAnimals, matchCandidates, conversations, paymentSessions] = session
     ? await Promise.all([
         loadProfile(),
         loadMyAnimals(),
         Promise.resolve([]),
-        loadApplications(),
         loadConversations(),
         loadPaymentSessions(),
       ])
-    : [null, [], [], [], [], []];
+    : [null, [], [], [], []];
 
   return {
     configured: true,
@@ -578,7 +546,6 @@ export async function loadSupabaseAppData() {
     myAnimals,
     matchCandidates,
     fosterCases,
-    fosterApplications,
     conversations,
     paymentSessions,
   };

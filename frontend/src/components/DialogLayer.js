@@ -8,7 +8,7 @@ const dialogs = [];
 const topDialog = () => [...dialogs].sort((a, b) => b.priority - a.priority || dialogs.indexOf(b) - dialogs.indexOf(a))[0];
 const syncInert = () => dialogs.forEach(item => { item.element.inert = item !== topDialog(); });
 
-function DialogSurface({ onClose, children, sheet, label, priority, draggable }) {
+function DialogSurface({ onClose, children, sheet, label, priority, draggable, className = '' }) {
   const dialog = useRef(null);
   const close = useRef(onClose);
   const present = useIsPresent();
@@ -53,7 +53,7 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
   const closed = reduced ? { opacity: 0 } : sheet ? { y: '100%', opacity: 1 } : { opacity: 0, scale: 0.98 };
   return (
     <div className={`dialog-layer ${sheet ? 'dialog-sheet' : ''}`} style={{ zIndex: 100 + priority }} data-testid={sheet ? 'filter-sheet' : 'modal-overlay'}>
-      <motion.div className="absolute inset-0 bg-black/35" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      <motion.div className="absolute inset-0 bg-[rgb(27_37_32/0.4)]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: reduced ? 0.1 : 0.2 }} onClick={() => close.current()} aria-hidden="true" />
       <motion.div ref={dialog} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}
         initial={closed} animate={{ opacity: 1, scale: 1, y: 0 }} exit={closed}
@@ -61,7 +61,7 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
         drag={sheet && draggable && !reduced ? 'y' : false} dragControls={dragControls} dragListener={false}
         dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.3 }} dragSnapToOrigin
         onDragEnd={(_, info) => { if (info.offset.y > 80 || (info.velocity.y > 600 && info.offset.y > 20)) close.current(); }}
-        className={`dialog-content ${sheet ? 'rounded-t-3xl' : 'rounded-3xl'}`}>
+        className={`dialog-content ${sheet ? 'rounded-t-3xl' : 'rounded-3xl'} ${className}`}>
         {sheet && draggable && <div className="dialog-drag-handle" aria-hidden="true" onPointerDown={event => dragControls.start(event)}><span /></div>}
         {children}
       </motion.div>
@@ -69,6 +69,6 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
   );
 }
 
-export default function DialogLayer({ open, onClose, children, sheet = false, label, priority = 20, draggable = false }) {
-  return createPortal(<AnimatePresence>{open && <DialogSurface key="dialog" {...{ onClose, children, sheet, label, priority, draggable }} />}</AnimatePresence>, document.body);
+export default function DialogLayer({ open, onClose, children, sheet = false, label, priority = 20, draggable = false, className = '' }) {
+  return createPortal(<AnimatePresence>{open && <DialogSurface key="dialog" {...{ onClose, children, sheet, label, priority, draggable, className }} />}</AnimatePresence>, document.body);
 }

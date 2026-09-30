@@ -1,0 +1,78 @@
+/* Match: the photo is the page. Name, facts and the three answers sit on
+   the paper below it, and everything fits one screen without scrolling. */
+.pp-match { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.pp-match-controls { display: flex; align-items: center; gap: 8px; padding: 2px var(--pp-gutter) 12px; }
+.pp-toggle[aria-pressed='true'] { background: var(--pp-green-soft); color: var(--pp-green); }
+.pp-match-mode-note { margin: -4px var(--pp-gutter) 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-green); }
+
+.pp-match-stage { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 0 10px; }
+.pp-match-stage > * { grid-area: 1 / 1; min-height: 0; min-width: 0; }
+.pp-stage-item { display: flex; flex-direction: column; justify-content: center; }
+
+/* The card is the photo, edge to edge. Name and answers live on top of it. */
+.pp-card { position: relative; display: flex; flex-direction: column; min-height: 0; border-radius: var(--pp-radius-xl); overflow: hidden; box-shadow: var(--pp-shadow-lift); touch-action: pan-y; user-select: none; background: var(--pp-night-2); }
+.pp-card-photo { position: relative; flex: 1; min-height: 170px; padding: 0; border-radius: 0; overflow: hidden; }
+.pp-card-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 18%), transparent 28%, transparent 45%, rgb(0 0 0 / 82%)); pointer-events: none; }
+.pp-card-more { position: absolute; top: 12px; right: 12px; z-index: 2; }
+.ui-icon-btn-glass { background: rgb(0 0 0 / 28%); color: #fff; }
+.pp-card-img, .pp-card-img .ui-avatar { position: absolute; inset: 0; width: 100% !important; height: 100% !important; border-radius: var(--pp-radius-xl); }
+.pp-card-verdict { position: absolute; top: 18px; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: #fff; box-shadow: var(--pp-shadow); }
+.pp-card-verdict.is-yes { right: 18px; background: var(--pp-green); }
+.pp-card-verdict.is-no { left: 18px; background: var(--pp-clay); }
+.pp-card-info { position: absolute; left: 20px; right: 20px; bottom: 96px; z-index: 2; display: flex; flex-direction: column; gap: 3px; color: #fff; pointer-events: none; }
+.pp-card-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 44px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; text-shadow: 0 4px 24px rgb(0 0 0 / 45%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-card-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; line-height: 1.4; color: rgb(255 255 255 / 92%); text-shadow: 0 2px 10px rgb(0 0 0 / 45%); }
+.pp-card-tags { margin-top: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pp-accent-2); text-shadow: 0 2px 10px rgb(0 0 0 / 45%); }
+.pp-detail-body .pp-card-meta, .pp-detail-body .pp-card-tags { color: var(--pp-muted); text-shadow: none; }
+.pp-card-meta svg { display: inline; vertical-align: -2px; margin-right: 4px; }
+.pp-card.is-skeleton .pp-card-photo { display: block; flex: 1; }
+.pp-card.is-skeleton .pp-card-info { gap: 8px; padding-top: 16px; }
+
+.pp-match-float { position: absolute; left: 10px; right: 10px; bottom: 0; z-index: 3; }
+.pp-actions { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 18px 18px; }
+.pp-action-round { width: 58px !important; height: 58px !important; border-radius: 50% !important; }
+.ui-icon-btn-ring { background: rgb(0 0 0 / 28%); color: #fff; }
+.ui-icon-btn-ring:disabled { opacity: .5; }
+.pp-action-main { flex: 1; max-width: 220px; min-height: 58px; border-radius: 29px; font-size: 17px; box-shadow: 0 10px 30px var(--pp-glow); }
+.pp-saved { color: var(--pp-accent-2); fill: var(--pp-accent-2); }
+.pp-hearts { position: absolute; z-index: 4; pointer-events: none; color: var(--pp-clay); }
+.pp-hearts span { position: absolute; left: -10px; top: -10px; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 30%)); }
+.pp-match-hint { padding: 2px var(--pp-gutter) 10px; text-align: center; font-size: 13px; line-height: 1.4; color: var(--pp-muted); }
+.pp-match-notice { padding: 10px var(--pp-gutter) 0; }
+
+/* Detail: the photo grows out of the card into a full page. */
+.pp-detail { background: var(--pp-bg); }
+.pp-detail-hero { position: relative; height: min(56vh, 470px); overflow: hidden; border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
+.pp-detail-hero .ui-avatar { width: 100% !important; height: 100% !important; border-radius: 0; }
+.pp-detail-body { padding: 22px var(--pp-gutter) 28px; }
+.pp-detail-body .pp-card-meta { white-space: normal; margin-top: 4px; }
+.pp-detail-block { display: flex; flex-direction: column; gap: 6px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--pp-line); }
+.pp-detail-text { font-size: 16.5px; line-height: 1.5; color: var(--pp-ink); }
+.pp-detail-private { display: flex; align-items: center; gap: 6px; }
+.pp-detail-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
+.pp-detail-top > * { pointer-events: auto; }
+.pp-detail-foot { flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: var(--pp-bg); border-top: 1px solid var(--pp-line); }
+.pp-detail-foot .ui-icon-btn-ring { background: var(--pp-bg-deep); color: var(--pp-ink); backdrop-filter: none; }
+
+/* It's a match: the whole screen turns sunset, two faces meet, hearts rise. */
+.pp-celebrate-full { position: absolute !important; inset: 0 !important; max-width: none !important; max-height: none !important; height: 100%; border-radius: 0 !important;
+  background: linear-gradient(160deg, #ff7a3d 0%, #ff4d5e 55%, #d9207a 100%) !important; box-shadow: none !important; }
+.pp-celebrate-full > .min-h-0 { display: flex; flex-direction: column; flex: 1; }
+.pp-celebrate { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 40px 28px calc(28px + env(safe-area-inset-bottom)); text-align: center; color: #fff; overflow: hidden; }
+.pp-celebrate-heart { position: absolute; bottom: 0; color: rgb(255 255 255 / 55%); pointer-events: none; }
+.pp-celebrate-pair { position: relative; display: flex; margin-bottom: 18px; }
+.pp-celebrate-pair > span + span { margin-left: -34px; }
+.pp-celebrate-pair .ui-avatar { box-shadow: 0 0 0 5px rgb(255 255 255 / 90%), 0 20px 50px rgb(0 0 0 / 30%); }
+.pp-celebrate-title { position: relative; font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 52px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; text-shadow: 0 6px 30px rgb(0 0 0 / 25%); }
+.pp-celebrate-text { position: relative; max-width: 300px; font-size: 17px; line-height: 1.45; opacity: .95; }
+.pp-celebrate-actions { position: relative; display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 26px; }
+.pp-celebrate-actions .ui-btn-primary { background: #fff; color: #d8391f; box-shadow: 0 12px 34px rgb(0 0 0 / 25%); }
+.pp-celebrate-actions .ui-btn-secondary { background: rgb(255 255 255 / 18%); color: #fff; }
+
+.pp-fieldset { display: flex; flex-direction: column; gap: 8px; border: 0; }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-chip { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--pp-bg-deep); font-size: 15px; font-weight: 600; color: var(--pp-ink); transition: background-color .15s, color .15s; }
+.pp-chip[aria-pressed='true'] { background: var(--pp-green); color: var(--pp-on-accent); }
+.pp-walk-pair { display: flex; align-items: center; }
+.pp-walk-pair .ui-avatar + .ui-avatar { margin-left: -12px; box-shadow: 0 0 0 3px var(--pp-surface); }
+.pp-walk-pair p { margin-left: 12px; }

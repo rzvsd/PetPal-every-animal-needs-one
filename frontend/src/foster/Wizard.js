@@ -11,10 +11,10 @@ import { useDiscardGuard } from '../components/FormGuard';
 import { Button, Card, Choices, Field, Notice, Photo, Screen, fmt } from './ui';
 import { durationLabel } from './Find';
 
-export function Toggle({ label, value, onChange }) {
+export function Toggle({ label, description, value, onChange, disabled = false }) {
   const reduced = useReducedPetMotion();
-  return <button type="button" className="fx-toggle" aria-pressed={value} onClick={() => onChange(!value)}>
-    <span>{label}</span>
+  return <button type="button" className="fx-toggle" aria-pressed={value} disabled={disabled} onClick={() => onChange(!value)}>
+    <span className="fx-toggle-text"><span>{label}</span>{description && <small>{description}</small>}</span>
     <span className="fx-switch" aria-hidden="true"><motion.span animate={{ x: value ? 20 : 0 }} transition={reduced ? { duration: 0 } : motionSpring} /></span>
   </button>;
 }

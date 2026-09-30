@@ -2,43 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
-
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* One design language for the whole app: one warm background that flows
-   behind every screen, white cards that float on it, green for actions and
-   a warm clay accent. Spaces are told apart by small accents, never by
-   blocks of colour that cut the page. */
+/* PetPal "Alive": night for the launch film and the doors, then one bold
+   world palette per space. Every component reads these variables, so the
+   whole app changes colour with the world you walk into. */
 :root {
-  --pp-bg: #f6f2ea;
-  --pp-bg-deep: #efe8dc;
-  --pp-surface: #ffffff;
-  --pp-surface-soft: #fbf8f2;
-  --pp-ink: #1e2a23;
-  --pp-muted: #66716a;
-  --pp-faint: #9aa39c;
-  --pp-line: #e9e2d5;
-  --pp-green: #2f5d46;
-  --pp-green-strong: #234836;
-  --pp-green-soft: #e5eee6;
-  --pp-clay: #c46f4e;
-  --pp-clay-soft: #f8e7dd;
-  --pp-sun: #f1c46a;
-  --pp-sun-soft: #fdf1d8;
-  --pp-sky-soft: #e3eef2;
-  --pp-danger: #b3473d;
-  --pp-danger-soft: #f8e1dd;
-  --pp-radius-lg: 24px;
-  --pp-radius: 18px;
-  --pp-radius-sm: 12px;
-  --pp-shadow: 0 1px 2px rgb(30 42 35 / 4%), 0 10px 28px rgb(30 42 35 / 7%);
-  --pp-shadow-lift: 0 2px 4px rgb(30 42 35 / 6%), 0 18px 40px rgb(30 42 35 / 12%);
+  --pp-night: #0e1612;
+  --pp-night-2: #17221c;
+  --pp-bg: #ffe9d6;
+  --pp-bg-deep: #ffd9bd;
+  --pp-surface: #fff7ef;
+  --pp-surface-soft: #fff1e4;
+  --pp-ink: #2a1208;
+  --pp-muted: #7a4a36;
+  --pp-faint: #b48a78;
+  --pp-line: #f2c9ad;
+  --pp-green: #ff5a3c;
+  --pp-green-strong: #d8391f;
+  --pp-green-soft: #ffd0c4;
+  --pp-clay: #ff3d7f;
+  --pp-clay-soft: #ffd6e3;
+  --pp-clay-ink: #b3134f;
+  --pp-sun: #ffb347;
+  --pp-sun-soft: #ffe7c2;
+  --pp-sky-soft: #ffe0cf;
+  --pp-danger: #c81e1e;
+  --pp-danger-soft: #ffd9d9;
+  --pp-accent: #ff5a3c;
+  --pp-accent-2: #ffb347;
+  --pp-glow: rgb(255 90 60 / 45%);
+  --pp-on-accent: #2a1208;
+  --pp-on-clay: #2a1208;
+  --pp-font-display: 'Fraunces Variable', Georgia, serif;
+  --pp-font-text: 'DM Sans Variable', system-ui, -apple-system, sans-serif;
+  --pp-gutter: 20px;
+  --pp-radius-xl: 28px;
+  --pp-radius-lg: 20px;
+  --pp-radius: 14px;
+  --pp-radius-sm: 10px;
+  --pp-shadow: 0 2px 4px rgb(42 18 8 / 8%), 0 12px 32px rgb(42 18 8 / 14%);
+  --pp-shadow-lift: 0 4px 10px rgb(42 18 8 / 12%), 0 24px 60px rgb(42 18 8 / 24%);
   --pp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Foster world: forest, moss, gold. */
+[data-world='foster'] {
+  --pp-bg: #dff1de;
+  --pp-bg-deep: #c6e6c6;
+  --pp-surface: #f3fbf1;
+  --pp-surface-soft: #e9f6e6;
+  --pp-ink: #082616;
+  --pp-muted: #2f5a3f;
+  --pp-faint: #7fa88c;
+  --pp-line: #b6dcb8;
+  --pp-green: #157a45;
+  --pp-green-strong: #0c5a31;
+  --pp-green-soft: #bfe8cc;
+  --pp-clay: #e2891a;
+  --pp-clay-soft: #ffe3b8;
+  --pp-clay-ink: #8a4d00;
+  --pp-sun: #f7c948;
+  --pp-sun-soft: #fff0bf;
+  --pp-sky-soft: #d4efe0;
+  --pp-accent: #157a45;
+  --pp-accent-2: #f7c948;
+  --pp-glow: rgb(21 122 69 / 45%);
+  --pp-on-accent: #ffffff;
+  --pp-on-clay: #082616;
+  --pp-shadow: 0 2px 4px rgb(8 38 22 / 10%), 0 12px 32px rgb(8 38 22 / 16%);
+  --pp-shadow-lift: 0 4px 10px rgb(8 38 22 / 14%), 0 24px 60px rgb(8 38 22 / 26%);
 }
 
 html {
@@ -48,9 +85,9 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--pp-font-text);
   background: #E4E2DC;
-  color: #1F2924;
+  color: var(--pp-ink);
   overflow-x: hidden;
   overflow-y: hidden;
   height: var(--app-height, 100dvh);
@@ -79,7 +116,9 @@ body {
 }
 
 .font-heading {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--pp-font-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  letter-spacing: -0.01em;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -119,7 +158,7 @@ body {
 }
 
 input:not([type="checkbox"]):not([type="radio"]), select, textarea {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--pp-font-text);
   min-height: 44px;
 }
 
@@ -131,7 +170,7 @@ button {
   cursor: pointer;
   border: none;
   background: none;
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--pp-font-text);
   min-height: 44px;
   min-width: 44px;
   touch-action: pan-y manipulation;
@@ -143,7 +182,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid #2C402B;
+  outline: 2px solid var(--pp-green);
   outline-offset: 2px;
 }
 
@@ -175,7 +214,7 @@ button:disabled {
 img {
   -webkit-user-drag: none;
   user-select: none;
-  background-color: #E4E2DC;
+  background-color: var(--pp-bg-deep);
 }
 
 @media (prefers-reduced-motion: reduce) {

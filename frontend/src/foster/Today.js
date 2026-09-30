@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronRight, Clock, Home, MessageCircle, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Card, Photo, SectionTitle, TaskCheck, fmt, listMotion } from './ui';
+import { Art, person } from '../ui/kit';
 
 export function dueLabel(dueAt, t) {
   if (!dueAt) return t('fx.noDate');
@@ -13,19 +14,20 @@ export function dueLabel(dueAt, t) {
   if (due < today && days <= 0) return t('fx.overdue');
   if (days === 0) return t('fx.dueToday');
   if (days === 1) return t('fx.dueTomorrow');
-  return due.toLocaleDateString();
+  // Written the way the chosen language writes dates: "2 octombrie", "2 October".
+  return due.toLocaleDateString(document.documentElement.lang === 'ro' ? 'ro-RO' : 'en-GB', { day: 'numeric', month: 'long' });
 }
 
 export function IntentCards({ onNeedHome, onCanFoster, onJoinWithCode }) {
   const { t } = useApp();
   return <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
     <Card className="fx-intent" onClick={onNeedHome}>
-      <span className="fx-intent-icon is-clay" aria-hidden="true">🐾</span>
+      <Art name="paw" size={64} play={false} />
       <span className="fx-grow"><h3>{t('fx.intentHelpTitle')}</h3><p>{t('fx.intentHelpText')}</p></span>
       <ChevronRight className="fx-chevron" size={20} />
     </Card>
     <Card className="fx-intent" onClick={onCanFoster}>
-      <span className="fx-intent-icon is-green" aria-hidden="true">🏡</span>
+      <Art name="house" size={64} play={false} />
       <span className="fx-grow"><h3>{t('fx.intentFosterTitle')}</h3><p>{t('fx.intentFosterText')}</p></span>
       <ChevronRight className="fx-chevron" size={20} />
     </Card>
@@ -35,7 +37,7 @@ export function IntentCards({ onNeedHome, onCanFoster, onJoinWithCode }) {
 
 export function HowItWorks() {
   const { t } = useApp();
-  return <Card><ol className="fx-how">{['how1', 'how2', 'how3', 'how4'].map(key => <li key={key}>{t(`fx.${key}`)}</li>)}</ol></Card>;
+  return <ol className="fx-how">{['how1', 'how2', 'how3', 'how4'].map(key => <li key={key}>{t(`fx.${key}`)}</li>)}</ol>;
 }
 
 export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask, onOpenPlacement, onOpenRequest,
@@ -46,7 +48,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
   const invites = data.team.filter(m => m.profile_id === user.id && m.status === 'INVITED');
   const waiting = [
     ...data.outgoing.filter(r => r.status === 'PENDING').map(r => ({ key: r.id, request: r,
-      text: fmt(t('fx.waitingFor'), { name: r.recipient_name, animal: r.animal_name }) })),
+      text: fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: r.animal_name }) })),
     ...data.placedElsewhere.filter(r => r.placement_status === 'RESERVED').map(r => ({ key: `placed-${r.id}`, request: r,
       text: fmt(t('fx.arrivingElsewhere'), { animal: r.animal_name, home: r.home_name }) })),
   ];
@@ -68,11 +70,12 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       {needsCount > 0 && <>
         <SectionTitle count={needsCount}>{t('fx.needsYou')}</SectionTitle>
         <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
-          {offers.map(request => <Card key={request.id} className="fx-todo">
+          {offers.map((request, index) => <Card key={request.id} className={`fx-todo ${index === 0 ? 'fx-hero-card' : ''}`}>
+            {index === 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">
-              <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />
+              {index > 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />}
               <div className="fx-grow">
-                <h3>{fmt(t(request.kind === 'INVITE' ? 'fx.inviteReceived' : 'fx.offerReceived'), { name: request.sender_name, animal: request.animal_name })}</h3>
+                <h3>{fmt(t(request.kind === 'INVITE' ? 'fx.inviteReceived' : 'fx.offerReceived'), { name: person(request.sender_name, t), animal: request.animal_name })}</h3>
                 <p>{t('fx.offerReceivedHint')}</p>
               </div>
             </div>
@@ -85,9 +88,10 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
             </div>
           </Card>)}
 
-          {arriving.map(placement => <Card key={placement.id} className="fx-todo">
+          {arriving.map((placement, index) => <Card key={placement.id} className={`fx-todo ${!offers.length && index === 0 ? 'fx-hero-card' : ''}`}>
+            {!offers.length && index === 0 && <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">
-              <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-photo-sm" />
+              {(offers.length || index > 0) && <Photo src={placement.photo} name={placement.name} species={placement.species} className="fx-photo-sm" />}
               <div className="fx-grow"><h3>{fmt(t('fx.arriving'), { animal: placement.name })}</h3>
                 <p>{fmt(t('fx.arrivingHint'), { animal: placement.name })}</p></div>
             </div>

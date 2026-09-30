@@ -1,116 +1,126 @@
----
-version: "alpha"
-name: PetPal
-description: "A trusted local adoption and foster product for verified shelters, rescuers, and serious applicants."
-colors:
-  ink: "#14231E"
-  ink-muted: "#5A6862"
-  paper: "#F7F1E7"
-  paper-raised: "#FFF8EC"
-  rescue-green: "#2F6F5D"
-  deep-green: "#102A23"
-  foster-clay: "#B86642"
-  warm-gold: "#E3B84B"
-  calm-blue: "#DCEEF2"
-  soft-rose: "#E9C7CB"
-  line: "#D7C7AC"
-typography:
-  display:
-    fontFamily: System
-    fontSize: 34px
-    fontWeight: 900
-    lineHeight: 39px
-  title:
-    fontFamily: System
-    fontSize: 22px
-    fontWeight: 900
-    lineHeight: 28px
-  body:
-    fontFamily: System
-    fontSize: 16px
-    fontWeight: 500
-    lineHeight: 23px
-  label:
-    fontFamily: System
-    fontSize: 12px
-    fontWeight: 900
-    lineHeight: 16px
-rounded:
-  sm: 6px
-  md: 8px
-spacing:
-  xs: 8px
-  sm: 12px
-  md: 16px
-  lg: 24px
-components:
-  button-primary:
-    backgroundColor: "{colors.rescue-green}"
-    textColor: "{colors.paper-raised}"
-    rounded: "{rounded.md}"
-    height: 52px
-  card:
-    backgroundColor: "{colors.paper-raised}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.md}"
-  app-shell:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.ink}"
----
+# PetPal design system
 
-## Overview
+The one source for how PetPal looks, moves and speaks. The code that implements
+it lives in `frontend/src/ui/` (tokens in `frontend/src/index.css`). Older drafts
+are kept in `docs/history/` for reference only.
 
-PetPal should feel like a calm rescue operations product, not a playful dating clone. The experience is warm, structured, humane, and credible. It should help a user understand three things immediately: the animals are real, the organizations are checked, and contact happens through applications before chat.
+## Direction: alive
 
-The app should avoid looking like a landing page inside a phone. The first screen inside the product must be useful: browse animals, filter intent, open a profile, and apply. Trust and safety should appear as short interface signals close to the action, not as long explanatory blocks.
+Real animals, real footage, bold colour. The app opens on a short film of
+happy animals, lands on two living video doors (Match and Foster), and each
+world has its own saturated palette. Inside, the photo is the screen: the
+Match card, Foster's hero card and the animal shelves put the animal's picture
+edge to edge with the words on top.
 
-## Colors
+Rules that follow from this:
 
-Use a soft paper base instead of stark white or a heavy tan wash. Use deep green for trust and app chrome, rescue green for primary action, clay for foster urgency, gold for small verified/status highlights, calm blue only for quiet privacy or information moments, and rose only for warnings or reports.
+- **Footage, not illustration, for the big moments.** Launch, doors and bursts
+  use short muted clips (`frontend/public/film/`, Pexels licence, 540×960,
+  under 1 MB each). The 3D characters are kept for small empty states.
+- **Two worlds, one system.** `[data-world='match']` (sunset: coral, amber, hot
+  pink on peach) and `[data-world='foster']` (forest: green, gold on mint)
+  override the same tokens, so every component recolours with the world.
+- **Photos carry the page.** Name and actions sit on the picture with a
+  gradient; lists of animals are photo tiles, not text rows.
+- **Only floating things are raised,** and nothing blurs over a moving
+  surface (backdrop filters on the Match card cost 30% of frames on device).
+- **Moments people record:** hearts from under the thumb on like, the
+  full-screen sunset match, the world burst on entering.
 
-Screens should not be dominated by one hue. Each screen needs a clear base, one primary action color, and small supporting accents.
+## Tokens (`frontend/src/index.css`)
 
-## Typography
+| Token | Value | Use |
+| --- | --- | --- |
+| `--pp-night` | `#0e1612` | Launch, doors, tab bar |
+| `--pp-bg` | world tint (peach `#ffe9d6` / mint `#dff1de`) | Page background inside a world |
+| `--pp-bg-deep` | `#ece4d6` | Fields, segmented tracks, skeletons, secondary buttons |
+| `--pp-surface` | `#fffdf8` | Sheets, tab bar, raised panels |
+| `--pp-ink` | `#1b2520` | Text (13.9:1 on paper) |
+| `--pp-muted` | `#5a665f` | Secondary text (5.3:1 on paper, 4.75:1 on deep) |
+| `--pp-faint` | `#8b948d` | Chevrons and decorative marks only (2.75:1, never text) |
+| `--pp-line` | `#e2d8c7` | Hairlines |
+| `--pp-green` / `--pp-accent` | coral `#ff5a3c` / green `#157a45` | The world's action colour; text on it is `--pp-on-accent` |
+| `--pp-accent-2` | amber `#ffb347` / gold `#f7c948` | Tags, active tab, highlights |
+| `--pp-clay` / `-soft` | `#a94f33` / `#f4e2d8` | Unread counts, urgency, attention |
+| `--pp-sun` / `-soft` | `#edc063` / `#fbf0d6` | Highlights on dark ground |
+| `--pp-danger` / `-soft` | `#a8402f` / `#f6deda` | Errors and destructive actions |
 
-Use strong headlines sparingly. Hero-scale type belongs on the welcome screen and major animal detail moments only. Operational surfaces like filters, forms, inbox, shelter review, and profile should use tighter titles and readable body copy.
+All text meets WCAG AA. White on green is 7.8:1, white on clay 5.4:1.
 
-Labels should be short, uppercase, and persistent. Form fields should not depend on placeholder text alone.
+**Type.** Fraunces (variable, `SOFT 100`) for titles, animal names and big
+numbers; DM Sans for everything else. Both ship with the app
+(`@fontsource-variable`), including Romanian ș and ț, so they work offline.
 
-## Layout
+| Class | Size | Use |
+| --- | --- | --- |
+| `.ui-title-xl` | 34/1.08 Fraunces | Page titles, a name on its own page |
+| `.ui-title-l` | 28 Fraunces | Card names, sheet highlights |
+| `.ui-title-m` | 22 Fraunces | Sheet titles, empty states |
+| `.ui-title-s` | 17 DM Sans 650 | Emphasis inside text |
+| `.ui-lede` | 15.5 muted | The sentence under a title |
+| `.ui-small` | 14 muted | Secondary text |
+| `.ui-overline` | 12 caps, 0.08em | Section labels |
 
-The app uses five stable tabs: Find, Apply, Chat, Shelter, and Me. Tabs are navigation, not actions. They stay available and predictable. Empty or unavailable states explain what is needed instead of hiding tabs.
+**Space and shape.** 20px side gutter (`--pp-gutter`), 4px rhythm, 28px between
+sections. Radii: 10–14 for fields, chips and buttons; 16–20 for thumbnails and
+tiles; 28 (`--pp-radius-xl`) for hero photos and sheets. Pills are for badges only.
+Touch targets are at least 44px.
 
-The main product surface should use full-width sections with clear spacing. Avoid cards inside cards. Use cards only for repeated animals, applications, conversations, and modals. Animal imagery should be visible early, but not so tall that it pushes all useful actions below the first phone screen.
+## Components (`frontend/src/ui/kit.js`)
 
-## Elevation & Depth
+`Button` (primary, secondary, quiet, danger; shows a spinner while busy),
+`IconButton` (plain, soft, ring, float), `TextField` (label, hint, error that grows
+in, show/hide password), `Segment` (pill or underline, the mark slides),
+`Row` (the list row), `Section`, `PageTitle`, `Avatar`, `Count` (unread number with
+an accessible label), `Notice`, `Empty`, `Skeleton`, `Art` (the 3D characters) and
+`OverScreen` (full pages that cover the header and tabs).
 
-Depth should be quiet: thin borders, slight tonal shifts, and restrained shadows. Do not use heavy floating panels or overlapping sections unless they clarify hierarchy.
+Foster pages use the same system through `frontend/src/foster/ui.js`
+(`Screen`, `Sheet`, `Choices`, `Card`), styled in `foster/foster.css`. Inside a list,
+a `Card` renders as a row; only `.fx-next` (the next step) and `.fx-lift` (a panel
+over a photo) are raised.
 
-## Shapes
+## Illustration
 
-Keep rounded corners at 8px or below. PetPal should feel precise and trustworthy, not bubbly.
+The 3D characters from the intro (dog, cat, house, paw, heart; Blender, see
+`frontend/scripts/reel/`) are PetPal's only illustrations. `Art` plays their short
+entrance once when they appear and shows the still (`public/art/`) otherwise, or
+when motion is reduced. Use them for empty states, the space chooser, first-visit
+choices and sign-in. Never mix in flat illustrations or emoji.
 
-## Components
+## Motion (`frontend/src/ui/motion.js`)
 
-Animal cards should lead with a real image, the animal name, mode, species, age, location, and one sentence of context. Application screens should feel like a guided checklist: current step, what is being asked, why it matters, and a clear next action.
+Every movement answers one question: what happened, where did I land, or what can
+I do next. It is short, interruptible and never loops.
 
-Welcome should be visual and emotionally strong, but it must not become a wall of marketing text.
+| Pattern | Motion |
+| --- | --- |
+| Tap | Scale to 0.97, immediate |
+| Switch tabs | Fade through: out 90ms, in 220ms with a 6px settle |
+| Open a page | Slides in from the side it leaves by (spring 340/36) |
+| Photo to detail | Shared-element transform of the same photo (`layoutId`) |
+| Choose one of a few | The selection mark slides to the new choice |
+| Answer a Match card | After the server confirms, the card leaves left (no) or right (yes); the next one rises from behind. The card can also be dragged. |
+| Something grows open | Height and opacity together (`expand`) |
+| First appearance of a list | 35ms stagger, 8px rise; never on refresh |
+| Title under a photo | The bar title rises into place once the big title scrolls away |
 
-## Do's and Don'ts
+No celebration before an action is confirmed, no permanent animation, no
+artificial delays. With reduced motion (the phone setting or Profile, Notifications
+& comfort), `MotionConfig` removes movement and only opacity remains.
 
-Do use specific rescue language, private-location language, and application-first language.
+## States
 
-Do keep exact addresses, documents, reports, and private answers out of public surfaces.
+Every screen designs all of its states: loading (skeletons shaped like the
+content), empty (a 3D character, one sentence, one action), error (what happened
+and a retry), success (a notice that fades after 5 seconds), offline (the network
+message), forms (errors under the field, focus moves to the first one), the keyboard
+open, and long text (truncate with an ellipsis in rows; wrap on detail pages).
 
-Do make primary actions obvious and thumb-friendly.
+## Words
 
-Do keep the product useful even with only a few launch listings.
-
-Do not use swipe-first dating patterns for adoption or foster.
-
-Do not use public chat as the first contact.
-
-Do not use generic copy like "discover your perfect pet" when the real promise is safer local rescue workflow.
-
-Do not let the app become all beige, all green, or all white.
+Romanian first, with proper diacritics (ș and ț with a comma below). Plain words a
+child could follow: "Accept", "Not now", "Offer my home", not "Receipt declaration"
+or "Reconfirm historical reservation". Say what happens next. Numbers and dates
+follow the chosen language. Legal disclaimers live in Help & rules, not on every
+screen.

@@ -1,0 +1,74 @@
+/* Messages: a quiet list, then a conversation that slides in over it. */
+.pp-inbox { background: var(--pp-bg); }
+.pp-inbox-list { padding-top: 10px; padding-bottom: 24px; }
+.pp-inbox .ui-segment .ui-count { margin-left: 6px; }
+.pp-conv-foster .ui-row-overline { color: var(--pp-clay); }
+
+.pp-thread { background: var(--pp-bg); }
+.pp-thread-head { flex-shrink: 0; display: flex; align-items: center; gap: 2px; min-height: 60px; padding: 8px 6px 8px 4px;
+  background: var(--pp-bg); border-bottom: 1px solid var(--pp-line); }
+.pp-thread-who { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 6px; text-align: left; border-radius: 14px; }
+.pp-thread-who:active { background: var(--pp-bg-deep); }
+.pp-thread-who .ui-grow { display: flex; flex-direction: column; }
+.pp-thread-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 0; font-size: 19px; line-height: 1.15; font-weight: 620;
+  color: var(--pp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-thread-sub { font-size: 13px; color: var(--pp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-thread-chevron { color: var(--pp-muted); flex-shrink: 0; transition: transform .2s var(--pp-ease); }
+.pp-thread-chevron.is-open { transform: rotate(180deg); }
+.pp-thread-context { flex-shrink: 0; overflow: hidden; border-bottom: 1px solid var(--pp-line); background: var(--pp-surface-soft); }
+.pp-thread-context-inner { display: flex; flex-direction: column; gap: 6px; padding: 14px var(--pp-gutter) 16px; }
+.pp-thread-notes { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 0 var(--pp-gutter); }
+.pp-thread-notes:not(:empty) { padding-top: 10px; }
+
+.pp-thread-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; padding: 8px 14px 16px; scrollbar-width: none; }
+.pp-thread-scroll::-webkit-scrollbar { display: none; }
+.pp-thread-day { padding: 18px 0 8px; text-align: center; font-size: 12.5px; font-weight: 650; color: var(--pp-muted); }
+.pp-thread-empty { padding: 48px 20px; text-align: center; font-family: var(--pp-font-display); font-size: 20px; color: var(--pp-muted); }
+.pp-thread-typing { padding: 6px 4px 0; font-size: 13px; color: var(--pp-muted); font-style: italic; }
+.pp-thread-skeleton { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; }
+.pp-thread-skeleton .is-mine { align-self: flex-end; }
+
+/* Bubbles: theirs on paper, mine in green. Groups share one tail and one time. */
+.pp-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; margin-top: 3px; }
+.pp-msg.starts { margin-top: 12px; }
+.pp-msg.is-mine { align-items: flex-end; margin-left: auto; }
+.pp-msg-sender { margin: 0 0 4px 12px; font-size: 12.5px; font-weight: 700; color: var(--pp-muted); }
+.pp-msg-bubble { padding: 10px 14px; border-radius: 20px; background: var(--pp-surface); color: var(--pp-ink); box-shadow: 0 1px 1px rgb(27 37 32 / 5%); }
+.pp-msg-bubble p { font-size: 16px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pp-msg:not(.is-mine).ends .pp-msg-bubble { border-bottom-left-radius: 6px; }
+.pp-msg.is-mine .pp-msg-bubble { background: var(--pp-green); color: var(--pp-on-accent); box-shadow: none; }
+.pp-msg.is-mine.ends .pp-msg-bubble { border-bottom-right-radius: 6px; }
+.pp-msg.is-sending .pp-msg-bubble { opacity: .72; }
+.pp-msg[data-status='failed'] .pp-msg-bubble { background: var(--pp-danger-soft); color: var(--pp-danger); }
+.pp-msg-meta { display: flex; align-items: center; gap: 8px; margin: 4px 6px 0; font-size: 11.5px; color: var(--pp-muted); font-variant-numeric: tabular-nums; }
+.pp-msg-status { display: inline-flex; align-items: center; gap: 3px; }
+.pp-msg-status.is-failed { color: var(--pp-danger); font-weight: 700; }
+.pp-msg-retry { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 6px 0; font-size: 13px; color: var(--pp-danger); }
+.pp-msg-retry button { min-height: 40px; font-weight: 700; color: var(--pp-danger); text-decoration: underline; text-underline-offset: 3px; }
+
+.pp-thread-jump { position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+  padding: 0 16px; border-radius: 20px; background: var(--pp-ink); color: #fff; font-size: 14px; font-weight: 650; box-shadow: var(--pp-shadow-lift); z-index: 2; }
+
+.pp-composer { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--pp-bg); border-top: 1px solid var(--pp-line); }
+.pp-composer-row { display: flex; align-items: flex-end; gap: 8px; }
+.pp-composer-input { flex: 1; min-width: 0; min-height: 48px; max-height: 132px; padding: 12px 16px; border: 1.5px solid transparent; border-radius: 24px;
+  background: var(--pp-bg-deep); font-size: 16px; line-height: 1.4; color: var(--pp-ink); resize: none; transition: border-color .15s, background-color .15s; }
+.pp-composer-input:focus { background: var(--pp-surface); border-color: var(--pp-green); outline: none; }
+.pp-composer-input::placeholder { color: var(--pp-muted); opacity: .8; }
+.pp-send { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--pp-green); color: var(--pp-on-accent); flex-shrink: 0;
+  transition: background-color .15s, opacity .15s; }
+.pp-send:disabled { background: var(--pp-bg-deep); color: var(--pp-muted); }
+.pp-composer-count { font-size: 12px; color: var(--pp-muted); padding-left: 8px; }
+.pp-composer-count.is-over { color: var(--pp-danger); font-weight: 700; }
+.pp-walk-answer { display: flex; flex-direction: column; gap: 10px; }
+.pp-walk-answer-row { display: flex; gap: 10px; }
+
+/* Alive */
+.pp-inbox .ui-row-lead .ui-avatar { width: 64px !important; height: 64px !important; border-radius: 20px; box-shadow: var(--pp-shadow); }
+.pp-inbox .ui-list-inset .ui-row { --row-inset: 78px; }
+.pp-inbox .ui-row.is-unread::after { content: ''; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--pp-accent); }
+.pp-inbox .ui-row-overline { color: var(--pp-accent); }
+.pp-thread-head { background: var(--pp-surface); }
+.pp-msg.is-mine .pp-msg-bubble { background: linear-gradient(135deg, var(--pp-accent), var(--pp-accent-2)); color: var(--pp-on-accent); box-shadow: 0 6px 18px var(--pp-glow); }
+.pp-send { box-shadow: 0 6px 18px var(--pp-glow); }

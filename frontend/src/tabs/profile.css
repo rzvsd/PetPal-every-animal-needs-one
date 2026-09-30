@@ -1,0 +1,73 @@
+/* Profile: who you are, your animals, then quiet lists of settings. */
+.pp-profile { background: var(--pp-bg); }
+.pp-profile .ui-scroll { padding-bottom: 28px; }
+.pp-profile .ui-notice { margin-bottom: 12px; }
+
+.pp-identity { display: flex; align-items: flex-start; gap: 14px; }
+.pp-edit { margin-left: -6px; min-height: 40px; }
+.pp-identity .ui-small { margin-top: 2px; }
+.pp-initial { display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%;
+  font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 0; font-size: 28px; font-weight: 620;
+  color: var(--pp-green-strong); background: var(--pp-green-soft); }
+
+.pp-checklist { margin-top: 12px; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); }
+.pp-checklist summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; list-style: none; cursor: pointer;
+  font-size: 14.5px; font-weight: 650; color: var(--pp-ink); }
+.pp-checklist summary::-webkit-details-marker { display: none; }
+.pp-checklist summary span:last-child { font-size: 13.5px; font-weight: 600; color: var(--pp-clay); }
+.pp-checklist summary span.is-done { color: var(--pp-green); }
+.pp-checklist ul { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 10px; }
+.pp-checklist li { display: flex; align-items: center; gap: 8px; list-style: none; font-size: 14.5px; color: var(--pp-muted); }
+.pp-checklist li button { min-height: 32px; color: var(--pp-green); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.pp-checklist > .ui-small { padding-bottom: 12px; }
+
+.pp-row-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: var(--pp-green-strong); background: var(--pp-green-soft); }
+.pp-row-icon.is-danger { color: var(--pp-danger); background: var(--pp-danger-soft); }
+.pp-list .ui-row { min-height: 60px; }
+.pp-list .ui-row + .ui-row::before { left: 54px; }
+.pp-row-danger .ui-row-title { color: var(--pp-danger); }
+.pp-lang { width: 112px; flex-shrink: 0; }
+.pp-lang button { min-height: 44px; font-size: 14px; }
+.pp-add-first { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 16px 0; text-align: left; border-bottom: 1px solid var(--pp-line); }
+.pp-add-first .ui-title-s { color: var(--pp-green); }
+.pp-admin:not(:empty) { margin-top: 24px; }
+.pp-version { padding: 28px 0 8px; text-align: center; font-size: 12.5px; color: var(--pp-muted); }
+
+/* Sheets */
+.pp-photo-pick { display: flex; align-items: center; gap: 16px; }
+.pp-photo-pick-img { display: grid; place-items: center; width: 88px; height: 88px; flex-shrink: 0; overflow: hidden; border-radius: 22px; background: var(--pp-bg-deep); }
+.pp-photo-pick-img img { width: 100%; height: 100%; object-fit: cover; }
+.pp-photo-pick-btn { position: relative; overflow: hidden; }
+.pp-photo-pick-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pp-breed { display: flex; align-items: flex-end; gap: 8px; }
+.pp-breed .ui-field { flex: 1; min-width: 0; }
+.pp-breed .pp-chip { min-height: 54px; }
+.pp-danger-link { align-self: flex-start; color: var(--pp-danger); }
+
+/* Full pages opened from Profile */
+.pp-screen-list { padding-top: 4px; }
+.pp-screen-list .ui-row + .ui-row::before { left: 54px; }
+.pp-info { display: flex; flex-direction: column; gap: 16px; padding-top: 6px; }
+.pp-info ul { display: flex; flex-direction: column; gap: 12px; }
+.pp-info li { display: flex; align-items: flex-start; gap: 12px; list-style: none; font-size: 16px; line-height: 1.5; color: var(--pp-ink); }
+.pp-info li svg { flex-shrink: 0; margin-top: 3px; }
+.pp-info ul.is-plain li { padding-left: 14px; border-left: 3px solid var(--pp-line); font-size: 15px; color: var(--pp-muted); }
+.pp-info-note { display: flex; align-items: flex-start; gap: 8px; }
+.pp-info-note svg { flex-shrink: 0; margin-top: 3px; }
+.pp-info-head { margin-top: 10px; }
+.pp-ink { color: var(--pp-ink); }
+.pp-amounts .pp-chip { flex: 1 1 40%; min-height: 52px; font-size: 16px; }
+.pp-status { font-size: 13px; font-weight: 700; color: var(--pp-muted); }
+.pp-status.is-good { color: var(--pp-green); }
+.pp-status.is-bad { color: var(--pp-danger); }
+.pp-check { color: var(--pp-green); }
+
+/* Alive: the person on a colour block. */
+.pp-identity { align-items: center; padding-top: 22px; padding-bottom: 26px; margin-bottom: 4px; color: #fff;
+  background: linear-gradient(150deg, var(--pp-accent), var(--pp-accent-2)); border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
+.pp-initial { width: 76px; height: 76px; font-size: 36px; color: var(--pp-accent); background: #fff; box-shadow: 0 10px 30px rgb(0 0 0 / 20%); }
+.pp-identity-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 36px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; color: var(--pp-on-accent); }
+.pp-identity-sub { margin-top: 6px; font-size: 14.5px; color: var(--pp-on-accent); opacity: .9; }
+.pp-identity .pp-edit { color: var(--pp-on-accent); text-decoration: underline; text-underline-offset: 3px; }
+.pp-profile .ui-overline { color: var(--pp-accent); }
+.pp-row-icon { color: var(--pp-accent); background: var(--pp-green-soft); }
