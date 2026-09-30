@@ -6,7 +6,6 @@ import { AnimalSelector } from './SharedComponents';
 import { useReducedPetMotion } from './Motion';
 import {
   FOSTER_ENVIRONMENT,
-  getEnvironmentConversations,
   getEnvironmentHomeTab,
 } from '../navigation/environments';
 
@@ -51,8 +50,9 @@ export function EnvironmentBottomTabs({ environment }) {
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
-  const unreadCount = dataSource === 'supabase' ? messaging.unreadTotals[isFoster ? 'FOSTER' : 'MATCH'] : getEnvironmentConversations(conversations, environment)
-    .reduce((total, conversation) => total + (conversation.unread || 0), 0);
+  // The inbox is shared, so the badge counts both spaces.
+  const unreadCount = dataSource === 'supabase' ? messaging.unreadTotals.MATCH + messaging.unreadTotals.FOSTER
+    : conversations.reduce((total, conversation) => total + (conversation.unread || 0), 0);
 
   return (
     <LayoutGroup id={`navigation-${environment}`}>

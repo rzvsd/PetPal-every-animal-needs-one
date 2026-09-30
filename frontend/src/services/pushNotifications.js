@@ -25,7 +25,7 @@ function getPushPlatform() {
   return 'WEB';
 }
 
-export async function initializePushNotifications({ onToken, onError, onOpenConversation }) {
+export async function initializePushNotifications({ onToken, onError, onOpenConversation, askPermission = true }) {
   if (!Capacitor.isNativePlatform()) {
     return {
       status: 'skipped',
@@ -35,6 +35,11 @@ export async function initializePushNotifications({ onToken, onError, onOpenConv
   }
 
   let permission = await PushNotifications.checkPermissions();
+  // Only hold back while Android can still show its dialog; a permanent
+  // "don't allow" is reported as denied instead of offering a dead button.
+  if (permission.receive.startsWith('prompt') && !askPermission) {
+    return { status: 'not-asked', cleanup: async () => {} };
+  }
   if (permission.receive !== 'granted') {
     permission = await PushNotifications.requestPermissions();
   }

@@ -10,6 +10,7 @@ import {
   MoreVertical, Heart, FileText
 } from 'lucide-react';
 import { useBackHandler } from '../navigation/backNavigation';
+import { Segment } from '../foster/Find';
 
 function ConversationCard({ conv, onClick, t }) {
   const isMatch = conv.source === 'MATCH';
@@ -292,29 +293,30 @@ function getTimeAgo(dateStr, t) {
   return `${days}${t('messages.daysShort')}`;
 }
 
-export default function MessagesTab({ source = 'MATCH' }) {
-  const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation, requestOpenConversation } = useApp();
-  const { refreshInbox, inboxHasMore, chatError } = messaging;
+export default function MessagesTab() {
+  const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation } = useApp();
+  const { refreshInbox, inboxHasMore, chatError, unreadTotals } = messaging;
   const [activeConvId, setActiveConvId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const isMatchInbox = source === 'MATCH';
-  const scopedConversations = conversations.filter((conversation) => conversation.source === source);
-  const activeConv = scopedConversations.find((conversation) => conversation.id === activeConvId);
-  const title = isMatchInbox ? t('messages.matchMessagesTitle') : t('messages.fosterMessagesTitle');
-  const subtitle = isMatchInbox ? t('messages.matchMessagesSubtitle') : t('messages.fosterMessagesSubtitle');
-  const emptyTitle = isMatchInbox ? t('messages.noMatchConversations') : t('messages.noFosterConversations');
-  const emptyDescription = isMatchInbox
-    ? t('messages.noMatchConversationsDesc')
-    : t('messages.noFosterConversationsDesc');
+  // One inbox for both spaces; the filter only narrows what is shown.
+  const [filter, setFilter] = useState('ALL');
+  const shown = filter === 'ALL' ? conversations : conversations.filter((conversation) => conversation.source === filter);
+  const activeConv = conversations.find((conversation) => conversation.id === activeConvId);
+  const unread = source => dataSource === 'supabase' ? unreadTotals[source] || 0
+    : conversations.filter(c => c.source === source).reduce((total, c) => total + (c.unread || 0), 0);
+  const count = n => n > 0 ? <b className="fx-segment-count">{n}</b> : null;
+  const empty = { ALL: ['messages.noConversations', 'messages.noConversationsDesc'],
+    MATCH: ['messages.noMatchConversations', 'messages.noMatchConversationsDesc'],
+    FOSTER: ['messages.noFosterConversations', 'messages.noFosterConversationsDesc'] }[filter];
 
   useEffect(() => {
     let alive = true;
     if (dataSource === 'supabase') {
       setLoading(true);
-      refreshInbox(source).catch(() => {}).finally(() => { if (alive) setLoading(false); });
+      refreshInbox(filter).catch(() => {}).finally(() => { if (alive) setLoading(false); });
     }
     return () => { alive = false; };
-  }, [source, dataSource, refreshInbox]);
+  }, [filter, dataSource, refreshInbox]);
 
   useEffect(() => {
     if (!requestedConversation?.id) return;
@@ -323,16 +325,12 @@ export default function MessagesTab({ source = 'MATCH' }) {
       const existing = conversations.find(c => c.id === requestedConversation.id);
       const conversation = existing || (await refreshInbox(undefined, false, requestedConversation.id))[0];
       if (!alive) return;
-      if (conversation?.source && conversation.source !== source) {
-        requestOpenConversation(conversation.id, conversation.source);
-        return;
-      }
       if (conversation) setActiveConvId(conversation.id);
       setRequestedConversation(null);
     };
     open().catch(() => { if (alive) setRequestedConversation(null); });
     return () => { alive = false; };
-  }, [requestedConversation, conversations, source, refreshInbox, requestOpenConversation, setRequestedConversation]);
+  }, [requestedConversation, conversations, refreshInbox, setRequestedConversation]);
 
   useEffect(() => {
     document.body.classList.toggle('petpal-thread-open', Boolean(activeConv));
@@ -349,26 +347,31 @@ export default function MessagesTab({ source = 'MATCH' }) {
   return (
     <div
       data-testid="messages-tab"
-      data-message-source={source}
+      data-message-source={filter}
       className="min-h-0 flex-1 flex flex-col"
     >
       <div className="px-5 pt-4 pb-3 bg-[var(--pp-bg)]">
-        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{title}</h1>
-        <p className="mt-1 text-sm leading-relaxed text-[#57645C]">{subtitle}</p>
+        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('messages.inboxTitle')}</h1>
+        <p className="mt-1 mb-3 text-sm leading-relaxed text-[#57645C]">{t('messages.inboxSubtitle')}</p>
+        <Segment label="inbox" value={filter} onChange={setFilter} options={[
+          ['ALL', <>{t('messages.filterAll')}{count(unread('MATCH') + unread('FOSTER'))}</>],
+          ['MATCH', <>{t('messages.filterMatch')}{count(unread('MATCH'))}</>],
+          ['FOSTER', <>{t('messages.filterFoster')}{count(unread('FOSTER'))}</>],
+        ]} />
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-3 pb-20">
-        {chatError && <div role="alert" className="text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="min-h-11 underline" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button></div>}
+        {chatError && <div role="alert" className="text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="min-h-11 underline" onClick={() => refreshInbox(filter).catch(() => {})}>{t('readiness.retry')}</button></div>}
         {loading && <p role="status">{t('readiness.loading')}</p>}
-        {!loading && scopedConversations.length === 0 ? (
+        {!loading && shown.length === 0 ? (
           <EmptyState
             icon={MessageCircle}
-            title={emptyTitle}
-            description={emptyDescription}
+            title={t(empty[0])}
+            description={t(empty[1])}
           />
         ) : (
           <div className="space-y-2">
-            {scopedConversations.map((conversation) => (
+            {shown.map((conversation) => (
               <ConversationCard
                 key={conversation.id}
                 conv={conversation}
@@ -376,8 +379,8 @@ export default function MessagesTab({ source = 'MATCH' }) {
                 t={t}
               />
             ))}
-            {inboxHasMore[source] && <button type="button" disabled={loading} className="min-h-11 w-full underline" onClick={async () => {
-              setLoading(true); try { await refreshInbox(source, true); } catch {} finally { setLoading(false); }
+            {inboxHasMore[filter] && <button type="button" disabled={loading} className="min-h-11 w-full underline" onClick={async () => {
+              setLoading(true); try { await refreshInbox(filter, true); } catch {} finally { setLoading(false); }
             }}>{t('readiness.more')}</button>}
           </div>
         )}

@@ -17,14 +17,14 @@ export function useMessaging({ accountId, live, conversations, setConversations,
   const [chatError, setChatError] = useState('');
   const [realtimeReady, setRealtimeReady] = useState(false);
   const [unreadTotals, setUnreadTotals] = useState({ MATCH: 0, FOSTER: 0 });
-  const [inboxHasMore, setInboxHasMore] = useState({ MATCH: false, FOSTER: false });
+  const [inboxHasMore, setInboxHasMore] = useState({ ALL: false, MATCH: false, FOSTER: false });
   const [threadHasMore, setThreadHasMore] = useState({});
   const [loadingThread, setLoadingThread] = useState(false);
   const [typingByConversation, setTypingByConversation] = useState({});
   const state = useRef({});
   state.current = { accountId, live, conversations, local, showTypingActivity };
   const activeThread = useRef(null);
-  const inboxSource = useRef('MATCH');
+  const inboxSource = useRef('ALL');
   const inboxCursor = useRef({});
   const pendingSends = useRef(new Set());
   const threadLoads = useRef(new Set());

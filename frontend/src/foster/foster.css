@@ -218,3 +218,12 @@ textarea.fx-input { min-height: 110px; resize: vertical; line-height: 1.5; }
 .fx-diary article.is-milestone strong { color: var(--pp-green-strong); }
 .fx-diary article.is-milestone p { font-size: 13px; color: var(--pp-muted); }
 .fx-choices-3 .fx-choice { padding: 10px 8px; font-size: 14px; line-height: 1.2; text-align: center; }
+
+/* Unread count inside a segment button (shared inbox filter) */
+.fx-segment-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 5px; border-radius: 10px; background: var(--pp-clay); color: #fff; font-size: 11px; font-weight: 700; vertical-align: 1px; }
+
+/* Team invite codes */
+.fx-code { margin: 14px 0 6px; padding: 18px 12px; border-radius: 18px; background: var(--pp-green-soft); color: var(--pp-green); text-align: center;
+  font: 700 32px/1 ui-monospace, 'Cascadia Mono', monospace; letter-spacing: 4px; user-select: all; }
+.fx-code-input { text-transform: uppercase; letter-spacing: 3px; font-family: ui-monospace, 'Cascadia Mono', monospace; font-size: 20px; text-align: center; }
+.fx-link-button { display: block; width: 100%; min-height: 44px; margin-top: 4px; color: var(--pp-green); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

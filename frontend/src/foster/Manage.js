@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Cat, ChevronRight, Copy, Dog, DoorOpen, Edit3, MessageCircle, PawPrint, Plus, Trash2, UserPlus, Zap } from 'lucide-react';
+import { Cat, ChevronRight, Copy, Dog, DoorOpen, Edit3, MessageCircle, PawPrint, Plus, Share2, Trash2, UserPlus, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc } from '../services/fosterApi';
@@ -74,7 +74,7 @@ export function homeToData(home) {
 }
 
 export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
-  const { t, user } = useApp();
+  const { t } = useApp();
   const [sheet, setSheet] = useState(null);
   const [form, setForm] = useState({});
   const [notice, setNotice] = useState('');
@@ -122,7 +122,7 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
       <span className="fx-grow" style={{ fontWeight: 600 }}>{space.name}</span>{space.isolation && <span className="fx-badge is-sun">{t('fx.stateQuiet')}</span>}</div></Card>)}</div>
       : <p className="fx-muted">{t('fx.noAnimalsYet')}</p>}
 
-    <SectionTitle action={owner && <Button variant="soft" className="fx-button-small" icon={UserPlus} onClick={() => open('invite', { profileId: '', role: 'CARER' })}>{t('fx.inviteHelper')}</Button>}>
+    <SectionTitle action={owner && <Button variant="soft" className="fx-button-small" icon={UserPlus} onClick={() => open('invite', { role: 'CARER' })}>{t('fx.inviteHelper')}</Button>}>
       {t('fx.team')}</SectionTitle>
     <div className="fx-stack">
       {members.map(member => <Card key={member.profile_id}><div className="fx-row">
@@ -130,11 +130,6 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
         {owner && member.role !== 'OWNER' && ['ACTIVE', 'INVITED'].includes(member.status) && <Button variant="ghost" icon={Trash2} aria-label={t('fx.remove')}
           disabled={busy} onClick={() => run(() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: member.profile_id, action_input: 'REVOKE' }))} />}
       </div></Card>)}
-      <Card><p className="fx-eyebrow">{t('fx.myAccountId')}</p><div className="fx-row" style={{ marginTop: 6 }}>
-        <code className="fx-grow" style={{ fontSize: 12, overflowWrap: 'anywhere' }}>{user.id}</code>
-        <Button variant="soft" className="fx-button-small" icon={Copy} onClick={async () => {
-          try { await navigator.clipboard.writeText(user.id); setNotice(t('fx.copied')); } catch { setNotice(''); }
-        }}>{t('fx.copy')}</Button></div></Card>
     </div>
 
     <Sheet open={sheet === 'space'} onClose={() => setSheet(null)} title={t('fx.addSpace')}
@@ -145,11 +140,29 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
     </Sheet>
 
     <Sheet open={sheet === 'invite'} onClose={() => setSheet(null)} title={t('fx.inviteHelper')}
-      footer={sheetFooter(t('fx.sendOffer'), () => run(() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: form.profileId.trim(),
-        action_input: 'INVITE', role_input: form.role })), !/^[0-9a-f-]{36}$/i.test(form.profileId?.trim() || ''))}>
-      <Field label={t('fx.helperIdLabel')} hint={t('fx.helperIdHint')}><input className="fx-input" value={form.profileId || ''} onChange={event => setForm(f => ({ ...f, profileId: event.target.value }))} /></Field>
-      <Choices label={t('care.role')} value={form.role} columns={2} onChange={value => setForm(f => ({ ...f, role: value }))}
-        options={[['CARER', t('care.CARER')], ['READER', t('care.READER')]]} />
+      footer={form.code ? <Button className="fx-button-block" onClick={() => setSheet(null)}>{t('fx.done')}</Button>
+        : sheetFooter(t('fx.createCode'), async () => {
+          setBusy(true); setError('');
+          try { const created = await fosterRpc('create_foster_invite_code', { home_id_input: home.id, role_input: form.role }); setForm(f => ({ ...f, ...created })); }
+          catch (failure) { setError(friendlyError(failure, t)); }
+          finally { setBusy(false); }
+        })}>
+      {form.code ? <>
+        <p className="fx-muted">{t('fx.codeReady')}</p>
+        <div className="fx-code" aria-label={form.code.split('').join(' ')}>{form.code.slice(0, 4)}-{form.code.slice(4)}</div>
+        <p className="fx-hint" style={{ textAlign: 'center' }}>{t('fx.codeRules')}</p>
+        <div className="fx-actions">
+          <Button variant="secondary" icon={Copy} onClick={async () => {
+            try { await navigator.clipboard.writeText(`${form.code.slice(0, 4)}-${form.code.slice(4)}`); setForm(f => ({ ...f, copied: true })); } catch { /* The code stays on screen to read out. */ }
+          }}>{form.copied ? t('fx.copied') : t('fx.copy')}</Button>
+          {navigator.share && <Button variant="secondary" icon={Share2} onClick={() => navigator.share({
+            text: fmt(t('fx.codeShareText'), { home: home.name, code: `${form.code.slice(0, 4)}-${form.code.slice(4)}` }) }).catch(() => {})}>{t('fx.share')}</Button>}
+        </div>
+      </> : <>
+        <p className="fx-muted">{t('fx.inviteExplain')}</p>
+        <Choices label={t('care.role')} value={form.role} columns={2} onChange={value => setForm(f => ({ ...f, role: value }))}
+          options={[['CARER', t('care.CARER')], ['READER', t('care.READER')]]} />
+      </>}
       {error && <Notice tone="error">{error}</Notice>}
     </Sheet>
 
@@ -166,4 +179,31 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
       {error && <Notice tone="error">{error}</Notice>}
     </Sheet>
   </Screen>;
+}
+
+// A helper types the code a home owner gave them and joins that home.
+export function JoinHomeSheet({ open, onClose, onJoined }) {
+  const { t } = useApp();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const join = async () => {
+    setBusy(true); setError('');
+    try {
+      const result = await fosterRpc('redeem_foster_invite_code', { code_input: clean });
+      if (result.status === 'JOINED') { setCode(''); onJoined(result.homeName); return; }
+      setError(t({ LIMIT: 'fx.codeLimit', OWN_HOME: 'fx.codeOwnHome' }[result.status] || 'fx.codeInvalid'));
+    } catch (failure) { setError(friendlyError(failure, t)); }
+    finally { setBusy(false); }
+  };
+  return <Sheet open={open} onClose={onClose} title={t('fx.joinTitle')}
+    footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button disabled={busy || clean.length !== 8} onClick={join}>{busy ? t('fx.loading') : t('fx.join')}</Button></>}>
+    <Field label={t('fx.joinLabel')} hint={t('fx.joinHint')}>
+      <input className="fx-input fx-code-input" value={code} maxLength={12} autoCapitalize="characters" autoComplete="off" spellCheck={false}
+        placeholder="ABCD-2345" onChange={event => { setCode(event.target.value); setError(''); }} />
+    </Field>
+    {error && <Notice tone="error">{error}</Notice>}
+  </Sheet>;
 }
