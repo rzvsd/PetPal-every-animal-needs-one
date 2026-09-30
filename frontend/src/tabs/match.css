@@ -1,0 +1,61 @@
+/* Match: the photo is the page. Name, facts and the three answers sit on
+   the paper below it, and everything fits one screen without scrolling. */
+.pp-match { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.pp-match-controls { display: flex; align-items: center; gap: 8px; padding: 2px var(--pp-gutter) 12px; }
+.pp-toggle[aria-pressed='true'] { background: var(--pp-green-soft); color: var(--pp-green); }
+.pp-match-mode-note { margin: -4px var(--pp-gutter) 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-green); }
+
+.pp-match-stage { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 0 var(--pp-gutter); }
+.pp-match-stage > * { grid-area: 1 / 1; min-height: 0; min-width: 0; }
+.pp-stage-item { display: flex; flex-direction: column; justify-content: center; }
+
+.pp-card { display: flex; flex-direction: column; min-height: 0; touch-action: pan-y; user-select: none; }
+.pp-card-photo { position: relative; flex: 1; min-height: 170px; padding: 0; border-radius: var(--pp-radius-xl); overflow: hidden; }
+.pp-card-img, .pp-card-img .ui-avatar { position: absolute; inset: 0; width: 100% !important; height: 100% !important; border-radius: var(--pp-radius-xl); }
+.pp-card-verdict { position: absolute; top: 18px; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: #fff; box-shadow: var(--pp-shadow); }
+.pp-card-verdict.is-yes { right: 18px; background: var(--pp-green); }
+.pp-card-verdict.is-no { left: 18px; background: var(--pp-clay); }
+.pp-card-info { display: flex; flex-direction: column; gap: 3px; padding: 14px 2px 2px; }
+.pp-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-right: -10px; }
+.pp-card-head h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-card-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.4; color: var(--pp-muted); }
+.pp-card-meta svg { display: inline; vertical-align: -2px; margin-right: 4px; }
+.pp-card.is-skeleton .pp-card-photo { display: block; flex: 1; }
+.pp-card.is-skeleton .pp-card-info { gap: 8px; padding-top: 16px; }
+
+.pp-actions { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px var(--pp-gutter) 4px; }
+.pp-action-round { width: 60px !important; height: 60px !important; border-radius: 50% !important; }
+.ui-icon-btn-ring { border: 1.5px solid var(--pp-line); background: var(--pp-surface); }
+.ui-icon-btn-ring:disabled { opacity: .5; }
+.pp-action-main { flex: 1; max-width: 230px; min-height: 60px; border-radius: 30px; font-size: 17px; }
+.pp-saved { color: var(--pp-green); fill: var(--pp-green-soft); }
+.pp-match-hint { padding: 2px var(--pp-gutter) 10px; text-align: center; font-size: 13px; line-height: 1.4; color: var(--pp-muted); }
+.pp-match-notice { padding: 10px var(--pp-gutter) 0; }
+
+/* Detail: the photo grows out of the card into a full page. */
+.pp-detail { background: var(--pp-bg); }
+.pp-detail-hero { position: relative; height: min(56vh, 470px); overflow: hidden; border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
+.pp-detail-hero .ui-avatar { width: 100% !important; height: 100% !important; border-radius: 0; }
+.pp-detail-body { padding: 22px var(--pp-gutter) 28px; }
+.pp-detail-body .pp-card-meta { white-space: normal; margin-top: 4px; }
+.pp-detail-block { display: flex; flex-direction: column; gap: 6px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--pp-line); }
+.pp-detail-text { font-size: 16.5px; line-height: 1.5; color: var(--pp-ink); }
+.pp-detail-private { display: flex; align-items: center; gap: 6px; }
+.pp-detail-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
+.pp-detail-top > * { pointer-events: auto; }
+.pp-detail-foot { flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: var(--pp-bg); border-top: 1px solid var(--pp-line); }
+
+/* It's a match: two faces meet, then the words. */
+.pp-celebrate { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 30px 24px 22px; text-align: center; }
+.pp-celebrate-pair { display: flex; margin-bottom: 12px; }
+.pp-celebrate-pair > span + span { margin-left: -20px; }
+.pp-celebrate-pair .ui-avatar { box-shadow: 0 0 0 4px var(--pp-surface); }
+.pp-celebrate-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 18px; }
+
+.pp-fieldset { display: flex; flex-direction: column; gap: 8px; border: 0; }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-chip { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--pp-bg-deep); font-size: 15px; font-weight: 600; color: var(--pp-ink); transition: background-color .15s, color .15s; }
+.pp-chip[aria-pressed='true'] { background: var(--pp-green); color: #fff; }
+.pp-walk-pair { display: flex; align-items: center; }
+.pp-walk-pair .ui-avatar + .ui-avatar { margin-left: -12px; box-shadow: 0 0 0 3px var(--pp-surface); }
+.pp-walk-pair p { margin-left: 12px; }

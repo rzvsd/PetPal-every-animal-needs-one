@@ -85,7 +85,7 @@ export const fosterExperience = {
     couldNotLoad: 'Could not load this. Try again.', retry: 'Try again', loading: 'Loading…', close: 'Close',
   },
   ro: {
-    tabToday: 'Azi', tabFind: 'Caută', tabMine: 'Animalele mele',
+    tabToday: 'Azi', tabFind: 'Caută', tabMine: 'Ale mele',
     hi: 'Salut, {name}', todaySubtitle: 'Iată ce te așteaptă azi.', allCalm: 'Totul e liniștit. Nimic nu te așteaptă acum.',
     needsYou: 'Te așteaptă', waitingOthers: 'Așteptăm răspuns', whatToDo: 'Ce vrei să faci?',
     intentHelpTitle: 'Caut o casă pentru un animal', intentHelpText: 'Publică animalul. Casele foster se vor oferi să ajute.',
@@ -102,7 +102,7 @@ export const fosterExperience = {
     waitingFor: 'Așteptăm răspunsul lui {name} despre {animal}',
     teamInvite: 'Ai fost invitat să ajuți la {home}',
     inviteReceived: '{name} te întreabă dacă poți găzdui pe {animal}', withFoster: 'La o familie foster', atHome: 'La {home}',
-    accept: 'Accept', notNow: 'Nu acum', view: 'Deschide', chat: 'Mesaje', done: 'Gata',
+    accept: 'Acceptă', notNow: 'Nu acum', view: 'Deschide', chat: 'Mesaje', done: 'Gata',
     markArrived: 'A ajuns la mine', arrivedCelebration: 'Bun venit, {animal}!',
     segAnimals: 'Animale', homesOffer: 'Case foster', search: 'Caută după nume sau zonă',
     dogs: 'Câini', cats: 'Pisici', urgent: 'Urgent', saved: 'Salvate',

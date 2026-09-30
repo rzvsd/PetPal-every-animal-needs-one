@@ -53,7 +53,7 @@ function DialogSurface({ onClose, children, sheet, label, priority, draggable })
   const closed = reduced ? { opacity: 0 } : sheet ? { y: '100%', opacity: 1 } : { opacity: 0, scale: 0.98 };
   return (
     <div className={`dialog-layer ${sheet ? 'dialog-sheet' : ''}`} style={{ zIndex: 100 + priority }} data-testid={sheet ? 'filter-sheet' : 'modal-overlay'}>
-      <motion.div className="absolute inset-0 bg-black/35" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      <motion.div className="absolute inset-0 bg-[rgb(27_37_32/0.4)]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: reduced ? 0.1 : 0.2 }} onClick={() => close.current()} aria-hidden="true" />
       <motion.div ref={dialog} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}
         initial={closed} animate={{ opacity: 1, scale: 1, y: 0 }} exit={closed}

@@ -1,69 +1,48 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, ArrowDown, ArrowLeft, Check, ChevronDown, Clock, Lock, MoreVertical, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
-import {
-  Badge, EmptyState, SafetyMenu, PrimaryButton, SecondaryButton
-} from '../components/SharedComponents';
-import {
-  MessageCircle, MapPin, Send, ArrowLeft, Info, ChevronDown,
-  MoreVertical, Heart, FileText
-} from 'lucide-react';
+import { SafetyMenu } from '../components/SharedComponents';
 import { useBackHandler } from '../navigation/backNavigation';
-import { Segment } from '../foster/Find';
+import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Segment, Skeleton, fmt, person } from '../ui/kit';
+import { list, listItem, push, spring } from '../ui/motion';
+import './messages.css';
 
-function ConversationCard({ conv, onClick, t }) {
-  const isMatch = conv.source === 'MATCH';
-  const timeAgo = conv.lastMessageAt ? getTimeAgo(conv.lastMessageAt, t) : '';
-  const subtitle = getConversationSubtitle(conv, t);
+// What kind of conversation this is, in two or three words.
+function conversationKind(conv, t) {
+  if (conv.source === 'FOSTER') return conv.fosterRequestId ? t(`care.${conv.fosterStatus}`) : (conv.subtitle || t('messages.foster'));
+  if (conv.socialRequestStatus === 'PENDING') return t(conv.socialRequestIsMine ? 'readiness.walkPending' : 'readiness.walkIncoming');
+  if (conv.socialRequestStatus === 'DECLINED') return t('readiness.walkDeclined');
+  if (conv.mode === 'SOCIAL') return t('matches.social');
+  if (conv.mode === 'PLAY') return t('matches.play');
+  return t('messages.match');
+}
 
-  return (
-    <button
-      type="button"
-      data-testid={`conversation-card-${conv.id}`}
-      onClick={onClick}
+function ConversationRow({ conv, onClick, t }) {
+  const time = conv.lastMessageAt ? getTimeAgo(conv.lastMessageAt, t) : '';
+  return <Row variants={listItem} data-testid={`conversation-card-${conv.id}`} onClick={onClick} unread={conv.unread > 0}
       aria-label={`${t('messages.openConversation')}: ${conv.title}`}
-      className="w-full flex items-start gap-3 p-4 bg-white rounded-2xl border border-[#E4E2DC] hover:bg-[#FAFAF8] transition-colors text-left shadow-sm"
-    >
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${isMatch ? 'bg-[#E3ECE4]' : 'bg-[#F5DDD0]'}`}>
-        {conv.animalPhoto ? <img src={conv.animalPhoto} alt="" className="w-full h-full rounded-2xl object-cover" /> : isMatch ? <Heart size={20} className="text-[#2C402B]" /> : <FileText size={20} className="text-[#C07E67]" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <h3 className="text-sm font-semibold text-[#1F2924] truncate font-heading">{conv.title}</h3>
-          <span className="text-xs text-[#57645C] flex-shrink-0 ml-2">{timeAgo}</span>
-        </div>
-        <div className="flex items-center gap-1.5 mb-1">
-          <Badge variant={isMatch ? 'sage' : 'clay'}>
-            {conv.socialRequestStatus === 'PENDING' ? t(conv.socialRequestIsMine ? 'readiness.walkPending' : 'readiness.walkIncoming')
-              : conv.socialRequestStatus === 'DECLINED' ? t('readiness.walkDeclined')
-                : conv.socialRequestStatus === 'ACCEPTED' ? t('readiness.walkAccepted')
-                : conv.mode === 'SOCIAL' ? t('matches.social') : isMatch ? t('messages.match') : t('messages.foster')}
-          </Badge>
-          <span className="text-xs text-[#57645C]">{subtitle}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <MapPin size={11} className="text-[#9BAE96] flex-shrink-0" />
-          <span className="text-xs text-[#57645C]">{conv.city}{conv.coarseArea ? ` / ${conv.coarseArea}` : ''}</span>
-        </div>
-        <p className="text-sm text-[#57645C] truncate mt-1">{conv.lastMessage}</p>
-      </div>
-      {conv.unread > 0 && (
-        <div className="w-5 h-5 rounded-full bg-[#2C402B] text-white text-xs flex items-center justify-center flex-shrink-0 font-bold mt-1">
-          <span aria-label={`${conv.unread} ${t('messages.unreadMessages')}`}>{conv.unread}</span>
-        </div>
-      )}
-    </button>
-  );
+      className={conv.source === 'FOSTER' ? 'pp-conv-foster' : ''}
+      leading={<Avatar src={conv.animalPhoto} name="" size={56} />}
+      overline={conversationKind(conv, t)} title={conv.title} subtitle={conv.lastMessage || t('messages.sayHello')}
+      meta={time} trailing={<Count value={conv.unread} />} />;
+}
+
+function MessageStatus({ status, t }) {
+  if (status === 'sending') return <span className="pp-msg-status"><Clock size={12} aria-hidden="true" />{t('readiness.sending')}</span>;
+  if (status === 'failed') return <span className="pp-msg-status is-failed"><AlertCircle size={12} aria-hidden="true" />{t('readiness.failed')}</span>;
+  return <span className="pp-msg-status"><Check size={12} aria-hidden="true" />{t('readiness.sent')}</span>;
 }
 
 function ConversationThread({ conv, onBack, t }) {
-  const { messaging, reportConversation, blockConversation, dataSource, lang, fosterApplications } = useApp();
+  const { messaging, reportConversation, blockConversation, dataSource, lang } = useApp();
   const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
     threadHasMore, loadingThread, markRead, respondToWalk, typingByConversation, startTyping, stopTyping } = messaging;
   const [input, setInput] = useState(drafts[conv.id] || '');
   const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
+  const [showContext, setShowContext] = useState(false);
   const [notice, setNotice] = useState('');
   const [newMessages, setNewMessages] = useState(false);
   const [responding, setResponding] = useState(false);
@@ -73,8 +52,8 @@ function ConversationThread({ conv, onBack, t }) {
   const sending = useRef(false);
   const reducedMotion = useReducedPetMotion();
   const isMatch = conv.source === 'MATCH';
+  const locale = lang === 'ro' ? 'ro-RO' : 'en-GB';
   const canWrite = !conv.blocked && !conv.fosterReadOnly && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
-  const application = fosterApplications.find(item => item.id === conv.fosterApplicationId || item.fosterCaseId === conv.fosterCaseId);
   const messages = useMemo(() => conv.blocked ? [] : [...conv.messages, ...outbox.filter(message => message.conversationId === conv.id
     && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId))], [conv.blocked, conv.id, conv.messages, outbox]);
   const messageKey = message => message.clientMessageId || message.messageId;
@@ -142,144 +121,115 @@ function ConversationThread({ conv, onBack, t }) {
     atBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 48;
     if (atBottom.current) { setNewMessages(false); markRead(conv.id, latest); }
   };
-  return <section data-testid="conversation-thread" className="petpal-fullscreen conversation-thread">
-    <header className="chat-header">
-      <button type="button" data-testid="back-button" onClick={onBack} aria-label={t('common.back')} className="chat-icon-button"><ArrowLeft size={22} /></button>
-      {conv.animalPhoto ? <img src={conv.animalPhoto} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" /> : <Heart size={24} className="shrink-0" />}
-      <div className="min-w-0 flex-1"><h1 className="font-heading text-lg font-semibold line-clamp-2">{isMatch ? conv.relatedAnimalName : conv.animalName || conv.title}</h1>
-        <p className="text-xs text-[#57645C] truncate">{getConversationSubtitle(conv, t)}{conv.otherOwnerName ? ` · ${conv.otherOwnerName}` : ''}</p></div>
-      <button type="button" data-testid="safety-menu-trigger" onClick={() => setShowSafety(true)} aria-label={t('messages.safetyMenu')} className="chat-icon-button"><MoreVertical size={22} /></button>
+  const jumpDown = () => {
+    atBottom.current = true; scroll.current.scrollTo({ top: scroll.current.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' });
+    setNewMessages(false); markRead(conv.id, latest);
+  };
+  const other = isMatch ? conv.relatedAnimalName || conv.title : conv.animalName || conv.title;
+
+  return <motion.section data-testid="conversation-thread" className="petpal-fullscreen pp-thread" aria-label={other} {...push}>
+    <header className="pp-thread-head">
+      <IconButton icon={ArrowLeft} label={t('common.back')} onClick={onBack} data-testid="back-button" />
+      <button type="button" className="pp-thread-who" onClick={() => setShowContext(value => !value)} aria-expanded={showContext}
+        data-testid="conversation-context-panel">
+        <Avatar src={conv.animalPhoto} name="" size={40} className="is-round" />
+        <span className="ui-grow"><span className="pp-thread-name">{other}</span>
+          <span className="pp-thread-sub">{[person(conv.otherOwnerName, t), conversationKind(conv, t)].filter(Boolean).join(' · ')}</span></span>
+        <ChevronDown size={18} className={`pp-thread-chevron ${showContext ? 'is-open' : ''}`} aria-hidden="true" />
+      </button>
+      <IconButton icon={MoreVertical} label={t('messages.safetyMenu')} onClick={() => setShowSafety(true)} data-testid="safety-menu-trigger" />
     </header>
-    <details className="chat-context" data-testid="conversation-context-panel">
-      <summary className="min-h-11 flex items-center gap-2 cursor-pointer"><Info size={16} />{t(conv.mode === 'SOCIAL' ? 'readiness.walkDetails' : isMatch ? 'readiness.matchDetails' : 'messages.fosterContext')}<ChevronDown size={16} className="ml-auto" /></summary>
-      <div className="pb-3 space-y-2 text-sm">
-        <p className="font-semibold">{conv.title}</p>
-        {conv.otherOwnerName && <p>{conv.otherOwnerName}</p>}
-        <p>{t(conv.mode === 'SOCIAL' ? 'readiness.walkHint' : isMatch ? 'messages.matchChatContext' : 'messages.fosterChatContext')}</p>
-        <p>{[conv.city, conv.coarseArea].filter(Boolean).join(' · ')}</p>
-        {conv.organizationName && <p>{conv.organizationName}</p>}
-        <p>{t('matches.locationPrivate')}</p>
-        <p>{getConversationSubtitle(conv, t)}</p>
-        {!isMatch && application && <div className="space-y-2 border-t pt-2">
-          <h2 className="font-semibold">{t('messages.applicationDetails')}</h2>
-          <ContextRow label={t('common.submitted')} value={getApplicationStatusLabel(application.status, t)} />
-          <ContextRow label={t('foster.housingType')} value={application.housingType} />
-          <ContextRow label={t('foster.availabilityField')} value={application.availability} />
-          <ContextRow label={t('foster.animalExperience')} value={application.experience} />
-          <ContextRow label={t('foster.otherPets')} value={application.otherPets} />
-          <ContextRow label={t('foster.childrenInHome')} value={application.childrenInHome} />
-        </div>}
+    <AnimatePresence initial={false}>{showContext && <motion.div key="context" className="pp-thread-context"
+      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={spring}>
+      <div className="pp-thread-context-inner">
+        <p className="ui-title-s">{conv.title}</p>
+        <p className="ui-small">{t(conv.mode === 'SOCIAL' ? 'readiness.walkHint' : isMatch ? 'messages.matchChatContext' : 'messages.fosterChatContext')}</p>
+        {[conv.city, conv.coarseArea].filter(Boolean).length > 0 && <p className="ui-small">{[conv.coarseArea, conv.city].filter(Boolean).join(', ')}</p>}
+        {conv.organizationName && <p className="ui-small">{conv.organizationName}</p>}
+        <p className="ui-small pp-detail-private"><Lock size={14} aria-hidden="true" />{t('matches.locationPrivate')}</p>
       </div>
-    </details>
-    {conv.blocked && <p role="status" className="px-4 py-2 text-sm bg-[#F5DDD0]">{t('readiness.blockedChat')}</p>}
-    {conv.fosterReadOnly && <p role="status" className="px-4 py-2 text-sm bg-[#EAF2ED]">{t('care.readOnlyChat')}</p>}
-    {notice && <p role="status" className="px-4 py-2 text-sm">{notice}</p>}
-    {dataSource === 'supabase' && !realtimeReady && <p role="status" className="px-4 text-xs text-[#57645C]">{t('readiness.refreshing')}</p>}
-    {chatError && <div role="alert" className="px-4 text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="underline min-h-11" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button></div>}
-    {typingByConversation?.[conv.id] && <div data-testid="typing-indicator" role="status" className="px-4 pb-1 text-xs text-[#57645C]">
-      <span>{t('motion.typing')}</span>{' '}
-      {!reducedMotion && <motion.span aria-hidden="true" className="inline-flex gap-0.5 align-middle" animate={{ opacity: [0.35, 1, 0.35] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}>
-        <span>•</span><span>•</span><span>•</span>
-      </motion.span>}
-    </div>}
-    <div ref={scroll} onScroll={scrollChanged} data-testid="message-scroll" className="min-h-0 flex-1 overflow-y-auto px-4 py-3 space-y-3">
-      {threadHasMore[conv.id] && <button type="button" disabled={loadingThread} onClick={loadEarlier} className="min-h-11 w-full text-sm underline">{t('readiness.earlierMessages')}</button>}
-      {loadingThread && <p role="status" className="text-center text-xs">{t('readiness.loading')}</p>}
+    </motion.div>}</AnimatePresence>
+
+    <div className="pp-thread-notes">
+      {conv.blocked && <Notice tone="error">{t('readiness.blockedChat')}</Notice>}
+      {conv.fosterReadOnly && <Notice>{t('care.readOnlyChat')}</Notice>}
+      {notice && <Notice tone="success" onClose={() => setNotice('')}>{notice}</Notice>}
+      {chatError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button>}>{t(chatError)}</Notice>}
+      {dataSource === 'supabase' && !realtimeReady && <p role="status" className="ui-small">{t('readiness.refreshing')}</p>}
+    </div>
+
+    <div ref={scroll} onScroll={scrollChanged} data-testid="message-scroll" className="pp-thread-scroll">
+      {threadHasMore[conv.id] && <Button variant="quiet" block disabled={loadingThread} onClick={loadEarlier}>{t('readiness.earlierMessages')}</Button>}
+      {loadingThread && !messages.length && <div className="pp-thread-skeleton" aria-hidden="true">
+        <Skeleton width="62%" height={44} radius={20} /><Skeleton width="48%" height={44} radius={20} className="is-mine" /><Skeleton width="55%" height={60} radius={20} /></div>}
+      {!loadingThread && !messages.length && !conv.blocked && <p className="pp-thread-empty">{t('messages.sayHello')}</p>}
       {messages.map((msg, index) => {
-        const day = new Date(msg.createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB');
-        const previousDay = index ? new Date(messages[index - 1].createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB') : null;
-        const messageBubble = <div data-testid="message-bubble" data-status={msg.status || 'sent'} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
-          <div className={`chat-bubble ${msg.isMine ? 'chat-bubble-mine' : ''}`}>
-            {!msg.isMine && <p className="text-xs font-semibold mb-1">{msg.senderDisplayName}</p>}
-            <p className="whitespace-pre-wrap break-words text-sm">{msg.body}</p>
-            <p className="text-[11px] mt-1 text-[#57645C]">{new Date(msg.createdAt).toLocaleTimeString(lang === 'ro' ? 'ro-RO' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
-              {msg.isMine && ` · ${t(msg.status === 'sending' ? 'readiness.sending' : msg.status === 'failed' ? 'readiness.failed' : 'readiness.sent')}`}</p>
-            {msg.status === 'failed' && <div role="alert" className="text-xs mt-2">
-              <p>{t('readiness.sendFailed')}</p>
-              <button type="button" data-testid="retry-message" disabled={!canWrite} className="underline font-semibold min-h-11"
-                onClick={() => sendMessage(conv.id, msg.body, msg.clientMessageId).catch(error => setSendError(t(error.message)))}>{t('readiness.retryMessage')}</button>
-            </div>}
-          </div>
-        </div>;
+        const previous = messages[index - 1];
+        const next = messages[index + 1];
+        const day = new Date(msg.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+        const newDay = !previous || new Date(previous.createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+        // Messages from the same person a few minutes apart read as one group.
+        const groupedWithNext = next && next.isMine === msg.isMine && new Date(next.createdAt) - new Date(msg.createdAt) < 5 * 60000
+          && new Date(next.createdAt).toDateString() === new Date(msg.createdAt).toDateString();
+        const startsGroup = newDay || !previous || previous.isMine !== msg.isMine || new Date(msg.createdAt) - new Date(previous.createdAt) >= 5 * 60000;
         const shouldAnimate = !seenMessages.current.has(messageKey(msg)) && (msg.isNew || msg.status === 'sending');
         return <React.Fragment key={messageKey(msg)}>
-          {day !== previousDay && <p className="text-center text-xs text-[#57645C] py-2">{day}</p>}
-          <motion.div initial={shouldAnimate && !reducedMotion ? { opacity: 0, y: 4 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.24 }}>{messageBubble}</motion.div>
+          {newDay && <p className="pp-thread-day">{day}</p>}
+          <motion.div data-testid="message-bubble" data-status={msg.status || 'sent'}
+            className={`pp-msg ${msg.isMine ? 'is-mine' : ''} ${startsGroup ? 'starts' : ''} ${groupedWithNext ? '' : 'ends'} ${msg.status === 'sending' ? 'is-sending' : ''}`}
+            initial={shouldAnimate && !reducedMotion ? { opacity: 0, y: 10, scale: 0.98 } : false} animate={{ opacity: 1, y: 0, scale: 1 }} transition={spring}>
+            {/* Foster chats can include a whole care team, so name who wrote. */}
+            {!msg.isMine && !isMatch && startsGroup && msg.senderDisplayName && <p className="pp-msg-sender">{person(msg.senderDisplayName, t)}</p>}
+            <div className="pp-msg-bubble"><p>{msg.body}</p></div>
+            {(!groupedWithNext || msg.status === 'failed') && <p className="pp-msg-meta">
+              {new Date(msg.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+              {msg.isMine && <MessageStatus status={msg.status} t={t} />}</p>}
+            {msg.status === 'failed' && <div role="alert" className="pp-msg-retry">
+              <span>{t('readiness.sendFailed')}</span>
+              <button type="button" data-testid="retry-message" disabled={!canWrite}
+                onClick={() => sendMessage(conv.id, msg.body, msg.clientMessageId).catch(error => setSendError(t(error.message)))}>{t('readiness.retryMessage')}</button>
+            </div>}
+          </motion.div>
         </React.Fragment>;
       })}
+      <AnimatePresence>{typingByConversation?.[conv.id] && <motion.p key="typing" data-testid="typing-indicator" role="status" className="pp-thread-typing"
+        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+        {conv.otherOwnerName ? fmt(t('motion.typingName'), { name: person(conv.otherOwnerName, t) }) : t('motion.typing')}</motion.p>}</AnimatePresence>
     </div>
-    {newMessages && <button type="button" className="shrink-0 text-sm py-2 bg-[#E3ECE4]" onClick={() => {
-      atBottom.current = true; scroll.current.scrollTop = scroll.current.scrollHeight; setNewMessages(false); markRead(conv.id, latest);
-    }}>{t('readiness.newMessages')}</button>}
-    <footer className="chat-composer">
-      {sendError && <p role="alert" className="text-sm text-[#9B4650] mb-2">{sendError}</p>}
-      {conv.socialRequestStatus && conv.socialRequestStatus !== 'ACCEPTED' && !conv.blocked ? <div className="space-y-2">
-        <p role="status" className="text-sm">{t(conv.socialRequestStatus === 'DECLINED' ? 'readiness.walkDeclinedHint'
+
+    <AnimatePresence>{newMessages && <motion.button key="new" type="button" className="pp-thread-jump" onClick={jumpDown}
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={spring}>
+      <ArrowDown size={16} aria-hidden="true" />{t('readiness.newMessages')}</motion.button>}</AnimatePresence>
+
+    <footer className="pp-composer">
+      {sendError && <p role="alert" className="ui-field-error">{sendError}</p>}
+      {conv.socialRequestStatus && conv.socialRequestStatus !== 'ACCEPTED' && !conv.blocked ? <div className="pp-walk-answer">
+        <p role="status" className="ui-small">{t(conv.socialRequestStatus === 'DECLINED' ? 'readiness.walkDeclinedHint'
           : conv.socialRequestIsMine ? 'readiness.walkPendingHint' : 'readiness.walkIncomingHint')}</p>
         {conv.socialRequestStatus === 'PENDING' && !conv.socialRequestIsMine && <>
-          <div className="flex gap-2">
-            <PrimaryButton disabled={responding} onClick={() => respond(true)}>{t('readiness.walkAccept')}</PrimaryButton>
-            <SecondaryButton disabled={responding} onClick={() => respond(false)}>{t('readiness.walkDecline')}</SecondaryButton>
+          <div className="pp-walk-answer-row">
+            <Button variant="secondary" disabled={responding} onClick={() => respond(false)}>{t('readiness.walkDecline')}</Button>
+            <Button className="ui-grow" busy={responding} onClick={() => respond(true)}>{t('readiness.walkAccept')}</Button>
           </div>
-          <button type="button" disabled={responding} className="min-h-11 underline text-sm" onClick={() => safetyAction('block')}>{t('readiness.walkBlock')}</button>
+          <Button variant="quiet" disabled={responding} onClick={() => safetyAction('block')}>{t('readiness.walkBlock')}</Button>
         </>}
       </div> : <>
-      <div className="flex items-end gap-2">
-        <textarea data-testid="message-input" rows={1} value={input} disabled={!canWrite}
-          onChange={event => { const value = event.target.value; setInput(value); if (value.trim()) startTyping(conv.id); else stopTyping(conv.id); if (!saveDraft(conv.id, value)) setSendError(t('readiness.storageFailed')); }}
-          onBlur={() => stopTyping(conv.id)}
-          aria-label={t('messages.messageInput')} placeholder={t(conv.blocked ? 'messages.blockedPlaceholder' : 'messages.typeMessage')}
-          className="min-w-0 flex-1 resize-none rounded-2xl border border-[#D5D5CE] bg-[var(--pp-bg)] p-3 text-base max-h-32"
-          onInput={event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(128, event.target.scrollHeight)}px`; }} />
-        <button type="button" data-testid="send-message-btn" onClick={handleSend} disabled={!input.trim() || [...input].length > 4000 || !canWrite}
-          aria-label={t('messages.send')} className="chat-send"><Send size={21} /></button>
-      </div>
-      {input.length > 0 && <p className={`text-xs mt-1 ${[...input].length > 4000 ? 'text-[#9B4650]' : 'text-[#57645C]'}`}>{[...input].length}/4000 {t('readiness.characterCount')}</p>}
+        <div className="pp-composer-row">
+          <textarea data-testid="message-input" rows={1} value={input} disabled={!canWrite} className="pp-composer-input"
+            onChange={event => { const value = event.target.value; setInput(value); if (value.trim()) startTyping(conv.id); else stopTyping(conv.id); if (!saveDraft(conv.id, value)) setSendError(t('readiness.storageFailed')); }}
+            onBlur={() => stopTyping(conv.id)}
+            aria-label={t('messages.messageInput')} placeholder={t(conv.blocked ? 'messages.blockedPlaceholder' : 'messages.typeMessage')}
+            onInput={event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(132, event.target.scrollHeight)}px`; }} />
+          <motion.button type="button" data-testid="send-message-btn" onClick={handleSend} whileTap={reducedMotion ? undefined : { scale: 0.9 }}
+            disabled={!input.trim() || [...input].length > 4000 || !canWrite} aria-label={t('messages.send')} className="pp-send">
+            <Send size={20} aria-hidden="true" /></motion.button>
+        </div>
+        {[...input].length > 3500 && <p className={`pp-composer-count ${[...input].length > 4000 ? 'is-over' : ''}`}>{[...input].length}/4000 {t('readiness.characterCount')}</p>}
       </>}
     </footer>
     <SafetyMenu open={showSafety} onClose={() => setShowSafety(false)} onReport={() => safetyAction('report')} onBlock={() => safetyAction('block')}
-      onViewContext={() => { setShowSafety(false); document.querySelector('[data-testid="conversation-context-panel"]')?.setAttribute('open', ''); }} />
-  </section>;
-}
-
-function getConversationSubtitle(conv, t) {
-  if (conv.source === 'FOSTER') {
-    return conv.fosterRequestId ? t(`care.${conv.fosterStatus}`) : (conv.subtitle || t('messages.foster'));
-  }
-
-  // Historical Verified Mate chats show the neutral match label.
-  const modeLabels = {
-    PLAY: t('matches.play'),
-    SOCIAL: t('matches.social'),
-    VERIFIED_MATE: t('messages.match'),
-  };
-
-  return modeLabels[conv.mode] || conv.subtitle || t('messages.match');
-}
-
-function getApplicationStatusLabel(status, t) {
-  const statusLabels = {
-    DRAFT: t('common.draft'),
-    SUBMITTED: t('common.submitted'),
-    IN_REVIEW: t('common.inReview'),
-    ACCEPTED: t('common.accepted'),
-    REJECTED: t('common.rejected'),
-    WITHDRAWN: t('common.withdrawn'),
-    COMPLETED: t('common.completed'),
-  };
-
-  return statusLabels[status] || status || t('common.unknown');
-}
-
-function ContextRow({ label, value }) {
-  if (!value) return null;
-
-  return (
-    <div className="flex items-start justify-between gap-3 text-sm">
-      <span className="text-[#57645C]">{label}</span>
-      <span className="font-medium text-[#1F2924] text-right">{value}</span>
-    </div>
-  );
+      onViewContext={() => { setShowSafety(false); setShowContext(true); }} />
+  </motion.section>;
 }
 
 function getTimeAgo(dateStr, t) {
@@ -296,6 +246,7 @@ function getTimeAgo(dateStr, t) {
 export default function MessagesTab() {
   const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation } = useApp();
   const { refreshInbox, inboxHasMore, chatError, unreadTotals } = messaging;
+  const reduced = useReducedPetMotion();
   const [activeConvId, setActiveConvId] = useState(null);
   const [loading, setLoading] = useState(false);
   // One inbox for both spaces; the filter only narrows what is shown.
@@ -304,10 +255,9 @@ export default function MessagesTab() {
   const activeConv = conversations.find((conversation) => conversation.id === activeConvId);
   const unread = source => dataSource === 'supabase' ? unreadTotals[source] || 0
     : conversations.filter(c => c.source === source).reduce((total, c) => total + (c.unread || 0), 0);
-  const count = n => n > 0 ? <b className="fx-segment-count">{n}</b> : null;
-  const empty = { ALL: ['messages.noConversations', 'messages.noConversationsDesc'],
-    MATCH: ['messages.noMatchConversations', 'messages.noMatchConversationsDesc'],
-    FOSTER: ['messages.noFosterConversations', 'messages.noFosterConversationsDesc'] }[filter];
+  const empty = { ALL: ['messages.noConversations', 'messages.noConversationsDesc', 'heart'],
+    MATCH: ['messages.noMatchConversations', 'messages.noMatchConversationsDesc', 'dog'],
+    FOSTER: ['messages.noFosterConversations', 'messages.noFosterConversationsDesc', 'house'] }[filter];
 
   useEffect(() => {
     let alive = true;
@@ -332,59 +282,31 @@ export default function MessagesTab() {
     return () => { alive = false; };
   }, [requestedConversation, conversations, refreshInbox, setRequestedConversation]);
 
-  useEffect(() => {
-    document.body.classList.toggle('petpal-thread-open', Boolean(activeConv));
-
-    return () => {
-      document.body.classList.remove('petpal-thread-open');
-    };
-  }, [activeConv]);
-
-  if (activeConv) {
-    return <ConversationThread conv={activeConv} onBack={() => setActiveConvId(null)} t={t} />;
-  }
-
-  return (
-    <div
-      data-testid="messages-tab"
-      data-message-source={filter}
-      className="min-h-0 flex-1 flex flex-col"
-    >
-      <div className="px-5 pt-4 pb-3 bg-[var(--pp-bg)]">
-        <h1 className="text-2xl font-bold text-[#1F2924] tracking-tight font-heading">{t('messages.inboxTitle')}</h1>
-        <p className="mt-1 mb-3 text-sm leading-relaxed text-[#57645C]">{t('messages.inboxSubtitle')}</p>
+  return <div data-testid="messages-tab" data-message-source={filter} className="pp-inbox ui-page">
+    <div className="ui-scroll">
+      <PageTitle title={t('messages.inboxTitle')} />
+      <div className="ui-gutter">
         <Segment label="inbox" value={filter} onChange={setFilter} options={[
-          ['ALL', <>{t('messages.filterAll')}{count(unread('MATCH') + unread('FOSTER'))}</>],
-          ['MATCH', <>{t('messages.filterMatch')}{count(unread('MATCH'))}</>],
-          ['FOSTER', <>{t('messages.filterFoster')}{count(unread('FOSTER'))}</>],
+          ['ALL', <>{t('messages.filterAll')}<Count value={unread('MATCH') + unread('FOSTER')} /></>],
+          ['MATCH', <>{t('messages.filterMatch')}<Count value={unread('MATCH')} /></>],
+          ['FOSTER', <>{t('messages.filterFoster')}<Count value={unread('FOSTER')} /></>],
         ]} />
       </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar px-5 pt-3 pb-20">
-        {chatError && <div role="alert" className="text-sm text-[#9B4650]">{t(chatError)} <button type="button" className="min-h-11 underline" onClick={() => refreshInbox(filter).catch(() => {})}>{t('readiness.retry')}</button></div>}
-        {loading && <p role="status">{t('readiness.loading')}</p>}
-        {!loading && shown.length === 0 ? (
-          <EmptyState
-            icon={MessageCircle}
-            title={t(empty[0])}
-            description={t(empty[1])}
-          />
-        ) : (
-          <div className="space-y-2">
-            {shown.map((conversation) => (
-              <ConversationCard
-                key={conversation.id}
-                conv={conversation}
-                onClick={() => setActiveConvId(conversation.id)}
-                t={t}
-              />
-            ))}
-            {inboxHasMore[filter] && <button type="button" disabled={loading} className="min-h-11 w-full underline" onClick={async () => {
-              setLoading(true); try { await refreshInbox(filter, true); } catch {} finally { setLoading(false); }
-            }}>{t('readiness.more')}</button>}
-          </div>
-        )}
+      <div className="ui-gutter pp-inbox-list">
+        {chatError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(filter).catch(() => {})}>{t('readiness.retry')}</button>}>{t(chatError)}</Notice>}
+        {loading && !shown.length ? <div className="ui-list" aria-hidden="true">{[0, 1, 2, 3].map(key => <div key={key} className="ui-row">
+          <Skeleton width={56} height={56} radius={16} /><span className="ui-row-body"><Skeleton width="30%" height={11} /><Skeleton width="55%" height={16} /><Skeleton width="80%" height={13} /></span></div>)}</div>
+          : !shown.length ? <Empty art={empty[2]} title={t(empty[0])} text={t(empty[1])} />
+            : <motion.div key={filter} className="ui-list ui-list-inset" variants={list} initial={reduced ? false : 'hidden'} animate="show">
+              {shown.map((conversation) => <ConversationRow key={conversation.id} conv={conversation} onClick={() => setActiveConvId(conversation.id)} t={t} />)}
+            </motion.div>}
+        {inboxHasMore[filter] && <Button variant="quiet" block disabled={loading} onClick={async () => {
+          setLoading(true); try { await refreshInbox(filter, true); } catch {} finally { setLoading(false); }
+        }}>{t('readiness.more')}</Button>}
       </div>
     </div>
-  );
+    <OverScreen><AnimatePresence>
+      {activeConv && <ConversationThread key={activeConv.id} conv={activeConv} onBack={() => setActiveConvId(null)} t={t} />}
+    </AnimatePresence></OverScreen>
+  </div>;
 }

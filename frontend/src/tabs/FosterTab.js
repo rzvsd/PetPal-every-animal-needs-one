@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
@@ -13,6 +13,7 @@ import AnimalStory from '../foster/AnimalStory';
 import { CaseStory, HomeSettings, JoinHomeSheet } from '../foster/Manage';
 import { CaseWizard, HomeWizard } from '../foster/Wizard';
 import '../foster/foster.css';
+import { person } from '../ui/kit';
 
 function ReportSheet({ target, onClose, onSent }) {
   const { t } = useApp();
@@ -55,7 +56,9 @@ export default function FosterTab() {
 
   const push = useCallback(screen => setStack(current => [...current, screen]), []);
   const pop = useCallback(() => setStack(current => current.slice(0, -1)), []);
-  useEffect(() => { setStack([]); }, [activeTab]);
+  const scrollRef = useRef(null);
+  // Each Foster tab starts at its top, like a new page.
+  useEffect(() => { setStack([]); if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [activeTab]);
   // Good news fades on its own; errors stay until closed.
   useEffect(() => {
     if (notice?.tone !== 'success') return undefined;
@@ -77,7 +80,7 @@ export default function FosterTab() {
     finally { setBusy(false); }
   };
   const answer = async (request, action, acknowledge = false) => {
-    const other = request.sender_id === user.id ? request.recipient_name : request.sender_name;
+    const other = request.sender_id === user.id ? person(request.recipient_name, t) : person(request.sender_name, t);
     try {
       await act(() => fosterRpc('respond_foster_request', { request_id_input: request.id, action_input: action,
         expected_updated_at_input: request.updated_at, acknowledge_capacity_input: acknowledge, reason_input: '' }),
@@ -103,7 +106,7 @@ export default function FosterTab() {
   const sendOffer = async ({ kind, caseId, homeId, message }) => {
     await fosterRpc('create_foster_request', { request_id_input: crypto.randomUUID(), case_id_input: caseId, home_id_input: homeId, kind_input: kind, message_input: message });
     setOffer(null); refresh();
-    setNotice({ tone: 'success', text: fmt(t('fx.offerSent'), { name: kind === 'APPLICATION' ? offer.item.responsible_name : offer.item.name }) });
+    setNotice({ tone: 'success', text: fmt(t('fx.offerSent'), { name: kind === 'APPLICATION' ? person(offer.item.responsible_name, t) : offer.item.name }) });
     askForNotifications('offer');
   };
   const needHome = () => push({ type: 'caseWizard' });
@@ -138,7 +141,7 @@ export default function FosterTab() {
 
   const tab = activeTab === 'foster-find' ? 'find' : activeTab === 'foster-mine' ? 'mine' : 'today';
   return <div className="fx-shell" data-testid="foster-tab">
-    <div className="fx-scroll" hidden={Boolean(screen)}>
+    <div className="fx-scroll" ref={scrollRef} hidden={Boolean(screen)}>
       {!live ? <><header className="fx-hello"><h1>{t('environment.fosterTitle')}</h1></header><Notice>{t('fx.liveOnly')}</Notice></>
         : data.error ? <Notice tone="error">{t('fx.couldNotLoad')} <button type="button" className="fx-notice-close" onClick={refresh}>{t('fx.retry')}</button></Notice>
           : <>

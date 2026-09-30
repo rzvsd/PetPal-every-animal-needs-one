@@ -9,7 +9,9 @@ import ProfileTab from './tabs/ProfileTab';
 import AuthScreen from './screens/AuthScreen';
 import EnvironmentChooser from './screens/EnvironmentChooser';
 import { EnvironmentBottomTabs, EnvironmentHeader } from './components/EnvironmentNavigation';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { fadeThrough } from './ui/motion';
+import { Art, Button, Empty } from './ui/kit';
 import { PetMotionProvider } from './components/Motion';
 import IntroReel from './components/IntroReel';
 import NotificationAsk from './components/NotificationAsk';
@@ -42,12 +44,6 @@ function AppContent() {
     setActiveTab(getEnvironmentHomeTab(nextEnvironment));
     try { localStorage.setItem(SPACE_KEY, nextEnvironment); } catch { /* The chooser simply shows next time. */ }
   }, [setActiveTab]);
-
-  const leaveEnvironment = () => {
-    if (dismissTopLayer()) return;
-    try { localStorage.removeItem(SPACE_KEY); } catch { /* Nothing remembered. */ }
-    setEnvironment(null);
-  };
 
   // Reopen the space the person used last instead of asking every time.
   useEffect(() => {
@@ -153,26 +149,27 @@ function AppContent() {
           <AnimatePresence>{!introDone && !requestedConversation && <IntroReel key="intro" onDone={() => setIntroDone(true)} />}</AnimatePresence>
           {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
           {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
-            <div className="flex flex-1 items-center justify-center bg-[var(--pp-bg)] px-8 text-center">
-              <div className="space-y-3">
-                <div className="mx-auto h-12 w-12 animate-pulse rounded-2xl bg-[#E3ECE4]" />
-                <p className="text-sm font-medium text-[#57645C]">{t('auth.loading')}</p>
-              </div>
-            </div>
+            <div className="pp-state" role="status"><Art name="paw" size={72} play={false} /><p className="ui-small">{t('auth.loading')}</p></div>
           ) : authRequired ? (
             <AuthScreen />
           ) : backendStatus.message === 'readiness.loadError' ? (
-            <div role="alert" className="p-6 space-y-4"><p>{t('readiness.loadError')}</p>
-              <button type="button" className="match-action-primary" onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</button></div>
+            <div role="alert" className="pp-state"><Empty art="paw" title={t('readiness.loadError')}
+              action={<Button busy={backendStatus.loading} onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</Button>} /></div>
           ) : !environment ? (
             <EnvironmentChooser onSelect={enterEnvironment} />
           ) : (
             <>
-              <EnvironmentHeader environment={environment} onBack={leaveEnvironment} />
-              {activeTab === 'matches' && <MatchesTab />}
-              {['foster', 'foster-find', 'foster-mine'].includes(activeTab) && <FosterTab />}
-              {activeTab === 'messages' && <MessagesTab />}
-              {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}
+              <EnvironmentHeader environment={environment} onSwitch={enterEnvironment} />
+              {/* Tabs fade through: the old view steps back, the new one settles.
+                  Foster's three tabs are one view with its own transitions. */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.main key={`${environment}:${activeTab.startsWith('foster') ? 'foster' : activeTab}`} className="pp-tab-view" {...fadeThrough}>
+                  {activeTab === 'matches' && <MatchesTab />}
+                  {activeTab.startsWith('foster') && <FosterTab />}
+                  {activeTab === 'messages' && <MessagesTab />}
+                  {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}
+                </motion.main>
+              </AnimatePresence>
               <EnvironmentBottomTabs environment={environment} />
               <NotificationAsk />
             </>

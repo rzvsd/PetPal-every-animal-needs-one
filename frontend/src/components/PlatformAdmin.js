@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronRight, Shield } from 'lucide-react';
+import { OverScreen, Row } from '../ui/kit';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc, loadPlatformAudit, loadPlatformItem, loadPlatformQueue, loadPlatformRole } from '../services/fosterApi';
@@ -18,10 +19,9 @@ export default function PlatformAdminEntry() {
   }, [user.id, dataSource]);
   if (!['MODERATOR', 'SUPER_ADMIN'].includes(role)) return null;
   return <>
-    <button type="button" className="w-full min-h-12 flex items-center gap-3 bg-white border rounded-2xl p-4 text-left" onClick={() => setOpen(true)}>
-      <Shield size={18} /><span>{t('care.admin')}</span><ChevronRight className="ml-auto" size={18} />
-    </button>
-    {open && <div className="petpal-fullscreen foster-shell" style={{ position: 'absolute' }}><PlatformAdmin role={role} onClose={() => setOpen(false)} /></div>}
+    <div className="ui-list pp-list"><Row leading={<span className="pp-row-icon"><Shield size={20} aria-hidden="true" /></span>}
+      title={t('care.admin')} subtitle={t('care.adminHint')} onClick={() => setOpen(true)} /></div>
+    {open && <OverScreen><div className="petpal-fullscreen foster-shell"><PlatformAdmin role={role} onClose={() => setOpen(false)} /></div></OverScreen>}
   </>;
 }
 

@@ -36,7 +36,17 @@ import { friendlyError } from '../services/errors';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [lang, setLang] = useState('en');
+  // Romanian first; English when the phone itself is in English. The
+  // person's own choice is remembered.
+  const [lang, setLangState] = useState(() => {
+    try { const saved = localStorage.getItem('petpal:lang'); if (saved === 'en' || saved === 'ro') return saved; } catch { /* Use the device. */ }
+    return (navigator.language || '').toLowerCase().startsWith('en') ? 'en' : 'ro';
+  });
+  const setLang = useCallback(next => setLangState(current => {
+    const value = typeof next === 'function' ? next(current) : next;
+    try { localStorage.setItem('petpal:lang', value); } catch { /* Kept for this session only. */ }
+    return value;
+  }), []);
   const [activeTab, setActiveTab] = useState('matches');
   const [user, setUser] = useState(demoUser);
   const [myAnimals, setMyAnimals] = useState([]);
@@ -114,6 +124,7 @@ export function AppProvider({ children }) {
   }, [lang]);
 
   const toggleLang = () => setLang(l => l === 'en' ? 'ro' : 'en');
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
   const selectedAnimal = myAnimals.find(a => a.id === selectedAnimalId);
   const localDemoAvailable = allowLocalDemo;
@@ -811,7 +822,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      lang, t, toggleLang,
+      lang, t, toggleLang, setLang,
       activeTab, setActiveTab,
       user, setUser, updateUserProfile,
       reduceMotion, setReduceMotion, setShowTypingActivity,

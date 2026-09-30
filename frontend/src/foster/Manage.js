@@ -7,6 +7,7 @@ import { fosterRpc } from '../services/fosterApi';
 import { Button, Card, Choices, Empty, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, fmt, listMotion } from './ui';
 import { durationLabel, freePlaces } from './Find';
 import { PhotoPicker, Toggle, caseToData } from './Wizard';
+import { person } from '../ui/kit';
 
 export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenChat, onOpenPlacement, onChanged }) {
   const { t } = useApp();
@@ -29,7 +30,7 @@ export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenCh
     <div className="fx-hero"><Photo src={item.photo} name={item.name} species={item.species} className="fx-photo-hero" layoutId={`case-photo-${item.id}`} />
       <div className="fx-hero-overlay">{item.urgency === 'HIGH' && <span className="fx-badge is-clay"><Zap size={12} />{t('fx.urgent')}</span>}
         <span className="fx-badge">{durationLabel(item.duration, t)}</span></div></div>
-    <Card style={{ margin: '-26px 4px 0', position: 'relative' }}>
+    <Card className="fx-lift">
       <h2 className="fx-page-title" style={{ fontSize: 24 }}>{item.name}</h2>
       <p className="fx-muted">{t('fx.yours')}</p>
       <div style={{ marginTop: 18 }}><Journey current={placed.length ? (placed[0].placement_status === 'IN_CARE' ? 3 : 1) : 0}
@@ -47,15 +48,15 @@ export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenCh
     <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
       {offers.length ? offers.map(r => <Card key={r.id} className="fx-todo">
         <div className="fx-todo-head"><span className="fx-intent-icon is-green" aria-hidden="true">🏡</span>
-          <div className="fx-grow"><h3>{r.home_name}</h3><p>{r.sender_name}</p></div></div>
+          <div className="fx-grow"><h3>{r.home_name}</h3><p>{person(r.sender_name, t)}</p></div></div>
         {r.message && <p className="fx-quote">{r.message}</p>}
         <div className="fx-actions">
           <Button disabled={busy} onClick={() => onAnswer(r, 'ACCEPT')}>{t('fx.accept')}</Button>
           <Button variant="secondary" disabled={busy} onClick={() => onAnswer(r, 'DECLINE')}>{t('fx.notNow')}</Button>
           {r.conversation_id && <Button variant="soft" icon={MessageCircle} aria-label={t('fx.chat')} onClick={() => onOpenChat(r.conversation_id)} style={{ flex: '0 0 50px', padding: 0 }} />}
         </div>
-      </Card>) : <Empty icon={DoorOpen} title={t('fx.noOffers')} text={visible ? t('fx.noOffersHint') : t('fx.hidden')} />}
-      {invitesSent.map(r => <Card key={r.id}><p style={{ fontSize: 14 }}>{fmt(t('fx.waitingFor'), { name: r.recipient_name, animal: item.name })}</p></Card>)}
+      </Card>) : <Empty art="house" title={t('fx.noOffers')} text={visible ? t('fx.noOffersHint') : t('fx.hidden')} />}
+      {invitesSent.map(r => <Card key={r.id}><p style={{ fontSize: 14 }}>{fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: item.name })}</p></Card>)}
     </motion.div></>}
 
     <SectionTitle>{t('fx.settings')}</SectionTitle>
@@ -97,7 +98,7 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
   return <Screen title={t('fx.myHome')} onBack={onBack}
     action={owner && <button type="button" className="fx-icon-button" aria-label={t('fx.edit')} onClick={onEdit}><Edit3 size={19} /></button>}>
     <div className="fx-hero"><Photo src={home.photos?.[0]} name={home.name} className="fx-photo-hero" /></div>
-    <Card style={{ margin: '-26px 4px 0', position: 'relative' }}>
+    <Card className="fx-lift">
       <h2 className="fx-page-title" style={{ fontSize: 24 }}>{home.name}</h2>
       <p className="fx-muted">{[home.area, home.city].filter(Boolean).join(', ')} · {fmt(t('fx.placesUsed'), { used, total: home.capacity })}</p>
       <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
@@ -126,7 +127,7 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
       {t('fx.team')}</SectionTitle>
     <div className="fx-stack">
       {members.map(member => <Card key={member.profile_id}><div className="fx-row">
-        <span className="fx-grow"><h3>{member.display_name}</h3><p className="fx-muted">{t(`care.${member.role}`)} · {member.status === 'ACTIVE' ? t('care.platformActive') : t(`care.${member.status}`)}</p></span>
+        <span className="fx-grow"><h3>{person(member.display_name, t)}</h3><p className="fx-muted">{t(`care.${member.role}`)} · {member.status === 'ACTIVE' ? t('care.platformActive') : t(`care.${member.status}`)}</p></span>
         {owner && member.role !== 'OWNER' && ['ACTIVE', 'INVITED'].includes(member.status) && <Button variant="ghost" icon={Trash2} aria-label={t('fx.remove')}
           disabled={busy} onClick={() => run(() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: member.profile_id, action_input: 'REVOKE' }))} />}
       </div></Card>)}

@@ -4,21 +4,11 @@ import { Bookmark, BookmarkCheck, Cat, Dog, Flag, Home, MapPin, Search, Star, Za
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { loadFosterDirectory } from '../services/fosterApi';
-import { useReducedPetMotion, motionSpring } from '../components/Motion';
 import { Button, Card, Choices, Empty, Field, Notice, Photo, Screen, Sheet, fmt, itemMotion, listMotion } from './ui';
+import { Segment, person } from '../ui/kit';
 
 const durationKey = { FEW_DAYS: 'fewDays', ONE_TWO_WEEKS: 'oneTwoWeeks', ONE_MONTH: 'oneMonth', UNTIL_ADOPTION: 'untilAdoption', UNKNOWN: 'notSure' };
 export const durationLabel = (value, t) => t(`fx.${durationKey[value] || 'notSure'}`);
-
-export function Segment({ value, options, onChange, label }) {
-  const reduced = useReducedPetMotion();
-  return <div className="fx-segment" role="group" aria-label={label}>
-    {options.map(([key, text]) => <button type="button" key={key} aria-pressed={value === key} onClick={() => onChange(key)}>
-      {value === key && <motion.span layoutId={reduced ? undefined : `segment-${label}`} className="fx-segment-pill" transition={motionSpring} />}
-      <span>{text}</span>
-    </button>)}
-  </div>;
-}
 
 export default function Find({ data, onOpenCase, onOpenHome }) {
   const { t, user } = useApp();
@@ -46,7 +36,7 @@ export default function Find({ data, onOpenCase, onOpenHome }) {
   return <>
     <header className="fx-hello"><h1>{t('fx.tabFind')}</h1></header>
     <div className="fx-stack" style={{ marginTop: 12 }}>
-      <Segment label="find" value={type} onChange={change(value => { setType(value); setFilters(current => current.filter(f => f !== 'URGENT')); })}
+      <Segment label={t('fx.tabFind')} value={type} onChange={change(value => { setType(value); setFilters(current => current.filter(f => f !== 'URGENT')); })}
         options={[['animals', t('fx.segAnimals')], ['homes', t('fx.homesOffer')]]} />
       <label className="fx-search"><Search size={18} />
         <input className="fx-input" value={query} placeholder={t('fx.search')} aria-label={t('fx.search')} onChange={event => change(setQuery)(event.target.value)} /></label>
@@ -58,11 +48,11 @@ export default function Find({ data, onOpenCase, onOpenHome }) {
       <motion.div key={`${type}-${species}-${filters.join()}`} variants={listMotion} initial="hidden" animate="show" style={{ marginTop: 16 }}
         className={type === 'animals' ? 'fx-grid' : 'fx-stack'}>
         {result.loading && !result.rows.length ? [0, 1, 2, 3].map(i => <div key={i} className="fx-skeleton" style={{ height: type === 'animals' ? 220 : 96 }} />)
-          : !result.rows.length ? <div style={{ gridColumn: '1 / -1' }}><Empty icon={Search} title={t('fx.nothingFound')} /></div>
+          : !result.rows.length ? <div style={{ gridColumn: '1 / -1' }}><Empty art="dog" title={t('fx.nothingFound')} /></div>
             : type === 'animals' ? result.rows.map(item => <Card key={item.id} className="fx-animal" onClick={() => onOpenCase(item)}>
               <Photo src={item.photo} name={item.name} species={item.species} layoutId={`case-photo-${item.id}`} />
               {item.urgency === 'HIGH' && <span className="fx-badge is-clay"><Zap size={12} />{t('fx.urgent')}</span>}
-              <div className="fx-animal-info"><h3>{item.name}</h3><p>{durationLabel(item.duration, t)} · {item.area || item.city}</p></div>
+              <div className="fx-animal-info"><h2>{item.name}</h2><p>{durationLabel(item.duration, t)} · {item.area || item.city}</p></div>
             </Card>)
               : result.rows.map(home => <HomeCard key={home.id} home={home} onClick={() => onOpenHome(home)} />)}
       </motion.div>
@@ -82,7 +72,7 @@ function HomeCard({ home, onClick }) {
   return <Card className="fx-home" onClick={onClick}>
     <Photo src={home.photos?.[0]} name={home.name} className="fx-photo-md" />
     <div className="fx-grow">
-      <h3>{home.name}</h3>
+      <h2>{home.name}</h2>
       <p className="fx-muted"><MapPin size={12} style={{ display: 'inline', marginRight: 3 }} />{home.area || home.city}</p>
       <div className="fx-row" style={{ gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
         <span className={`fx-badge ${free ? '' : 'is-muted'}`}>{free ? fmt(t('fx.placesFree'), { count: free }) : t('fx.full')}</span>
@@ -123,7 +113,7 @@ export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, 
         <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>{covered.map(([key, label]) => <span key={key} className="fx-badge">✓ {t(label)}</span>)}</div></Card>}
       {item.medical_needs && <Card><p className="fx-eyebrow">{t('fx.medical')}</p><p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>{item.medical_needs}</p></Card>}
       {item.home_fit && <Card><p className="fx-eyebrow">{t('fx.homeFit')}</p><p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>{item.home_fit}</p></Card>}
-      <Card><p className="fx-eyebrow">{t('fx.postedBy')}</p><p style={{ marginTop: 6, fontWeight: 650 }}>{item.organization_name || item.responsible_name}</p></Card>
+      <Card><p className="fx-eyebrow">{t('fx.postedBy')}</p><p style={{ marginTop: 6, fontWeight: 650 }}>{item.organization_name || person(item.responsible_name, t)}</p></Card>
       <p className="fx-muted" style={{ padding: '0 4px' }}>{t('fx.chatFirst')}</p>
       {!mine && <Button variant="ghost" icon={Flag} onClick={onReport}>{t('fx.report')}</Button>}
     </motion.div>

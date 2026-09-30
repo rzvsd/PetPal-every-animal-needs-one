@@ -1,103 +1,112 @@
-import React from 'react';
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
-import { ArrowLeft, ArrowLeftRight, Heart, Home, MessageCircle, PawPrint, Search, Sun, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutGroup, motion } from 'framer-motion';
+import { Check, ChevronDown, Heart, MessageCircle, PawPrint, Search, Sun, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { AnimalSelector } from './SharedComponents';
 import { useReducedPetMotion } from './Motion';
+import DialogLayer from './DialogLayer';
+import { Art, Avatar, Count, Row } from '../ui/kit';
+import { spring } from '../ui/motion';
 import {
   FOSTER_ENVIRONMENT,
+  MATCH_ENVIRONMENT,
   getEnvironmentHomeTab,
 } from '../navigation/environments';
 
-export function EnvironmentHeader({ environment, onBack }) {
-  const { t, activeTab, myAnimals, selectedAnimalId, setSelectedAnimalId } = useApp();
-  const isFoster = environment === FOSTER_ENVIRONMENT;
-  const Icon = isFoster ? Home : Heart;
+const SPACES = [
+  [MATCH_ENVIRONMENT, 'heart', 'environment.matchTitle', 'environment.matchDescription', 'MATCH'],
+  [FOSTER_ENVIRONMENT, 'house', 'environment.fosterTitle', 'environment.fosterDescription', 'FOSTER'],
+];
 
-  if (!isFoster && activeTab === 'matches') return <header className="match-header">
-    <button type="button" data-testid="back-to-environments" onClick={onBack} aria-label={t('environment.backToSpaces')} className="shrink-0 min-h-11 min-w-8"><ArrowLeft size={20} /></button>
-    <h1 className="font-heading text-lg font-bold leading-tight">{t('environment.matchTitle')}</h1>
-    <div className="ml-auto min-w-0 max-w-[48%]"><AnimalSelector animals={myAnimals} selectedId={selectedAnimalId} onSelect={setSelectedAnimalId} compact /></div>
+function useUnread() {
+  const { messaging, dataSource, conversations } = useApp();
+  if (dataSource === 'supabase') return messaging.unreadTotals;
+  return conversations.reduce((totals, conversation) => ({ ...totals,
+    [conversation.source]: (totals[conversation.source] || 0) + (conversation.unread || 0) }), { MATCH: 0, FOSTER: 0 });
+}
+
+// Picking an animal for Match: the same sheet pattern as switching spaces.
+function AnimalSwitch() {
+  const { t, myAnimals, selectedAnimalId, setSelectedAnimalId } = useApp();
+  const [open, setOpen] = useState(false);
+  const selected = myAnimals.find(animal => animal.id === selectedAnimalId);
+  if (!myAnimals.length) return null;
+  return <>
+    <button type="button" data-testid="animal-selector" className="pp-bar-animal" onClick={() => setOpen(true)}
+      aria-haspopup="dialog" aria-label={`${t('common.selectAnimal')}: ${selected?.name || ''}`}>
+      <Avatar src={selected?.photoUrls?.[0]} name={selected?.name} species={selected?.species} size={34} className="is-round" />
+      <span>{selected?.name || t('common.selectAnimal')}</span><ChevronDown size={16} aria-hidden="true" />
+    </button>
+    <DialogLayer open={open} onClose={() => setOpen(false)} sheet draggable label={t('common.selectAnimal')}>
+      <div className="pp-sheet"><h2 className="ui-title-m pp-sheet-title">{t('common.selectAnimal')}</h2>
+        <div className="ui-list ui-list-inset pp-sheet-list">{myAnimals.map(animal => <Row key={animal.id} data-testid={`animal-option-${animal.name.toLowerCase()}`}
+          leading={<Avatar src={animal.photoUrls?.[0]} name={animal.name} species={animal.species} size={52} />}
+          title={animal.name} subtitle={animal.breed} onClick={() => { setSelectedAnimalId(animal.id); setOpen(false); }}
+          trailing={animal.id === selectedAnimalId ? <Check size={20} className="pp-check" aria-label={t('common.selected')} /> : <span />} />)}</div>
+      </div>
+    </DialogLayer>
+  </>;
+}
+
+export function EnvironmentHeader({ environment, onSwitch }) {
+  const { t, activeTab } = useApp();
+  const [open, setOpen] = useState(false);
+  const unread = useUnread();
+  const current = SPACES.find(([key]) => key === environment);
+  const other = SPACES.find(([key]) => key !== environment);
+  const otherUnread = unread[other[4]] || 0;
+
+  return <header className="pp-bar">
+    <button type="button" data-testid="back-to-environments" className="pp-bar-space" onClick={() => setOpen(true)}
+      aria-haspopup="dialog" aria-label={t('environment.switchSpace')}>
+      <Art name={current[1]} size={30} play={false} />
+      <span>{t(current[2])}</span>
+      <ChevronDown size={16} aria-hidden="true" />
+      {otherUnread > 0 && <span className="pp-bar-dot" aria-hidden="true" />}
+    </button>
+    {environment === MATCH_ENVIRONMENT && activeTab === 'matches' && <AnimalSwitch />}
+    <DialogLayer open={open} onClose={() => setOpen(false)} sheet draggable label={t('environment.switchSpace')}>
+      <div className="pp-sheet"><h2 className="ui-title-m pp-sheet-title">{t('environment.switchSpace')}</h2>
+        <div className="ui-list pp-sheet-list">{SPACES.map(([key, art, title, description, source]) => <Row key={key}
+          data-testid={`choose-${key}-environment`} leading={<Art name={art} size={52} play={false} />}
+          title={t(title)} subtitle={t(description)}
+          trailing={key === environment ? <Check size={20} className="pp-check" aria-label={t('common.selected')} /> : <Count value={unread[source]} />}
+          onClick={() => { setOpen(false); if (key !== environment) onSwitch(key); }} />)}</div>
+      </div>
+    </DialogLayer>
   </header>;
-
-  // A slim bar on the page's own background: which space you are in, and one
-  // tap to switch. Pages carry their own big titles below it.
-  return (
-    <header className="petpal-space-bar">
-      <button type="button" data-testid="back-to-environments" onClick={onBack} className="petpal-space-pill"
-        aria-label={t('environment.switchSpace')} title={t('environment.switchSpace')}>
-        <span className={`petpal-space-icon ${isFoster ? 'is-foster' : ''}`}><Icon size={15} /></span>
-        <span>{isFoster ? t('environment.fosterTitle') : t('environment.matchTitle')}</span>
-        <ArrowLeftRight size={14} className="petpal-space-switch" />
-      </button>
-    </header>
-  );
 }
 
 export function EnvironmentBottomTabs({ environment }) {
-  const { activeTab, setActiveTab, t, conversations, messaging, dataSource } = useApp();
+  const { activeTab, setActiveTab, t } = useApp();
   const reduced = useReducedPetMotion();
-  const homeTab = getEnvironmentHomeTab(environment);
+  const unread = useUnread();
   const isFoster = environment === FOSTER_ENVIRONMENT;
   const tabs = [
-    {
-      key: homeTab,
-      icon: isFoster ? Sun : Heart,
-      label: isFoster ? t('fx.tabToday') : t('readiness.discover'),
-    },
+    { key: getEnvironmentHomeTab(environment), icon: isFoster ? Sun : Heart, label: isFoster ? t('fx.tabToday') : t('readiness.discover') },
     ...(isFoster ? [{ key: 'foster-find', icon: Search, label: t('fx.tabFind') },
       { key: 'foster-mine', icon: PawPrint, label: t('fx.tabMine') }] : []),
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
   // The inbox is shared, so the badge counts both spaces.
-  const unreadCount = dataSource === 'supabase' ? messaging.unreadTotals.MATCH + messaging.unreadTotals.FOSTER
-    : conversations.reduce((total, conversation) => total + (conversation.unread || 0), 0);
+  const unreadCount = (unread.MATCH || 0) + (unread.FOSTER || 0);
 
-  return (
-    <LayoutGroup id={`navigation-${environment}`}>
-    <nav data-testid="bottom-tabs" aria-label="PetPal" className={`petpal-bottom-tabs h-[68px] bg-white/95 backdrop-blur-xl border-t border-[#E4E2DC] flex justify-around items-center z-50 px-8 ${isFoster ? 'foster-bottom-nav' : ''}`}>
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.key;
+  return <LayoutGroup id={`navigation-${environment}`}>
+    <nav data-testid="bottom-tabs" aria-label="PetPal" className="pp-tabs petpal-bottom-tabs">
+      {tabs.map(tab => {
+        const active = activeTab === tab.key;
         const Icon = tab.icon;
-        const showBadge = tab.key === 'messages' && unreadCount > 0;
-
-        return (
-          <motion.button
-            type="button"
-            key={tab.key}
-            data-testid={`tab-${tab.key}`}
-            onClick={() => { if (activeTab !== tab.key) setActiveTab(tab.key); }}
-            whileTap={reduced ? undefined : { scale: 0.98 }}
-            aria-label={tab.label}
-            aria-current={isActive ? 'page' : undefined}
-            className={`relative flex h-full w-20 flex-col items-center justify-center transition-all duration-200 ${
-              isActive ? 'text-[#2C402B]' : 'text-[#57645C]'
-            }`}
-          >
-            <motion.div className="relative z-10" initial={false}
-              animate={isActive && !reduced ? { y: [0, -7, 0], rotate: [0, -10, 6, 0], scale: [1, 1.15, 1] } : { y: 0, rotate: 0, scale: 1 }}
-              transition={{ duration: reduced ? 0 : 0.45 }}>
-              <Icon
-                size={22}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                fill={isActive && tab.key === 'matches' ? '#9BAE96' : 'none'}
-              />
-              <AnimatePresence initial={false}>{showBadge && (
-                <motion.span key={unreadCount} initial={{ opacity: 0, y: reduced ? 0 : 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }} className="absolute -right-1.5 -top-1 flex h-4 min-w-4 px-0.5 items-center justify-center rounded-full bg-[#8B4C2F] text-[10px] font-bold text-white">
-                  {unreadCount}
-                </motion.span>
-              )}</AnimatePresence>
-            </motion.div>
-            <span className="mt-1 text-[10px] font-semibold tracking-wide">{tab.label}</span>
-            {isActive && (
-              <motion.span layoutId={reduced ? undefined : 'active-tab'} transition={{ type: 'spring', stiffness: 360, damping: 26 }} className="petpal-nav-indicator" />
-            )}
-          </motion.button>
-        );
+        return <motion.button type="button" key={tab.key} data-testid={`tab-${tab.key}`} aria-label={tab.label}
+          aria-current={active ? 'page' : undefined} whileTap={reduced ? undefined : { scale: 0.94 }}
+          onClick={() => { if (!active) setActiveTab(tab.key); }} className="pp-tab">
+          {active && <motion.span layoutId={reduced ? undefined : 'tab-mark'} className="pp-tab-mark" transition={spring} />}
+          <span className="pp-tab-icon">
+            <Icon size={23} strokeWidth={active ? 2.3 : 1.75} aria-hidden="true" />
+            {tab.key === 'messages' && <Count value={unreadCount} className="ui-count-float" />}
+          </span>
+          <span className="pp-tab-label">{tab.label}</span>
+        </motion.button>;
       })}
     </nav>
-    </LayoutGroup>
-  );
+  </LayoutGroup>;
 }

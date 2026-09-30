@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, ChevronRight, Home, PawPrint, Plus, Settings } from 'lucide-react';
+import { AlertCircle, ChevronRight, Plus, Settings } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Card, Empty, Photo, SectionTitle, fmt, listMotion } from './ui';
+import { Art } from '../ui/kit';
 import { durationLabel } from './Find';
 
 const careBadge = {
@@ -51,10 +52,10 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
         const total = home.capacity || 0;
         return <Card key={home.id} onClick={() => onOpenHomeSettings(home)}>
           <div className="fx-row">
-            <span className="fx-intent-icon is-green" aria-hidden="true"><Home size={24} /></span>
+            <Art name="house" size={56} play={false} />
             <div className="fx-grow">
               <p className="fx-eyebrow">{t('fx.myHome')}</p>
-              <h3>{home.name}</h3>
+              <h2>{home.name}</h2>
               <p className="fx-muted">{fmt(t('fx.placesUsed'), { used, total })}</p>
             </div>
             <Settings size={20} className="fx-chevron" />
@@ -66,13 +67,13 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
         </Card>;
       })}
       {!data.ownHomes.length && <Card onClick={onSetUpHome}>
-        <div className="fx-row"><span className="fx-intent-icon is-green" aria-hidden="true">🏡</span>
+        <div className="fx-row"><Art name="house" size={56} play={false} />
           <div className="fx-grow"><h3>{t('fx.intentFosterTitle')}</h3><p className="fx-muted">{t('fx.needHomeFirst')}</p></div>
           <ChevronRight size={20} className="fx-chevron" /></div>
       </Card>}
     </motion.div>
 
-    {!hasAnything && <div style={{ marginTop: 20 }}><Empty icon={PawPrint} title={t('fx.noAnimalsYet')} text={t('fx.intentHelpText')}>
+    {!hasAnything && <div style={{ marginTop: 20 }}><Empty art="paw" title={t('fx.noAnimalsYet')} text={t('fx.intentHelpText')}>
       <Button icon={Plus} onClick={onPostAnimal} style={{ marginTop: 8 }}>{t('fx.postAnimal')}</Button></Empty></div>}
 
     {coming.length > 0 && <><SectionTitle count={coming.length}>{t('fx.comingToMe')}</SectionTitle>
