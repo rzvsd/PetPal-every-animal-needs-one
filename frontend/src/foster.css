@@ -1,16 +1,16 @@
 .foster-shell {
-  --foster-cream: #f7f1e7;
-  --foster-paper: #fffdf8;
+  --foster-cream: var(--pp-bg);
+  --foster-paper: var(--pp-surface);
   --foster-white: #ffffff;
-  --foster-ink: #24322a;
-  --foster-muted: #627168;
-  --foster-green: #356a54;
-  --foster-green-dark: #234d3d;
-  --foster-sage: #e7eee5;
+  --foster-ink: var(--pp-ink);
+  --foster-muted: var(--pp-muted);
+  --foster-green: var(--pp-green);
+  --foster-green-dark: var(--pp-green-strong);
+  --foster-sage: var(--pp-green-soft);
   --foster-sage-strong: #d4e2d3;
-  --foster-clay: #b56e53;
-  --foster-clay-soft: #f6e7dd;
-  --foster-line: #dedfd5;
+  --foster-clay: var(--pp-clay);
+  --foster-clay-soft: var(--pp-clay-soft);
+  --foster-line: var(--pp-line);
   color: var(--foster-ink);
   background: var(--foster-cream);
   min-height: 0;
@@ -135,8 +135,6 @@
 .foster-bottom-nav button { color: #627168 !important; min-width: 0; flex: 1; }
 .foster-bottom-nav button[aria-current=page] { color: #234d3d !important; }
 .foster-bottom-nav button > div:last-child:not(:first-child) { background: #356a54; }
-.foster-header { background: #fffdf8 !important; color: #234d3d; border-color: #dedfd5 !important; }
-.foster-header button, .foster-header p, .foster-header svg { color: #234d3d !important; }
 
 @media (hover: hover) {
   .foster-primary:hover, .foster-secondary:hover, .foster-danger:hover, .foster-chips button:hover, .foster-counts > button:hover, .foster-animal-row:hover, .foster-hero button:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgb(36 50 42 / 8%); }

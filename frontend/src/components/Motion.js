@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { motion, MotionConfig } from 'framer-motion';
-import { Heart, PawPrint } from 'lucide-react';
+import { PawPrint } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const motionSpring = { type: 'spring', stiffness: 420, damping: 34, mass: 1 };
@@ -79,28 +79,4 @@ export function PetGreeting() {
     </svg>
     <span><PawPrint size={12} />{t('motion.sayHello')}</span>
   </button>;
-}
-
-let entranceShown = false;
-
-export function BrandEntrance({ skip = false }) {
-  const reduced = useReducedPetMotion();
-  const [visible, setVisible] = useState(() => !entranceShown);
-  useEffect(() => {
-    entranceShown = true;
-    if (skip || reduced) { setVisible(false); return undefined; }
-    const timer = setTimeout(() => setVisible(false), 800);
-    return () => clearTimeout(timer);
-  }, [skip, reduced]);
-  if (!visible || reduced || skip) return null;
-  return <motion.div aria-hidden="true" className="petpal-entrance"
-    initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 0.48, duration: 0.28 }}>
-    <motion.div initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }} transition={motionSpring}>
-      <div className="petpal-entrance-mark"><Heart size={34} strokeWidth={1.7} />
-        {[-1, 1].map((side, index) => <motion.span key={side} className="petpal-entrance-paw"
-          initial={{ x: side * 28, y: 12, opacity: 0 }} animate={{ x: side * 38, y: -24, opacity: [0, 1, 0] }}
-          transition={{ duration: 0.5, delay: index * 0.08 }}><PawPrint size={14} /></motion.span>)}
-      </div><span className="font-heading">PetPal</span>
-    </motion.div>
-  </motion.div>;
 }

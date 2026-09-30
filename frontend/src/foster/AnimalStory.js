@@ -1,0 +1,235 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, ArrowRightLeft, Flag, Home, MessageCircle, MoreHorizontal, Plus, Send, Star, StopCircle, X } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { friendlyError } from '../services/errors';
+import { fosterRpc, loadFosterPlacement } from '../services/fosterApi';
+import { Button, Card, Celebrate, Choices, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, TaskCheck, fmt, itemMotion, listMotion } from './ui';
+import { dueLabel } from './Today';
+
+const stepIndex = { RESERVED: 1, IN_CARE: 3, COMPLETED: 4, CANCELLED: 1 };
+
+function dueFromChoice(choice) {
+  if (choice === 'none') return null;
+  const date = new Date();
+  if (choice === 'tomorrow') date.setDate(date.getDate() + 1);
+  date.setHours(choice === 'today' ? Math.max(date.getHours() + 1, 18) : 10, 0, 0, 0);
+  return date.toISOString();
+}
+
+export function ReasonSheet({ open, title, description, required = true, danger, onClose, onConfirm }) {
+  const { t } = useApp();
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (open) { setReason(''); setError(''); } }, [open]);
+  const confirm = async () => {
+    setBusy(true); setError('');
+    try { await onConfirm(reason.trim()); }
+    catch (failure) { setError(friendlyError(failure, t)); }
+    finally { setBusy(false); }
+  };
+  return <Sheet open={open} onClose={onClose} title={title}
+    footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button variant={danger ? 'danger' : 'primary'} disabled={busy || (required && !reason.trim())} onClick={confirm}>{busy ? t('fx.loading') : t('fx.done')}</Button></>}>
+    {description && <p className="fx-lead">{description}</p>}
+    {required && <Field label={t('fx.reasonLabel')}><textarea className="fx-input" maxLength={2000} value={reason} onChange={event => setReason(event.target.value)} /></Field>}
+    {error && <Notice tone="error">{error}</Notice>}
+  </Sheet>;
+}
+
+export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, onTransfer, onReport }) {
+  const { t, lang, user } = useApp();
+  const [story, setStory] = useState(null);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [sheet, setSheet] = useState(null);
+  const [celebrate, setCelebrate] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskWhen, setTaskWhen] = useState('today');
+  const [note, setNote] = useState('');
+  const [review, setReview] = useState({ rating: 5, comment: '' });
+
+  const load = useCallback(() => loadFosterPlacement(id).then(value => { setStory(value); setError(''); })
+    .catch(failure => setError(friendlyError(failure, t))), [id, t]);
+  useEffect(() => { load(); }, [load]);
+
+  const p = story?.placement;
+  const home = data.homes.find(h => h.id === p?.home_id);
+  const owner = home?.my_role === 'OWNER';
+  const canCare = ['OWNER', 'CARER'].includes(home?.my_role);
+  const caseSide = !home;
+  const active = ['IN_CARE', 'RESERVED'].includes(p?.status);
+  const request = [...data.incoming, ...data.outgoing].find(r => r.id === p?.request_id);
+  const members = data.team.filter(m => m.home_id === p?.home_id && m.status === 'ACTIVE' && ['OWNER', 'CARER'].includes(m.role));
+  const spaces = data.spaces.filter(s => s.home_id === p?.home_id);
+  const other = caseSide ? home?.name || p?.home_name : request?.sender_id === user.id ? request?.recipient_name : request?.sender_name;
+  const date = value => new Date(value).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+  // The journal also records system events; show notes as written and
+  // milestones as short lines. Task creation is already in the checklist.
+  const milestone = { RESERVED: 'fx.diaryReserved', RECEIVE: 'fx.diaryArrived', CARE: 'fx.diaryCare', END: 'fx.diaryEnded',
+    CANCEL: 'fx.diaryCancelled', DISPUTE: 'fx.diaryDispute', CLARIFY: 'fx.diaryClarify' };
+  const diary = (story?.journal || []).filter(entry => entry.event !== 'TASK_CREATED').map(entry => {
+    if (entry.event === 'NOTE') return { id: entry.id, created_at: entry.created_at, title: entry.actor_name, text: entry.body };
+    if (entry.event === 'TASK_COMPLETED') return { id: entry.id, created_at: entry.created_at, milestone: true,
+      title: fmt(t('fx.diaryTaskDone'), { task: entry.body }), text: entry.actor_name };
+    const withReason = ['END', 'CANCEL', 'DISPUTE', 'CLARIFY'].includes(entry.event);
+    return { id: entry.id, created_at: entry.created_at, milestone: true,
+      title: fmt(t(milestone[entry.event] || 'fx.diaryCare'), { animal: p?.name || '' }),
+      text: withReason ? `${entry.actor_name}: ${entry.body}` : entry.actor_name };
+  });
+
+  const run = async (action, success) => {
+    setBusy(true); setNotice('');
+    try {
+      await action();
+      await load();
+      onChanged();
+      if (success) setNotice(success);
+      return true;
+    } catch (failure) { setNotice(friendlyError(failure, t)); return false; }
+    finally { setBusy(false); }
+  };
+  const mutate = (action, body = '') => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: action,
+    data_input: { expectedUpdatedAt: p.updated_at, body } });
+  const markArrived = async () => {
+    if (await run(() => mutate('RECEIVE'))) { setCelebrate(true); setTimeout(() => setCelebrate(false), 1600); }
+  };
+  const setCare = careState => run(() => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: 'CARE',
+    data_input: { careState, carerId: p.carer_id || '', spaceId: p.space_id || '', expectedUpdatedAt: p.updated_at } }), t('fx.careUpdated'));
+  const setAssignment = (key, value) => run(() => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: 'CARE',
+    data_input: { careState: p.care_state, carerId: p.carer_id || '', spaceId: p.space_id || '', [key]: value, expectedUpdatedAt: p.updated_at } }), t('fx.careUpdated'));
+  const addTask = async () => {
+    if (!taskTitle.trim()) return;
+    if (await run(() => fosterRpc('save_foster_task', { task_id_input: crypto.randomUUID(), placement_id_input: p.id,
+      data_input: { title: taskTitle.trim(), dueAt: dueFromChoice(taskWhen), assigneeId: p.carer_id || '' } }))) setTaskTitle('');
+  };
+  const completeTask = task => run(() => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: p.id, data_input: { completed: true } }));
+  const addNote = async () => { if (note.trim() && await run(() => mutate('NOTE', note.trim()))) setNote(''); };
+
+  const nextStep = !p ? null
+    : p.status === 'RESERVED' && owner ? { text: fmt(t('fx.nextArrive'), { animal: p.name, name: other || '' }),
+      action: <Button className="fx-button-block" icon={Home} disabled={busy} onClick={markArrived}>{t('fx.markArrived')}</Button> }
+      : p.status === 'RESERVED' ? { text: fmt(t('fx.nextArriveOther'), { animal: p.name, home: p.home_name }) }
+        : p.status === 'IN_CARE' ? { text: fmt(t('fx.nextCare'), { animal: p.name }) }
+          : p.status === 'COMPLETED' ? { text: t('fx.nextFinished'),
+            action: (owner || caseSide) && p.request_id && <Button className="fx-button-block" icon={Star} onClick={() => setSheet({ type: 'review' })}>{t('fx.leaveReview')}</Button> }
+            : { text: t('care.CANCELLED') };
+
+  const menuItems = !p ? [] : [
+    owner && p.status === 'IN_CARE' && [ArrowRightLeft, t('fx.findAnotherHome'), () => onTransfer(p)],
+    owner && p.status === 'IN_CARE' && [StopCircle, t('fx.finishFostering'), () => setSheet({ type: 'END', title: t('fx.finishFostering') })],
+    p.status === 'RESERVED' && request && (owner || caseSide) && [X, t('fx.cancelReservation'), () => setSheet({ type: 'CANCEL', title: t('fx.cancelReservation'), danger: true })],
+    p.request_id && (owner || caseSide) && [AlertTriangle, t('fx.somethingWrong'), () => setSheet({ type: 'DISPUTE', title: t('fx.somethingWrong'), description: t('care.discrepancyInfo') })],
+    p.discrepancy && (owner || caseSide) && [MessageCircle, t('fx.clarify'), () => setSheet({ type: 'CLARIFY', title: t('fx.clarify') })],
+    [Flag, t('fx.report'), () => onReport(p), 'danger'],
+  ].filter(Boolean);
+
+  const confirmSheet = async reason => {
+    const type = sheet.type;
+    const ok = type === 'CANCEL'
+      ? await run(() => fosterRpc('respond_foster_request', { request_id_input: request.id, action_input: 'CANCEL',
+        expected_updated_at_input: request.updated_at, acknowledge_capacity_input: false, reason_input: reason }))
+      : await run(() => mutate(type, reason));
+    if (ok) setSheet(null);
+  };
+
+  return <Screen title={p?.name || t('fx.loading')} onBack={onBack}
+    action={p && menuItems.length > 0 && <button type="button" className="fx-icon-button" aria-label={t('fx.moreOptions')} onClick={() => setMenu(true)}><MoreHorizontal size={20} /></button>}>
+    {error ? <Notice tone="error">{error} <button type="button" className="fx-notice-close" onClick={load}>{t('fx.retry')}</button></Notice>
+      : !p ? <div className="fx-stack" style={{ marginTop: 8 }}><div className="fx-skeleton" style={{ height: 240 }} /><div className="fx-skeleton" style={{ height: 120 }} /></div>
+        : <motion.div variants={listMotion} initial="hidden" animate="show">
+          <div className="fx-hero"><Photo src={p.photo} name={p.name} species={p.species} className="fx-photo-hero" /></div>
+
+          <Card className="fx-lift" style={{ margin: '-26px 4px 0' }}>
+            <div className="fx-row">
+              <div className="fx-grow"><h2 className="fx-page-title" style={{ fontSize: 24 }}>{p.name}</h2>
+                <p className="fx-muted">{p.home_name}{p.space_name ? ` · ${p.space_name}` : ''}</p></div>
+              {p.conversation_id && (owner || caseSide) && <Button variant="soft" className="fx-button-small" icon={MessageCircle}
+                onClick={() => onOpenChat(p.conversation_id)}>{t('fx.chat')}</Button>}
+            </div>
+            <div style={{ marginTop: 18 }}><Journey current={stepIndex[p.status] ?? 1}
+              steps={[t('fx.stepOffered'), t('fx.stepAgreed'), t('fx.stepArrived'), t('fx.stepInCare'), t('fx.stepFinished')]} /></div>
+          </Card>
+
+          <AnimatePresence>{notice && <Notice onClose={() => setNotice('')}>{notice}</Notice>}</AnimatePresence>
+          {p.discrepancy && <Notice tone="error">{t('care.discrepancyInfo')}</Notice>}
+
+          <Card className="fx-next" style={{ marginTop: 14 }}>
+            <p className="fx-eyebrow">{t('fx.nextStep')}</p>
+            <p style={{ marginTop: 6, fontSize: 16, lineHeight: 1.5, fontWeight: 600 }}>{nextStep.text}</p>
+            {nextStep.action && <div style={{ marginTop: 14 }}>{nextStep.action}</div>}
+          </Card>
+
+          {canCare && active && <>
+            <SectionTitle>{fmt(t('fx.howIsAnimal'), { animal: p.name })}</SectionTitle>
+            <Choices label={t('care.careState')} value={p.care_state} onChange={setCare} columns={3}
+              options={[['NORMAL', t('fx.stateWell')], ['ISOLATION', t('fx.stateQuiet')], ['MEDICAL', t('fx.stateVet')]]} />
+            {spaces.length > 0 && <div style={{ marginTop: 10 }}><p className="fx-muted" style={{ margin: '14px 2px 8px' }}>{fmt(t('fx.whereStays'), { animal: p.name })}</p><Choices label={t('fx.spaces')} value={p.space_id || ''} onChange={value => setAssignment('spaceId', value)}
+              options={spaces.map(s => [s.id, s.name])} /></div>}
+            {members.length > 1 && <><p className="fx-muted" style={{ margin: '14px 2px 8px' }}>{fmt(t('fx.whoLooksAfter'), { animal: p.name })}</p>
+              <Choices label={t('fx.team')} value={p.carer_id || ''} onChange={value => setAssignment('carerId', value)}
+                options={members.map(m => [m.profile_id, m.display_name])} /></>}
+          </>}
+
+          {(canCare || story.tasks.length > 0) && p.status !== 'CANCELLED' && <>
+            <SectionTitle>{t('fx.checklist')}</SectionTitle>
+            <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+              {story.tasks.map(task => {
+                const label = task.completed_at ? t('fx.done') : dueLabel(task.due_at, t);
+                return <TaskCheck key={task.id} done={Boolean(task.completed_at)} label={task.title} meta={label}
+                  late={label === t('fx.overdue')} disabled={!canCare || busy} onToggle={() => completeTask(task)} />;
+              })}
+            </motion.div>
+            {canCare && active && <Card style={{ marginTop: 12 }}>
+              <div className="fx-stack" style={{ gap: 10 }}>
+                <input className="fx-input" value={taskTitle} maxLength={200} placeholder={t('fx.taskPlaceholder')} aria-label={t('fx.addTask')}
+                  onChange={event => setTaskTitle(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addTask(); }} />
+                <div className="fx-row">
+                  <div className="fx-grow"><Choices label={t('fx.when')} value={taskWhen} onChange={setTaskWhen}
+                    options={[['today', t('fx.dueToday')], ['tomorrow', t('fx.dueTomorrow')], ['none', t('fx.noDate')]]} /></div>
+                </div>
+                <Button variant="soft" icon={Plus} disabled={busy || !taskTitle.trim()} onClick={addTask}>{t('fx.addTask')}</Button>
+              </div>
+            </Card>}
+          </>}
+
+          <SectionTitle>{t('fx.diary')}</SectionTitle>
+          {canCare && active && <div className="fx-composer" style={{ marginBottom: 16 }}>
+            <input className="fx-input" value={note} maxLength={2000} placeholder={fmt(t('fx.diaryPlaceholder'), { animal: p.name })}
+              aria-label={t('fx.diary')} onChange={event => setNote(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addNote(); }} />
+            <Button className="fx-button-small" aria-label={t('fx.add')} icon={Send} disabled={busy || !note.trim()} onClick={addNote} style={{ minHeight: 50 }} />
+          </div>}
+          {diary.length ? <div className="fx-diary">{diary.map(entry => <motion.article key={entry.id} variants={itemMotion} className={entry.milestone ? 'is-milestone' : ''}>
+            <strong>{entry.title}</strong><time>{date(entry.created_at)}</time>{entry.text && <p>{entry.text}</p>}</motion.article>)}</div>
+            : <p className="fx-muted">{t('fx.noDiary')}</p>}
+
+          {story.reviews.length > 0 && <><SectionTitle>{t('care.reviews')}</SectionTitle>
+            <div className="fx-stack">{story.reviews.map(item => <Card key={item.id}><p style={{ fontWeight: 650 }}>{'★'.repeat(item.rating)} · {item.author_name}</p>
+              {item.comment && <p className="fx-muted" style={{ marginTop: 4 }}>{item.comment}</p>}</Card>)}</div></>}
+        </motion.div>}
+
+    <Sheet open={menu} onClose={() => setMenu(false)} title={t('fx.moreOptions')}>
+      <div className="fx-menu">{menuItems.map(([Icon, label, onClick, tone]) => <button type="button" key={label} className={tone === 'danger' ? 'is-danger' : ''}
+        onClick={() => { setMenu(false); onClick(); }}><Icon size={20} />{label}</button>)}</div>
+    </Sheet>
+
+    <ReasonSheet open={Boolean(sheet && sheet.type !== 'review')} title={sheet?.title} description={sheet?.description} danger={sheet?.danger}
+      onClose={() => setSheet(null)} onConfirm={confirmSheet} />
+
+    <Sheet open={sheet?.type === 'review'} onClose={() => setSheet(null)} title={t('fx.howWasIt')}
+      footer={<><Button variant="secondary" onClick={() => setSheet(null)}>{t('common.cancel')}</Button>
+        <Button disabled={busy} onClick={async () => { if (await run(() => fosterRpc('review_foster_placement', { placement_id_input: p.id,
+          rating_input: review.rating, comment_input: review.comment }), t('fx.careUpdated'))) setSheet(null); }}>{t('fx.done')}</Button></>}>
+      <Choices label={t('care.rating')} value={review.rating} onChange={rating => setReview(current => ({ ...current, rating }))} columns={3}
+        options={[1, 2, 3, 4, 5].map(value => [value, '★'.repeat(value)])} />
+      <Field label={t('care.comment')}><textarea className="fx-input" maxLength={2000} value={review.comment}
+        onChange={event => setReview(current => ({ ...current, comment: event.target.value }))} /></Field>
+      <p className="fx-muted">{t('care.reviewHint')}</p>
+    </Sheet>
+
+    <Celebrate show={celebrate} text={p ? fmt(t('fx.arrivedCelebration'), { animal: p.name }) : ''} />
+  </Screen>;
+}

@@ -9,7 +9,9 @@ import ProfileTab from './tabs/ProfileTab';
 import AuthScreen from './screens/AuthScreen';
 import EnvironmentChooser from './screens/EnvironmentChooser';
 import { EnvironmentBottomTabs, EnvironmentHeader } from './components/EnvironmentNavigation';
-import { BrandEntrance, PetMotionProvider } from './components/Motion';
+import { AnimatePresence } from 'framer-motion';
+import { PetMotionProvider } from './components/Motion';
+import IntroReel from './components/IntroReel';
 import {
   getEnvironmentConversationSource,
   getEnvironmentHomeTab,
@@ -18,10 +20,13 @@ import './App.css';
 import { dismissTopLayer } from './navigation/backNavigation';
 import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
 
+const SPACE_KEY = 'petpal:space';
+
 function AppContent() {
   const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, dataSource,
     backendStatus, refreshSupabaseData, requestedConversation } = useApp();
   const [environment, setEnvironment] = useState(null);
+  const [introDone, setIntroDone] = useState(false);
   const backStateRef = useRef({ activeTab, authLoading, authRequired, environment });
 
   useEffect(() => {
@@ -34,15 +39,25 @@ function AppContent() {
     }
   }, [authRequired]);
 
-  const enterEnvironment = (nextEnvironment) => {
+  const enterEnvironment = useCallback((nextEnvironment) => {
     setEnvironment(nextEnvironment);
     setActiveTab(getEnvironmentHomeTab(nextEnvironment));
-  };
+    try { localStorage.setItem(SPACE_KEY, nextEnvironment); } catch { /* The chooser simply shows next time. */ }
+  }, [setActiveTab]);
 
   const leaveEnvironment = () => {
     if (dismissTopLayer()) return;
+    try { localStorage.removeItem(SPACE_KEY); } catch { /* Nothing remembered. */ }
     setEnvironment(null);
   };
+
+  // Reopen the space the person used last instead of asking every time.
+  useEffect(() => {
+    if (authLoading || authRequired || environment || requestedConversation) return;
+    let saved = null;
+    try { saved = localStorage.getItem(SPACE_KEY); } catch { saved = null; }
+    if (saved === 'match' || saved === 'foster') enterEnvironment(saved);
+  }, [authLoading, authRequired, environment, requestedConversation, enterEnvironment]);
 
   const handleAppBack = useCallback(() => {
     if (dismissTopLayer()) return;
@@ -55,7 +70,9 @@ function AppContent() {
       return;
     }
 
-    setEnvironment(null);
+    // Back from a home tab leaves the app, like any Android app, instead of
+    // dropping the person on the space chooser.
+    if (Capacitor.isNativePlatform()) CapacitorApp.minimizeApp().catch(() => {});
   }, [setActiveTab]);
 
   useEffect(() => {
@@ -134,10 +151,10 @@ function AppContent() {
     <div className="petpal-container">
       <div className="petpal-frame">
         <div className={`petpal-screen ${environment === 'foster' ? 'foster-environment' : ''}`}>
-          <BrandEntrance skip={Boolean(requestedConversation)} />
+          <AnimatePresence>{!introDone && !requestedConversation && <IntroReel key="intro" onDone={() => setIntroDone(true)} />}</AnimatePresence>
           {!isProductionBuild && <div data-testid="data-source-banner" className="data-source-banner">{t(dataSource === 'mock' ? 'readiness.demo' : dataSource === 'supabase' ? 'readiness.liveTest' : 'readiness.configurationError')}</div>}
           {isProductionBuild && !isSupabaseConfigured ? <div role="alert" className="p-8">{t('readiness.configurationError')}</div> : authLoading ? (
-            <div className="flex flex-1 items-center justify-center bg-[#F8F7F4] px-8 text-center">
+            <div className="flex flex-1 items-center justify-center bg-[var(--pp-bg)] px-8 text-center">
               <div className="space-y-3">
                 <div className="mx-auto h-12 w-12 animate-pulse rounded-2xl bg-[#E3ECE4]" />
                 <p className="text-sm font-medium text-[#57645C]">{t('auth.loading')}</p>
@@ -154,7 +171,7 @@ function AppContent() {
             <>
               <EnvironmentHeader environment={environment} onBack={leaveEnvironment} />
               {activeTab === 'matches' && <MatchesTab />}
-              {['foster', 'foster-home', 'foster-requests'].includes(activeTab) && <FosterTab />}
+              {['foster', 'foster-find', 'foster-mine'].includes(activeTab) && <FosterTab />}
               {activeTab === 'messages' && (
                 <MessagesTab
                   key={environment}

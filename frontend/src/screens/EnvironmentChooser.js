@@ -43,7 +43,7 @@ export default function EnvironmentChooser({ onSelect }) {
   const reducedMotion = useReducedPetMotion();
 
   return (
-    <div data-testid="environment-chooser" className="min-h-0 flex-1 overflow-y-auto no-scrollbar bg-[#F8F7F4] px-5 py-7">
+    <div data-testid="environment-chooser" className="min-h-0 flex-1 overflow-y-auto no-scrollbar bg-[var(--pp-bg)] px-5 py-7">
       <div className="mx-auto flex min-h-full max-w-sm flex-col justify-center">
         <div className="mb-5 text-center">
           <PetGreeting />

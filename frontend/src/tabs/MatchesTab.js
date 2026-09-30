@@ -57,7 +57,7 @@ function AnimalFacts({ candidate, t, detailed = false, onSafety }) {
 function SpeciesSelector({ value, onChange, t, reducedMotion }) {
   const options = [['', t('readiness.allAnimals'), PawPrint], ['DOG', t('matches.dogs'), Dog], ['CAT', t('matches.cats'), Cat]];
 
-  return <div role="group" aria-label={t('matches.showMe')} className="relative flex gap-1 rounded-2xl border border-[#E4E2DC] bg-[#F8F7F4] p-1">
+  return <div role="group" aria-label={t('matches.showMe')} className="relative flex gap-1 rounded-2xl border border-[#E4E2DC] bg-[var(--pp-bg)] p-1">
     {options.map(([option, label, Icon]) => {
       const active = value === option;
       return <button key={option || 'all'} type="button" aria-pressed={active} onClick={() => onChange(option)}
