@@ -12,10 +12,8 @@ import { EnvironmentBottomTabs, EnvironmentHeader } from './components/Environme
 import { AnimatePresence } from 'framer-motion';
 import { PetMotionProvider } from './components/Motion';
 import IntroReel from './components/IntroReel';
-import {
-  getEnvironmentConversationSource,
-  getEnvironmentHomeTab,
-} from './navigation/environments';
+import NotificationAsk from './components/NotificationAsk';
+import { getEnvironmentHomeTab } from './navigation/environments';
 import './App.css';
 import { dismissTopLayer } from './navigation/backNavigation';
 import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
@@ -77,7 +75,8 @@ function AppContent() {
 
   useEffect(() => {
     if (requestedConversation && !authRequired) {
-      setEnvironment(requestedConversation.source === 'FOSTER' ? 'foster' : 'match');
+      // The inbox covers both spaces, so stay in the current one if there is one.
+      setEnvironment(current => current || (requestedConversation.source === 'FOSTER' ? 'foster' : 'match'));
       setActiveTab('messages');
     }
   }, [requestedConversation, authRequired, setActiveTab]);
@@ -172,14 +171,10 @@ function AppContent() {
               <EnvironmentHeader environment={environment} onBack={leaveEnvironment} />
               {activeTab === 'matches' && <MatchesTab />}
               {['foster', 'foster-find', 'foster-mine'].includes(activeTab) && <FosterTab />}
-              {activeTab === 'messages' && (
-                <MessagesTab
-                  key={environment}
-                  source={getEnvironmentConversationSource(environment)}
-                />
-              )}
+              {activeTab === 'messages' && <MessagesTab />}
               {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}
               <EnvironmentBottomTabs environment={environment} />
+              <NotificationAsk />
             </>
           )}
         </div>

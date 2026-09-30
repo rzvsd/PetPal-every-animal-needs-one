@@ -10,7 +10,7 @@ import Today from '../foster/Today';
 import Find, { CaseDetail, HomeDetail, OfferSheet } from '../foster/Find';
 import MyAnimals from '../foster/MyAnimals';
 import AnimalStory from '../foster/AnimalStory';
-import { CaseStory, HomeSettings } from '../foster/Manage';
+import { CaseStory, HomeSettings, JoinHomeSheet } from '../foster/Manage';
 import { CaseWizard, HomeWizard } from '../foster/Wizard';
 import '../foster/foster.css';
 
@@ -38,7 +38,7 @@ function ReportSheet({ target, onClose, onSent }) {
 }
 
 export default function FosterTab() {
-  const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation } = useApp();
+  const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation, askForNotifications } = useApp();
   const reduced = useReducedPetMotion();
   const live = dataSource === 'supabase';
   const data = useFosterData(user, live);
@@ -51,6 +51,7 @@ export default function FosterTab() {
   const [capacity, setCapacity] = useState(null);
   const [report, setReport] = useState(null);
   const [celebrate, setCelebrate] = useState('');
+  const [joining, setJoining] = useState(false);
 
   const push = useCallback(screen => setStack(current => [...current, screen]), []);
   const pop = useCallback(() => setStack(current => current.slice(0, -1)), []);
@@ -103,6 +104,7 @@ export default function FosterTab() {
     await fosterRpc('create_foster_request', { request_id_input: crypto.randomUUID(), case_id_input: caseId, home_id_input: homeId, kind_input: kind, message_input: message });
     setOffer(null); refresh();
     setNotice({ tone: 'success', text: fmt(t('fx.offerSent'), { name: kind === 'APPLICATION' ? offer.item.responsible_name : offer.item.name }) });
+    askForNotifications('offer');
   };
   const needHome = () => push({ type: 'caseWizard' });
   const canFoster = () => setActiveTab('foster-find');
@@ -123,7 +125,7 @@ export default function FosterTab() {
           onOpenChat={openChat} onOpenPlacement={id => push({ type: 'placement', id })} onChanged={refresh} />;
       }
       case 'caseWizard': return <CaseWizard item={top.item} transfer={top.transfer} organizations={data.organizations} onClose={pop}
-        onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.published') }); if (!top.item) setActiveTab('foster-mine'); }} />;
+        onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.published') }); if (!top.item) { setActiveTab('foster-mine'); askForNotifications('published'); } }} />;
       case 'homeWizard': return <HomeWizard home={top.home} onClose={pop}
         onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.homeSaved') }); }} />;
       case 'homeSettings': {
@@ -148,7 +150,7 @@ export default function FosterTab() {
                   ? <div className="fx-stack" style={{ marginTop: 24 }}>{[0, 1, 2].map(i => <div key={i} className="fx-skeleton" style={{ height: 110 }} />)}</div>
                   : tab === 'today' ? <Today data={data} busy={busy} onAnswer={answer} onArrived={arrived} onCompleteTask={completeTask}
                     onOpenPlacement={id => push({ type: 'placement', id })} onOpenRequest={openRequest} onOpenChat={openChat}
-                    onTeamInvite={teamInvite} onNeedHome={needHome} onCanFoster={canFoster} />
+                    onTeamInvite={teamInvite} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
                     : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })} />
                       : <MyAnimals data={data} onOpenPlacement={id => push({ type: 'placement', id })} onOpenCase={item => push({ type: 'myCase', item })}
                         onOpenHomeSettings={home => push({ type: 'homeSettings', home })} onSetUpHome={() => push({ type: 'homeWizard' })} onPostAnimal={needHome} />}
@@ -165,6 +167,9 @@ export default function FosterTab() {
         <Button disabled={busy} onClick={() => answer(capacity, 'ACCEPT', true)}>{t('fx.continueAnyway')}</Button></>}>
       <p className="fx-lead">{t('fx.capacityText')}</p>
     </Sheet>
+    <JoinHomeSheet open={joining} onClose={() => setJoining(false)} onJoined={home => {
+      setJoining(false); refresh(); setNotice({ tone: 'success', text: fmt(t('fx.joined'), { home }) });
+    }} />
     <ReportSheet target={report} onClose={() => setReport(null)} onSent={() => { setReport(null); setNotice({ tone: 'success', text: t('care.reportSent') }); }} />
     <Celebrate show={Boolean(celebrate)} text={celebrate} />
   </div>;

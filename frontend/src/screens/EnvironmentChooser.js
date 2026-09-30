@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Home, ShieldCheck } from 'lucide-react';
+import { Heart, Home, MessageCircle, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { motionSpring, PetGreeting, useReducedPetMotion } from '../components/Motion';
 import { FOSTER_ENVIRONMENT, MATCH_ENVIRONMENT } from '../navigation/environments';
 
-function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick, testId, reducedMotion, delay }) {
+function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick, testId, reducedMotion, delay, unread, unreadLabel }) {
   const isMatch = tone === 'match';
 
   return (
@@ -29,9 +29,12 @@ function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-xl font-bold text-[#1F2924]">{title}</h2>
           <p className="mt-1 text-sm leading-relaxed text-[#57645C]">{description}</p>
-          <span className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-[#2C402B] px-4 py-2.5 text-sm font-semibold text-white">
-            {action}
-          </span>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="inline-flex min-h-11 items-center rounded-xl bg-[#2C402B] px-4 py-2.5 text-sm font-semibold text-white">
+              {action}
+            </span>
+            {unread > 0 && <span aria-label={`${unread} ${unreadLabel}`} className="inline-flex items-center gap-1 rounded-full bg-[var(--pp-clay)] px-2.5 py-1 text-xs font-bold text-white"><MessageCircle size={13} aria-hidden="true" />{unread}</span>}
+          </div>
         </div>
       </div>
     </motion.button>
@@ -39,8 +42,9 @@ function EnvironmentCard({ icon: Icon, title, description, action, tone, onClick
 }
 
 export default function EnvironmentChooser({ onSelect }) {
-  const { t } = useApp();
+  const { t, messaging, dataSource } = useApp();
   const reducedMotion = useReducedPetMotion();
+  const unread = dataSource === 'supabase' ? messaging.unreadTotals : {};
 
   return (
     <div data-testid="environment-chooser" className="min-h-0 flex-1 overflow-y-auto no-scrollbar bg-[var(--pp-bg)] px-5 py-7">
@@ -65,6 +69,8 @@ export default function EnvironmentChooser({ onSelect }) {
             testId="choose-match-environment"
             reducedMotion={reducedMotion}
             delay={0.1}
+            unread={unread.MATCH}
+            unreadLabel={t('messages.unreadMessages')}
             onClick={() => onSelect(MATCH_ENVIRONMENT)}
           />
           <EnvironmentCard
@@ -76,6 +82,8 @@ export default function EnvironmentChooser({ onSelect }) {
             testId="choose-foster-environment"
             reducedMotion={reducedMotion}
             delay={0.16}
+            unread={unread.FOSTER}
+            unreadLabel={t('messages.unreadMessages')}
             onClick={() => onSelect(FOSTER_ENVIRONMENT)}
           />
         </div>

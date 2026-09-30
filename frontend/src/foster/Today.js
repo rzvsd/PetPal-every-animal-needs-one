@@ -16,7 +16,7 @@ export function dueLabel(dueAt, t) {
   return due.toLocaleDateString();
 }
 
-export function IntentCards({ onNeedHome, onCanFoster }) {
+export function IntentCards({ onNeedHome, onCanFoster, onJoinWithCode }) {
   const { t } = useApp();
   return <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
     <Card className="fx-intent" onClick={onNeedHome}>
@@ -29,6 +29,7 @@ export function IntentCards({ onNeedHome, onCanFoster }) {
       <span className="fx-grow"><h3>{t('fx.intentFosterTitle')}</h3><p>{t('fx.intentFosterText')}</p></span>
       <ChevronRight className="fx-chevron" size={20} />
     </Card>
+    {onJoinWithCode && <button type="button" className="fx-link-button" onClick={onJoinWithCode}>{t('fx.haveCode')}</button>}
   </motion.div>;
 }
 
@@ -38,7 +39,7 @@ export function HowItWorks() {
 }
 
 export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask, onOpenPlacement, onOpenRequest,
-  onOpenChat, onTeamInvite, onNeedHome, onCanFoster }) {
+  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode }) {
   const { t, user } = useApp();
   const offers = data.incoming.filter(r => r.status === 'PENDING');
   const arriving = data.placements.filter(p => p.status === 'RESERVED');
@@ -60,7 +61,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
     </header>
 
     {isNew ? <>
-      <div style={{ marginTop: 16 }}><IntentCards onNeedHome={onNeedHome} onCanFoster={onCanFoster} /></div>
+      <div style={{ marginTop: 16 }}><IntentCards onNeedHome={onNeedHome} onCanFoster={onCanFoster} onJoinWithCode={onJoinWithCode} /></div>
       <SectionTitle>{t('fx.howItWorks')}</SectionTitle>
       <HowItWorks />
     </> : <>
@@ -127,7 +128,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       </>}
 
       <SectionTitle>{t('fx.whatToDo')}</SectionTitle>
-      <IntentCards onNeedHome={onNeedHome} onCanFoster={onCanFoster} />
+      <IntentCards onNeedHome={onNeedHome} onCanFoster={onCanFoster} onJoinWithCode={onJoinWithCode} />
     </>}
   </>;
 }

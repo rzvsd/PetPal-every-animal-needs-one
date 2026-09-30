@@ -58,6 +58,19 @@ export function AppProvider({ children }) {
   const [paymentReturnNotice, setPaymentReturnNotice] = useState('');
   const [localDemoSession, setLocalDemoSession] = useState(false);
   const [pushStatus, setPushStatus] = useState({ status: 'idle', message: null });
+  // The system permission prompt waits for a moment where it clearly helps.
+  const [pushAllowed, setPushAllowed] = useState(false);
+  const [notifyAsk, setNotifyAsk] = useState(null);
+  const askForNotifications = useCallback(reason => {
+    let asked = false;
+    try { asked = localStorage.getItem('petpal:notify-asked') === '1'; } catch { asked = false; }
+    if (!asked) setNotifyAsk(current => current || reason);
+  }, []);
+  const answerNotifyAsk = useCallback(allow => {
+    try { localStorage.setItem('petpal:notify-asked', '1'); } catch { /* Asking again next time is fine. */ }
+    setNotifyAsk(null);
+    if (allow) setPushAllowed(true);
+  }, []);
   const [rescuerAccessState, setRescuerAccessState] = useState('not_requested');
   const [activeScreen, setActiveScreen] = useState(null);
   const [screenParams, setScreenParams] = useState(null);
@@ -251,6 +264,7 @@ export function AppProvider({ children }) {
 
       try {
         const result = await initializePushNotifications({
+          askPermission: pushAllowed,
           onOpenConversation: id => requestOpenConversation(id),
           onToken: async (tokenPayload) => {
             await registerSupabasePushToken(tokenPayload);
@@ -288,7 +302,7 @@ export function AppProvider({ children }) {
       cancelled = true;
       cleanup?.();
     };
-  }, [authSession?.user?.id, dataSource, requestOpenConversation]);
+  }, [authSession?.user?.id, dataSource, requestOpenConversation, pushAllowed]);
 
   const handleLike = async (candidate) => {
     if (!selectedAnimal) throw new Error('readiness.likeError');
@@ -304,6 +318,7 @@ export function AppProvider({ children }) {
             conversationId: result.conversation_id,
           });
           messaging.refreshInbox('MATCH').catch(() => {});
+          askForNotifications('match');
         }
       } catch (error) { throw error; }
       handlePass(candidate);
@@ -812,7 +827,7 @@ export function AppProvider({ children }) {
       conversations, sendMessage, reportConversation, blockConversation,
       paymentSessions, createDonationSession,
       dataSource, backendStatus,
-      pushStatus,
+      pushStatus, notifyAsk, askForNotifications, answerNotifyAsk,
       authConfigured: isSupabaseConfigured,
       authRequired,
       authSession,
