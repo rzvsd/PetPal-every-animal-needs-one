@@ -172,6 +172,8 @@ export function useMessaging({ accountId, live, conversations, setConversations,
       if (version !== generation.current) return [];
       for (const row of rows) if (row.blocked) fetchedThrough.current.delete(row.id);
       setUnreadTotals({ MATCH: 0, FOSTER: 0, ...Object.fromEntries(totals.map(row => [row.source, Number(row.unread_count)])) });
+      // A load that works clears the banner from one that failed earlier.
+      setChatError('');
       setConversations(current => {
         const result = new Map(current.map(conversation => [conversation.id, conversation]));
         if (id && !rows.length) result.delete(id);

@@ -5,9 +5,9 @@ import { useReducedPetMotion } from '../components/Motion';
 import './launch.css';
 
 const FILM = `${process.env.PUBLIC_URL}/film/launch.mp4`;
-const LENGTH = 3800;
+const LENGTH = 4500;
 
-// The opening film: four shots of animals being happy, then the name.
+// The opening film: six shots of dogs and cats being happy, then the name.
 // Real footage, muted, a few seconds, skippable. Plays once per app start.
 export default function Launch({ onDone }) {
   const { t } = useApp();

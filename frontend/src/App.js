@@ -61,8 +61,8 @@ function AppContent() {
 
   useEffect(() => {
     if (requestedConversation && !authRequired) {
-      // The inbox covers both spaces, so stay in the current one if there is one.
-      setEnvironment(current => current || (requestedConversation.source === 'FOSTER' ? 'foster' : 'match'));
+      // Each space has its own inbox, so a conversation opens in its own space.
+      setEnvironment(requestedConversation.source === 'FOSTER' ? 'foster' : 'match');
       setActiveTab('messages');
     }
   }, [requestedConversation, authRequired, setActiveTab]);
@@ -158,7 +158,7 @@ function AppContent() {
                 <motion.main key={`${environment}:${activeTab.startsWith('foster') ? 'foster' : activeTab}`} className="pp-tab-view" {...fadeThrough}>
                   {activeTab === 'matches' && <MatchesTab />}
                   {activeTab.startsWith('foster') && <FosterTab />}
-                  {activeTab === 'messages' && <MessagesTab />}
+                  {activeTab === 'messages' && <MessagesTab environment={environment} />}
                   {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}
                 </motion.main>
               </AnimatePresence>
