@@ -245,7 +245,7 @@ function getTimeAgo(dateStr, t) {
 
 export default function MessagesTab({ environment = 'match' }) {
   const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation } = useApp();
-  const { refreshInbox, inboxHasMore, chatError } = messaging;
+  const { refreshInbox, inboxHasMore, inboxError } = messaging;
   const reduced = useReducedPetMotion();
   const [activeConvId, setActiveConvId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -274,7 +274,9 @@ export default function MessagesTab({ environment = 'match' }) {
       if (!alive) return;
       if (conversation && conversation.source !== source) {
         // It belongs to the other space: the app switches there and opens it then.
-        setRequestedConversation({ id: conversation.id, source: conversation.source });
+        if (requestedConversation.source !== conversation.source) {
+          setRequestedConversation({ id: conversation.id, source: conversation.source });
+        }
         return;
       }
       if (conversation) setActiveConvId(conversation.id);
@@ -288,7 +290,7 @@ export default function MessagesTab({ environment = 'match' }) {
     <div className="ui-scroll">
       <PageTitle title={t('messages.inboxTitle')} subtitle={t(source === 'FOSTER' ? 'messages.fosterInboxLede' : 'messages.matchInboxLede')} />
       <div className="ui-gutter pp-inbox-list">
-        {chatError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button>}>{t(chatError)}</Notice>}
+        {inboxError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button>}>{t(inboxError)}</Notice>}
         {loading && !shown.length ? <div className="ui-list" aria-hidden="true">{[0, 1, 2, 3].map(key => <div key={key} className="ui-row">
           <Skeleton width={56} height={56} radius={16} /><span className="ui-row-body"><Skeleton width="30%" height={11} /><Skeleton width="55%" height={16} /><Skeleton width="80%" height={13} /></span></div>)}</div>
           : !shown.length ? <Empty art={empty[2]} title={t(empty[0])} text={t(empty[1])} />

@@ -49,6 +49,35 @@ beforeEach(async () => {
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); });
 
+test('an inbox retry clears its own error without clearing a failed thread', async () => {
+  loadConversations.mockRejectedValueOnce(new Error('inbox unavailable'));
+  await act(async () => { await expect(api.refreshInbox()).rejects.toThrow('inbox unavailable'); });
+  expect(api.inboxError).toBe('readiness.refreshError');
+
+  let finishInbox;
+  loadConversations.mockImplementationOnce(() => new Promise(resolve => { finishInbox = resolve; }));
+  let refresh;
+  await act(async () => { refresh = api.refreshInbox(); });
+  loadConversationMessages.mockRejectedValueOnce(new Error('thread unavailable'));
+  await act(async () => api.loadThread('chat'));
+  expect(api.chatError).toBe('readiness.refreshError');
+  await act(async () => { finishInbox([]); await refresh; });
+  expect(api.inboxError).toBe('');
+  expect(api.chatError).toBe('readiness.refreshError');
+  await act(async () => api.loadThread('chat'));
+  expect(api.chatError).toBe('');
+});
+
+test('a successful inbox refresh preserves a draft storage error', async () => {
+  const failStorage = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+  try {
+    await act(async () => { expect(api.saveDraft('chat', 'keep this')).toBe(false); });
+    expect(api.chatError).toBe('readiness.storageFailed');
+    await act(async () => api.refreshInbox());
+    expect(api.chatError).toBe('readiness.storageFailed');
+  } finally { failStorage.mockRestore(); }
+});
+
 test('uncertain send keeps text and retries the same UUID into one canonical message', async () => {
   sendSupabaseConversationMessage.mockRejectedValueOnce(new Error('response lost after server acceptance'));
   await act(async () => api.sendMessage('chat', 'recover this'));
