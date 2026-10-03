@@ -89,7 +89,8 @@ export function EnvironmentBottomTabs({ environment }) {
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
   // The inbox is shared, so the badge counts both spaces.
-  const unreadCount = (unread.MATCH || 0) + (unread.FOSTER || 0);
+  // Only this space's inbox counts here; the other space keeps its own badge.
+  const unreadCount = unread[isFoster ? 'FOSTER' : 'MATCH'] || 0;
 
   return <LayoutGroup id={`navigation-${environment}`}>
     <nav data-testid="bottom-tabs" aria-label="PetPal" className="pp-tabs petpal-bottom-tabs">

@@ -15,6 +15,7 @@ import { readChatStorage, writeChatStorage, mergeMessages, reconcileOutbox } fro
 export function useMessaging({ accountId, live, conversations, setConversations, showTypingActivity = true }) {
   const [local, setLocal] = useState({ outbox: [], drafts: {} });
   const [chatError, setChatError] = useState('');
+  const [inboxError, setInboxError] = useState('');
   const [realtimeReady, setRealtimeReady] = useState(false);
   const [unreadTotals, setUnreadTotals] = useState({ MATCH: 0, FOSTER: 0 });
   const [inboxHasMore, setInboxHasMore] = useState({ ALL: false, MATCH: false, FOSTER: false });
@@ -142,6 +143,7 @@ export function useMessaging({ accountId, live, conversations, setConversations,
     setInboxHasMore({ MATCH: false, FOSTER: false });
     setThreadHasMore({});
     setUnreadTotals({ MATCH: 0, FOSTER: 0 });
+    setInboxError('');
     setChatError('');
     try { setLocal(readChatStorage(accountId)); storageReady.current = true; }
     catch { storageReady.current = false; setChatError('readiness.storageFailed'); setLocal({ outbox: [], drafts: {} }); }
@@ -172,6 +174,7 @@ export function useMessaging({ accountId, live, conversations, setConversations,
       if (version !== generation.current) return [];
       for (const row of rows) if (row.blocked) fetchedThrough.current.delete(row.id);
       setUnreadTotals({ MATCH: 0, FOSTER: 0, ...Object.fromEntries(totals.map(row => [row.source, Number(row.unread_count)])) });
+      setInboxError('');
       setConversations(current => {
         const result = new Map(current.map(conversation => [conversation.id, conversation]));
         if (id && !rows.length) result.delete(id);
@@ -186,7 +189,7 @@ export function useMessaging({ accountId, live, conversations, setConversations,
       }
       return rows;
     } catch (error) {
-      if (version === generation.current) setChatError('readiness.refreshError');
+      if (version === generation.current) setInboxError('readiness.refreshError');
       throw error;
     }
   }, [setConversations]);
@@ -486,7 +489,7 @@ export function useMessaging({ accountId, live, conversations, setConversations,
     return () => clearTimeout(timer);
   }, [conversations, setConversations]);
 
-  return { outbox: local.outbox, drafts: local.drafts, saveDraft, sendMessage, chatError,
+  return { outbox: local.outbox, drafts: local.drafts, saveDraft, sendMessage, chatError, inboxError,
     realtimeReady, unreadTotals, refreshInbox, inboxHasMore, openThread, loadThread, loadingThread, threadHasMore,
     markRead, respondToWalk, typingByConversation, startTyping, stopTyping };
 }

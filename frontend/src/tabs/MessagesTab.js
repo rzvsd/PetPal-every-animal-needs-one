@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
 import { SafetyMenu } from '../components/SharedComponents';
 import { useBackHandler } from '../navigation/backNavigation';
-import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Segment, Skeleton, fmt, person } from '../ui/kit';
+import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Skeleton, fmt, person } from '../ui/kit';
 import { list, listItem, push, spring } from '../ui/motion';
 import './messages.css';
 
@@ -243,30 +243,27 @@ function getTimeAgo(dateStr, t) {
   return `${days}${t('messages.daysShort')}`;
 }
 
-export default function MessagesTab() {
+export default function MessagesTab({ environment = 'match' }) {
   const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation } = useApp();
-  const { refreshInbox, inboxHasMore, chatError, unreadTotals } = messaging;
+  const { refreshInbox, inboxHasMore, inboxError } = messaging;
   const reduced = useReducedPetMotion();
   const [activeConvId, setActiveConvId] = useState(null);
   const [loading, setLoading] = useState(false);
-  // One inbox for both spaces; the filter only narrows what is shown.
-  const [filter, setFilter] = useState('ALL');
-  const shown = filter === 'ALL' ? conversations : conversations.filter((conversation) => conversation.source === filter);
-  const activeConv = conversations.find((conversation) => conversation.id === activeConvId);
-  const unread = source => dataSource === 'supabase' ? unreadTotals[source] || 0
-    : conversations.filter(c => c.source === source).reduce((total, c) => total + (c.unread || 0), 0);
-  const empty = { ALL: ['messages.noConversations', 'messages.noConversationsDesc', 'heart'],
-    MATCH: ['messages.noMatchConversations', 'messages.noMatchConversationsDesc', 'dog'],
-    FOSTER: ['messages.noFosterConversations', 'messages.noFosterConversationsDesc', 'house'] }[filter];
+  // Each space has its own inbox: Match chats never show in Foster, and the other way round.
+  const source = environment === 'foster' ? 'FOSTER' : 'MATCH';
+  const shown = conversations.filter((conversation) => conversation.source === source);
+  const activeConv = shown.find((conversation) => conversation.id === activeConvId);
+  const empty = source === 'FOSTER' ? ['messages.noFosterConversations', 'messages.noFosterConversationsDesc', 'house']
+    : ['messages.noMatchConversations', 'messages.noMatchConversationsDesc', 'dog'];
 
   useEffect(() => {
     let alive = true;
     if (dataSource === 'supabase') {
       setLoading(true);
-      refreshInbox(filter).catch(() => {}).finally(() => { if (alive) setLoading(false); });
+      refreshInbox(source).catch(() => {}).finally(() => { if (alive) setLoading(false); });
     }
     return () => { alive = false; };
-  }, [filter, dataSource, refreshInbox]);
+  }, [source, dataSource, refreshInbox]);
 
   useEffect(() => {
     if (!requestedConversation?.id) return;
@@ -275,33 +272,33 @@ export default function MessagesTab() {
       const existing = conversations.find(c => c.id === requestedConversation.id);
       const conversation = existing || (await refreshInbox(undefined, false, requestedConversation.id))[0];
       if (!alive) return;
+      if (conversation && conversation.source !== source) {
+        // It belongs to the other space: the app switches there and opens it then.
+        if (requestedConversation.source !== conversation.source) {
+          setRequestedConversation({ id: conversation.id, source: conversation.source });
+        }
+        return;
+      }
       if (conversation) setActiveConvId(conversation.id);
       setRequestedConversation(null);
     };
     open().catch(() => { if (alive) setRequestedConversation(null); });
     return () => { alive = false; };
-  }, [requestedConversation, conversations, refreshInbox, setRequestedConversation]);
+  }, [requestedConversation, conversations, refreshInbox, setRequestedConversation, source]);
 
-  return <div data-testid="messages-tab" data-message-source={filter} className="pp-inbox ui-page">
+  return <div data-testid="messages-tab" data-message-source={source} className="pp-inbox ui-page">
     <div className="ui-scroll">
-      <PageTitle title={t('messages.inboxTitle')} />
-      <div className="ui-gutter">
-        <Segment label="inbox" value={filter} onChange={setFilter} options={[
-          ['ALL', <>{t('messages.filterAll')}<Count value={unread('MATCH') + unread('FOSTER')} /></>],
-          ['MATCH', <>{t('messages.filterMatch')}<Count value={unread('MATCH')} /></>],
-          ['FOSTER', <>{t('messages.filterFoster')}<Count value={unread('FOSTER')} /></>],
-        ]} />
-      </div>
+      <PageTitle title={t('messages.inboxTitle')} subtitle={t(source === 'FOSTER' ? 'messages.fosterInboxLede' : 'messages.matchInboxLede')} />
       <div className="ui-gutter pp-inbox-list">
-        {chatError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(filter).catch(() => {})}>{t('readiness.retry')}</button>}>{t(chatError)}</Notice>}
+        {inboxError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button>}>{t(inboxError)}</Notice>}
         {loading && !shown.length ? <div className="ui-list" aria-hidden="true">{[0, 1, 2, 3].map(key => <div key={key} className="ui-row">
           <Skeleton width={56} height={56} radius={16} /><span className="ui-row-body"><Skeleton width="30%" height={11} /><Skeleton width="55%" height={16} /><Skeleton width="80%" height={13} /></span></div>)}</div>
           : !shown.length ? <Empty art={empty[2]} title={t(empty[0])} text={t(empty[1])} />
-            : <motion.div key={filter} className="ui-list ui-list-inset" variants={list} initial={reduced ? false : 'hidden'} animate="show">
+            : <motion.div key={source} className="ui-list ui-list-inset" variants={list} initial={reduced ? false : 'hidden'} animate="show">
               {shown.map((conversation) => <ConversationRow key={conversation.id} conv={conversation} onClick={() => setActiveConvId(conversation.id)} t={t} />)}
             </motion.div>}
-        {inboxHasMore[filter] && <Button variant="quiet" block disabled={loading} onClick={async () => {
-          setLoading(true); try { await refreshInbox(filter, true); } catch {} finally { setLoading(false); }
+        {inboxHasMore[source] && <Button variant="quiet" block disabled={loading} onClick={async () => {
+          setLoading(true); try { await refreshInbox(source, true); } catch {} finally { setLoading(false); }
         }}>{t('readiness.more')}</Button>}
       </div>
     </div>

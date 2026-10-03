@@ -8,7 +8,7 @@ import './launch.css';
 
 const film = name => `${process.env.PUBLIC_URL}/film/${name}`;
 const WORLDS = {
-  [MATCH_ENVIRONMENT]: { door: 'door-match', accent: '#ffb347', source: 'MATCH', bursts: ['burst-match-a', 'burst-match-b', 'burst-match-c'], words: ['intro.match', 'doors.matchWord2'] },
+  [MATCH_ENVIRONMENT]: { door: 'door-match', accent: '#ffb347', source: 'MATCH', bursts: ['burst-match-a', 'burst-match-b', 'burst-match-c', 'burst-match-d', 'burst-match-e'], words: ['intro.match', 'doors.matchWord2'] },
   [FOSTER_ENVIRONMENT]: { door: 'door-foster', accent: '#f7c948', source: 'FOSTER', bursts: ['burst-foster-a', 'burst-foster-b', 'burst-foster-c', 'burst-foster-d', 'burst-foster-e'], words: ['intro.foster', 'doors.fosterWord2'] },
 };
 
