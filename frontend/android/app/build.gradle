@@ -13,6 +13,17 @@ def releaseKeyPassword = System.getenv('PETPAL_RELEASE_KEY_PASSWORD') ?: keystor
 def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
 def allowDebugReleaseSigning = (System.getenv('PETPAL_ALLOW_DEBUG_RELEASE_SIGNING') ?: project.findProperty('PETPAL_ALLOW_DEBUG_RELEASE_SIGNING') ?: 'false').toString().toBoolean()
 
+// Host of the https App Link for password reset emails. Use the same value as
+// the web build's REACT_APP_AUTH_LINK_HOST (see docs/auth-app-links.md).
+def appLinkHost = (System.getenv('REACT_APP_AUTH_LINK_HOST') ?: project.findProperty('PETPAL_APP_LINK_HOST') ?: '').toString().trim().toLowerCase()
+if (!appLinkHost) {
+    if (hasReleaseSigning) {
+        throw new GradleException('Set REACT_APP_AUTH_LINK_HOST (or -PPETPAL_APP_LINK_HOST) for a signed release; password reset links need it.')
+    }
+    logger.warn('REACT_APP_AUTH_LINK_HOST is not set; password reset links will not open the app in this build.')
+    appLinkHost = 'app-link-not-configured.invalid'
+}
+
 def resolveReleaseStoreFile = { value ->
     def candidate = file(value)
     return candidate.isAbsolute() ? candidate : rootProject.file(value)
@@ -48,10 +59,10 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-            manifestPlaceholders = [usesCleartextTraffic: "true"]
+            manifestPlaceholders = [usesCleartextTraffic: "true", appLinkHost: appLinkHost]
         }
         release {
-            manifestPlaceholders = [usesCleartextTraffic: "false"]
+            manifestPlaceholders = [usesCleartextTraffic: "false", appLinkHost: appLinkHost]
             if (hasReleaseSigning) {
                 signingConfig signingConfigs.release
             } else if (allowDebugReleaseSigning) {

@@ -12,9 +12,18 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        // PKCE: email links carry a one-time code instead of session tokens.
+        // The code is useless without the verifier kept on the device that
+        // asked for the link, so an app that intercepts the link gets nothing.
+        flowType: 'pkce',
       },
     })
   : null;
+
+// Host of the https App Link that brings password reset emails back into the
+// Android app, e.g. "petpal.example.com". The same host must serve
+// /.well-known/assetlinks.json and be on Supabase's redirect allow-list.
+export const authLinkHost = (process.env.REACT_APP_AUTH_LINK_HOST || '').trim().toLowerCase();
 
 export const demoSupabaseCredentials = {
   email: process.env.REACT_APP_SUPABASE_DEMO_EMAIL,
