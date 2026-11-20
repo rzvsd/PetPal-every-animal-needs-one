@@ -67,3 +67,28 @@ The M11 pgTAP test proves non-admin denial, document-review role access, documen
 ## Milestone Proof
 
 - M1 runtime proof (historical): see `../docs/history/milestones/M1_RUNTIME_PROOF.md`.
+
+## Storage cleanup queue
+
+Migration `0032_storage_cleanup_queue.sql` makes file removal durable. Storage
+is not part of a database transaction, so deleting a row and then its file
+could leave the file behind forever if the Storage call failed.
+
+- Deleting a `verification_documents` row (account deletion, an organisation
+  cascade, or an admin) writes its file to `storage_cleanup_queue` in the same
+  transaction.
+- `delete-account` also queues the user's animal photos, then removes every
+  queued file for that user. Anything Storage refuses stays queued with
+  `attempts` and `last_error`; it no longer fails the deletion.
+- The `storage-cleanup` Edge Function retries what is left, up to 500 entries
+  per run, oldest attempt first. Set the `STORAGE_CLEANUP_SECRET` function
+  secret and call it on a schedule (for example hourly from Supabase Cron),
+  with the header `x-petpal-cleanup-secret: <secret>` and the anon key as
+  bearer token.
+- Unit tests for the queue logic: `deno test supabase/functions/_shared/`.
+
+Entries with many attempts mean a file Storage keeps refusing:
+
+```sql
+select bucket_id, object_path, attempts, last_error from public.storage_cleanup_queue order by attempts desc;
+```

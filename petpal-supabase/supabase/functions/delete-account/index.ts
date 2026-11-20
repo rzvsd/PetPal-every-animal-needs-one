@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.105.1';
+import { enqueueStorageCleanup, processStorageCleanupQueue } from '../_shared/storage-cleanup.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,16 +47,9 @@ Deno.serve(async (request) => {
   }
   const userId = userData.user.id;
 
-  // Document paths must be read before delete_account_data removes the rows.
-  const { data: documents, error: documentsError } = await admin
-    .from('verification_documents')
-    .select('storage_path')
-    .eq('profile_id', userId);
-  if (documentsError) {
-    console.error('verification document lookup failed', documentsError);
-    return jsonResponse({ error: 'Account deletion failed. Please try again.' }, 500);
-  }
-
+  // delete_account_data queues the user's ID document files in the same
+  // transaction that deletes their rows (migration 0032), so the paths are
+  // never lost, even if everything after this point fails.
   const { data: result, error: deleteError } = await admin.rpc('delete_account_data', { profile_id_input: userId });
   if (deleteError) {
     console.error('delete_account_data failed', deleteError);
@@ -65,8 +59,10 @@ Deno.serve(async (request) => {
     return jsonResponse({ deleted: false, blockers: result?.blockers || {} }, 409);
   }
 
+  // Animal photos live under <userId>/<animalId>/<file>. Listing them is the
+  // last step that can still fail the request; the user is not signed out yet,
+  // so they can simply retry.
   try {
-    // Animal photos live under <userId>/<animalId>/<file>.
     const photos = admin.storage.from('animal-photos');
     const { data: folders, error: listError } = await photos.list(userId, { limit: 1000 });
     if (listError) throw listError;
@@ -80,19 +76,20 @@ Deno.serve(async (request) => {
       if (error) throw error;
       for (const file of files || []) paths.push(`${userId}/${entry.name}/${file.name}`);
     }
-    if (paths.length) {
-      const { error } = await photos.remove(paths);
-      if (error) throw error;
-    }
-
-    const documentPaths = (documents || []).map((row) => row.storage_path).filter(Boolean);
-    if (documentPaths.length) {
-      const { error } = await admin.storage.from('verification-documents').remove(documentPaths);
-      if (error) throw error;
-    }
+    await enqueueStorageCleanup(admin, 'animal-photos', paths, userId, 'account_deleted');
   } catch (error) {
-    console.error('storage cleanup failed', error);
+    console.error('queueing animal photos failed', error);
     return jsonResponse({ error: 'Account deletion failed. Please try again.' }, 500);
+  }
+
+  // Every file is now queued. Remove them; anything Storage refuses stays
+  // queued and the storage-cleanup function retries it, so a failure here no
+  // longer blocks deletion or leaves files behind.
+  let cleanup = { removed: 0, failed: 0 };
+  try {
+    cleanup = await processStorageCleanupQueue(admin, { profileId: userId });
+  } catch (error) {
+    console.error('storage cleanup queue read failed', error);
   }
 
   // Soft delete keeps the auth row so anonymised records stay linked, while
@@ -103,5 +100,5 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Account deletion failed. Please try again.' }, 500);
   }
 
-  return jsonResponse({ deleted: true });
+  return jsonResponse({ deleted: true, pendingFileCleanup: cleanup.failed > 0 });
 });
