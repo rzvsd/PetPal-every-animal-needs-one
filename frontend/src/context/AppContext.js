@@ -73,7 +73,19 @@ export function AppProvider({ children }) {
   const [paymentReturnNotice, setPaymentReturnNotice] = useState('');
   const [localDemoSession, setLocalDemoSession] = useState(false);
   // True between opening a password reset link and saving the new password.
-  const [passwordRecovery, setPasswordRecovery] = useState(false);
+  // A reset link signs the person in, but they still owe a new password. Keep
+  // that pending state across a WebView reload, because the one-time link
+  // cannot be exchanged a second time to bring the form back.
+  const [passwordRecovery, setPasswordRecoveryState] = useState(() => {
+    try { return window.sessionStorage.getItem('petpal.passwordRecoveryPending') === 'true'; } catch { return false; }
+  });
+  const setPasswordRecovery = useCallback((pending) => {
+    setPasswordRecoveryState(pending);
+    try {
+      if (pending) window.sessionStorage.setItem('petpal.passwordRecoveryPending', 'true');
+      else window.sessionStorage.removeItem('petpal.passwordRecoveryPending');
+    } catch { /* storage unavailable */ }
+  }, []);
   const [pushStatus, setPushStatus] = useState({ status: 'idle', message: null });
   // The system permission prompt waits for a moment where it clearly helps.
   const [pushAllowed, setPushAllowed] = useState(false);
@@ -245,7 +257,7 @@ export function AppProvider({ children }) {
       ? supabase.auth.onAuthStateChange((_event, session) => {
           // The web build reads the reset link itself and reports it this way.
           if (_event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
-          if (_event === 'SIGNED_OUT') setPasswordRecovery(false);
+          if (_event === 'SIGNED_OUT' || (_event === 'INITIAL_SESSION' && !session)) setPasswordRecovery(false);
           if (_event === 'SIGNED_OUT' && sessionAccount.current) {
             try { clearChatStorage(sessionAccount.current); }
             catch { setAuthError('readiness.storageFailed'); }
@@ -272,7 +284,7 @@ export function AppProvider({ children }) {
       cancelled = true;
       authListener?.subscription?.unsubscribe();
     };
-  }, [applySupabaseData]);
+  }, [applySupabaseData, setPasswordRecovery]);
 
   useEffect(() => {
     let cancelled = false;
@@ -646,7 +658,7 @@ export function AppProvider({ children }) {
       setAuthLoading(false);
     }
     return true;
-  }, [t]);
+  }, [t, setPasswordRecovery]);
 
   const requestPasswordReset = async (email) => {
     setAuthError('');
