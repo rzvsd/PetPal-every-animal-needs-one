@@ -1,0 +1,50 @@
+# Dependabot keeps dependencies and pinned GitHub Actions up to date.
+# Security fixes are opened as soon as an advisory is published (enable
+# "Dependabot security updates" in Settings > Code security). The schedules
+# below cover routine version bumps, grouped so each folder opens at most
+# one PR for minor and patch updates per week.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /petpal-admin
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      admin-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /petpal-supabase
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      supabase-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gradle
+    directory: /frontend/android
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      android-minor-patch:
+        update-types: [minor, patch]

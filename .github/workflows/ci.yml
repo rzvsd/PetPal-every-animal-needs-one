@@ -58,11 +58,14 @@ jobs:
           cache: pnpm
           cache-dependency-path: petpal-supabase/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      # The pgTAP suite needs only Postgres. Pulling two images instead of
-      # thirteen keeps the job under the anonymous registry quota that GitHub's
-      # shared runner IPs exhaust ("toomanyrequests: Data limit exceeded").
-      # Add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN as repository secrets to pull
-      # authenticated from Docker Hub instead, which removes the quota issue.
+      # The pgTAP suite needs only Postgres and pg_prove, so every other
+      # service is excluded. The Supabase CLI pulls from public.ecr.aws by
+      # default, and GitHub's shared runner IPs keep exhausting that registry's
+      # anonymous quota ("toomanyrequests: Data limit exceeded"). Supabase
+      # publishes the same images to ghcr.io, which is GitHub's own registry
+      # and is not rate limited for runners, so pull from there by default.
+      # If DOCKERHUB_USERNAME and DOCKERHUB_TOKEN are set as repository
+      # secrets, pull authenticated from Docker Hub instead.
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         if: env.DOCKERHUB_TOKEN != ''
         env:
@@ -71,8 +74,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - run: |
-          if [ -n "$DOCKERHUB_TOKEN" ]; then export SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io; fi
+          if [ -n "$DOCKERHUB_TOKEN" ]; then
+            export SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io
+          else
+            export SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io
+          fi
           pnpm supabase start -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run: pnpm run db:test
+      # `supabase test db` pulls the pg_prove image, so it needs the same
+      # registry choice as `supabase start`.
+      - run: |
+          if [ -n "$DOCKERHUB_TOKEN" ]; then
+            export SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io
+          else
+            export SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io
+          fi
+          pnpm run db:test
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
