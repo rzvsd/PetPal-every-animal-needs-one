@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured, demoSupabaseCredentials } from './supabaseClient';
+import { supabase, isSupabaseConfigured, demoSupabaseCredentials, authLinkHost } from './supabaseClient';
 
 const fallbackFosterPhoto = 'https://images.unsplash.com/photo-1699727314431-36ab60fcc3e1?w=600&h=800&fit=crop';
 const fallbackMatchPhoto = 'https://images.unsplash.com/photo-1642303009474-851f1dd5195f?w=600&h=800&fit=crop';
@@ -770,31 +770,47 @@ export async function unblockSupabaseProfile(profileId) {
   if (error) throw error;
 }
 
-// Password reset. The email link brings the phone back through petpal://reset
-// (the web build comes back to its own origin), then the person sets a new password.
-export const PASSWORD_RESET_LINK = 'petpal://reset';
+// Password reset. On the phone the email link is an https App Link
+// (https://<REACT_APP_AUTH_LINK_HOST>/reset) that Android hands only to the
+// verified PetPal app; the web build comes back to its own origin. Either way
+// the link carries a one-time PKCE code, never session tokens.
+export const PASSWORD_RESET_PATH = '/reset';
+
+export function passwordResetLink(host = authLinkHost) {
+  return host ? `https://${host}${PASSWORD_RESET_PATH}` : '';
+}
+
+export function isPasswordResetLink(url, host = authLinkHost) {
+  if (!url || !host) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:'
+      && parsed.hostname.toLowerCase() === host
+      && parsed.pathname.replace(/\/+$/, '') === PASSWORD_RESET_PATH;
+  } catch {
+    return false;
+  }
+}
 
 export async function requestSupabasePasswordReset(email, native) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: native ? PASSWORD_RESET_LINK : window.location.origin });
+  const redirectTo = native ? passwordResetLink() : window.location.origin;
+  if (!redirectTo) throw new Error('Password reset links are not configured for this build.');
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) throw error;
 }
 
-// Turns the tokens carried by the reset link into a session. Resolves false
-// when the link carries no tokens at all.
+// Exchanges the one-time code in the reset link for a session. This only
+// works on the device that requested the link, because the PKCE verifier
+// never leaves it. Links that carry tokens directly are refused. Resolves
+// false when the link carries no code at all.
 export async function openSupabaseRecoveryLink(url) {
   const parsed = new URL(url);
   const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-  if (hash.get('error_description')) throw new Error(hash.get('error_description'));
+  const errorDescription = parsed.searchParams.get('error_description') || hash.get('error_description');
+  if (errorDescription) throw new Error(errorDescription);
   const code = parsed.searchParams.get('code');
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) throw error;
-    return true;
-  }
-  const access_token = hash.get('access_token');
-  const refresh_token = hash.get('refresh_token');
-  if (!access_token || !refresh_token) return false;
-  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+  if (!code) return false;
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) throw error;
   return true;
 }

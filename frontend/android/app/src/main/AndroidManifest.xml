@@ -29,7 +29,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="petpal" android:host="payments" />
-                <data android:scheme="petpal" android:host="reset" />
+            </intent-filter>
+
+            <!-- Password reset links. A verified https App Link: Android opens it
+                 only in the app whose signing key the host lists in
+                 /.well-known/assetlinks.json, so no other app can claim it. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${appLinkHost}" android:path="/reset" />
             </intent-filter>
 
         </activity>

@@ -104,18 +104,33 @@ function AppContent() {
     };
   }, [handleAppBack]);
 
+  const launchUrlRead = useRef(false);
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
 
     let listener;
+    let cancelled = false;
+    const openUrl = (url) => {
+      if (!url) return;
+      if (!handlePaymentReturn(url)) handleRecoveryLink(url);
+    };
 
-    CapacitorApp.addListener('appUrlOpen', (event) => {
-      if (!handlePaymentReturn(event?.url)) handleRecoveryLink(event?.url);
-    }).then((handle) => {
-      listener = handle;
+    CapacitorApp.addListener('appUrlOpen', (event) => openUrl(event?.url)).then((handle) => {
+      if (cancelled) handle.remove();
+      else listener = handle;
     });
 
+    // When the app was closed, the link that opened it is the launch intent,
+    // not an appUrlOpen event, so read it here as well.
+    if (!launchUrlRead.current) {
+      launchUrlRead.current = true;
+      CapacitorApp.getLaunchUrl()
+        .then((launch) => openUrl(launch?.url))
+        .catch(() => {});
+    }
+
     return () => {
+      cancelled = true;
       listener?.remove();
     };
   }, [handlePaymentReturn, handleRecoveryLink]);

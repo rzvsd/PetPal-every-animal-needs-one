@@ -9,6 +9,7 @@ import {
   signUpWithSupabase,
   requestSupabasePasswordReset,
   openSupabaseRecoveryLink,
+  isPasswordResetLink,
   updateSupabasePassword,
   signInWithDemoSupabase,
   signOutOfSupabase,
@@ -619,16 +620,28 @@ export function AppProvider({ children }) {
 
   const clearPaymentReturnNotice = () => setPaymentReturnNotice('');
 
-  // The phone opens petpal://reset from the email; the tokens in it sign the
-  // person in, and the app asks for the new password before anything else.
+  // The phone opens the https reset App Link from the email. Its one-time code
+  // is exchanged for a session (only possible on the phone that asked for the
+  // link) and the app asks for the new password before anything else. The
+  // same link can arrive twice, as the launch URL and as an appUrlOpen event,
+  // or again after the WebView reloads, so each link is handled only once.
+  const handledRecoveryLinks = useRef(new Set());
   const handleRecoveryLink = useCallback(async (url) => {
-    if (!url || !url.startsWith('petpal://reset')) return false;
+    if (!isPasswordResetLink(url)) return false;
+    let alreadyHandled = handledRecoveryLinks.current.has(url);
+    try { alreadyHandled = alreadyHandled || window.sessionStorage.getItem('petpal.handledResetLink') === url; } catch { /* storage unavailable */ }
+    if (alreadyHandled) return true;
+    handledRecoveryLinks.current.add(url);
+    try { window.sessionStorage.setItem('petpal.handledResetLink', url); } catch { /* storage unavailable */ }
     setAuthError('');
     setAuthLoading(true);
     try {
       if (await openSupabaseRecoveryLink(url)) setPasswordRecovery(true);
+      else setAuthError(t('auth.resetLinkInvalid'));
     } catch (error) {
-      setAuthError(friendlyError(error, t, t('auth.resetLinkInvalid')));
+      const offline = /failed to fetch|network ?error|load failed/i.test(error?.message || '');
+      if (!offline) console.error(error);
+      setAuthError(offline ? t('errors.network') : t('auth.resetLinkInvalid'));
     } finally {
       setAuthLoading(false);
     }
