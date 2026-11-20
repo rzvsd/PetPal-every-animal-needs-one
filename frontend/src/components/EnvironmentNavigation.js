@@ -88,7 +88,6 @@ export function EnvironmentBottomTabs({ environment }) {
     { key: 'messages', icon: MessageCircle, label: t('tabs.messages') },
     { key: 'profile', icon: User, label: t('tabs.profile') },
   ];
-  // The inbox is shared, so the badge counts both spaces.
   // Only this space's inbox counts here; the other space keeps its own badge.
   const unreadCount = unread[isFoster ? 'FOSTER' : 'MATCH'] || 0;
 
