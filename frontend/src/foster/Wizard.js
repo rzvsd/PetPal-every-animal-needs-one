@@ -171,7 +171,7 @@ export function HomeWizard({ home, onClose, onSaved }) {
     area: home?.area || user.coarseArea || '', capacity: home?.capacity || 1, dogCapacity: home?.dog_capacity ?? '', catCapacity: home?.cat_capacity ?? '',
     availability: home?.availability || 'AVAILABLE', published: home ? home.published : true, species: home?.species || ['DOG', 'CAT'],
     bio: home?.bio || '', housing: housingMatch || '', housingType: home?.housing_type || '', experience: home?.experience || '',
-    photos: home?.photos || [], expectedUpdatedAt: home?.updated_at || null }));
+    website: home?.website || '', photos: home?.photos || [], expectedUpdatedAt: home?.updated_at || null }));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -200,6 +200,8 @@ export function HomeWizard({ home, onClose, onSaved }) {
         options={housingOptions(t)} />
       <Field label={t('fx.experience')}><textarea className="fx-input" maxLength={2000} value={data.experience} onChange={event => field('experience', event.target.value)} /></Field>
       <Field label={t('fx.bio')}><textarea className="fx-input" maxLength={4000} value={data.bio} onChange={event => field('bio', event.target.value)} /></Field>
+      <Field label={t('fx.website')} hint={t('fx.websiteHint')}><input className="fx-input" type="url" inputMode="url" autoCapitalize="off" autoCorrect="off" spellCheck={false}
+        maxLength={200} placeholder="casalabute.ro" value={data.website} onChange={event => field('website', event.target.value)} /></Field>
       <Toggle label={t('fx.showHome')} value={data.published} onChange={value => field('published', value)} />
       <p className="fx-muted">{t('fx.notInPetPal')}</p></>,
   ];
