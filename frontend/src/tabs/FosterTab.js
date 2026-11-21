@@ -95,6 +95,8 @@ export default function FosterTab() {
       setTimeout(() => setCelebrate(''), 1600);
     }
   };
+  const consent = (request, approve) => act(() => fosterRpc('respond_transfer_consent', { request_id_input: request.id, approve_input: approve, note_input: '' }),
+    t(approve ? 'fx.consentAgreed' : 'fx.consentRefused'));
   const completeTask = task => act(() => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: task.placement_id, data_input: { completed: true } }));
   const teamInvite = (member, action) => act(() => fosterRpc('manage_foster_member', { home_id_input: member.home_id, profile_id_input: user.id, action_input: action }),
     t('fx.careUpdated'));
@@ -153,7 +155,7 @@ export default function FosterTab() {
                   ? <div className="fx-stack" style={{ marginTop: 24 }}>{[0, 1, 2].map(i => <div key={i} className="fx-skeleton" style={{ height: 110 }} />)}</div>
                   : tab === 'today' ? <Today data={data} busy={busy} onAnswer={answer} onArrived={arrived} onCompleteTask={completeTask}
                     onOpenPlacement={id => push({ type: 'placement', id })} onOpenRequest={openRequest} onOpenChat={openChat}
-                    onTeamInvite={teamInvite} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
+                    onTeamInvite={teamInvite} onConsent={consent} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
                     : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })} />
                       : <MyAnimals data={data} onOpenPlacement={id => push({ type: 'placement', id })} onOpenCase={item => push({ type: 'myCase', item })}
                         onOpenHomeSettings={home => push({ type: 'homeSettings', home })} onSetUpHome={() => push({ type: 'homeWizard' })} onPostAnimal={needHome} />}

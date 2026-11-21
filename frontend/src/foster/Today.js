@@ -41,7 +41,7 @@ export function HowItWorks() {
 }
 
 export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask, onOpenPlacement, onOpenRequest,
-  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode }) {
+  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent }) {
   const { t, user } = useApp();
   const offers = data.incoming.filter(r => r.status === 'PENDING');
   const arriving = data.placements.filter(p => p.status === 'RESERVED');
@@ -49,6 +49,8 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
   const waiting = [
     ...data.outgoing.filter(r => r.status === 'PENDING').map(r => ({ key: r.id, request: r,
       text: fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: r.animal_name }) })),
+    ...[...data.incoming, ...data.outgoing].filter(r => r.owner_consent === 'PENDING' && r.status === 'PENDING')
+      .map(r => ({ key: `consent-${r.id}`, request: r, text: fmt(t('fx.consentWaiting'), { animal: r.animal_name }) })),
     ...data.placedElsewhere.filter(r => r.placement_status === 'RESERVED').map(r => ({ key: `placed-${r.id}`, request: r,
       text: fmt(t('fx.arrivingElsewhere'), { animal: r.animal_name, home: r.home_name }) })),
   ];
@@ -58,7 +60,8 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
     .map(r => ({ key: `answer-${r.id}`, request: r, text: r.status === 'PLACED_ELSEWHERE'
       ? fmt(t('fx.answerPlacedElsewhere'), { animal: r.animal_name })
       : fmt(t('fx.answerDeclined'), { name: person(r.recipient_name, t), animal: r.animal_name }) }));
-  const needsCount = offers.length + arriving.length + data.dueTasks.length + invites.length;
+  const consents = data.consentsWaiting || [];
+  const needsCount = offers.length + arriving.length + data.dueTasks.length + invites.length + consents.length;
   const isNew = !data.homes.length && !data.myCases.length && !data.incoming.length && !data.outgoing.length;
   const animalOf = task => data.placements.find(p => p.id === task.placement_id);
 
@@ -76,6 +79,24 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       {needsCount > 0 && <>
         <SectionTitle count={needsCount}>{t('fx.needsYou')}</SectionTitle>
         <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+          {consents.map(request => <Card key={`consent-${request.id}`} className="fx-todo">
+            <div className="fx-todo-head">
+              <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />
+              <div className="fx-grow">
+                <h3>{fmt(t('fx.transferAsk'), { name: person(request.case_owner_id === request.sender_id ? request.sender_name : request.recipient_name, t),
+                  animal: request.animal_name, home: request.home_name })}</h3>
+                <p>{t('fx.transferAskHint')}</p>
+              </div>
+            </div>
+            {request.message && <p className="fx-quote">{request.message}</p>}
+            <div className="fx-actions">
+              <Button disabled={busy} onClick={() => onConsent(request, true)}>{t('fx.agree')}</Button>
+              <Button variant="secondary" disabled={busy} onClick={() => onConsent(request, false)}>{t('fx.refuse')}</Button>
+              {request.conversation_id && <Button variant="soft" className="fx-button-icon" aria-label={t('fx.chat')}
+                onClick={() => onOpenChat(request.conversation_id)} icon={MessageCircle} style={{ flex: '0 0 50px', padding: 0 }} />}
+            </div>
+          </Card>)}
+
           {offers.map((request, index) => <Card key={request.id} className={`fx-todo ${index === 0 ? 'fx-hero-card' : ''}`}>
             {index === 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">

@@ -172,13 +172,13 @@ export function useMessaging({ accountId, live, conversations, setConversations,
       const { data: totals, error: totalsError } = await supabase.rpc('conversation_unread_totals');
       if (totalsError) throw totalsError;
       if (version !== generation.current) return [];
-      for (const row of rows) if (row.blocked) fetchedThrough.current.delete(row.id);
+      for (const row of rows) if (row.blocked && !row.historyKept) fetchedThrough.current.delete(row.id);
       setUnreadTotals({ MATCH: 0, FOSTER: 0, ...Object.fromEntries(totals.map(row => [row.source, Number(row.unread_count)])) });
       setInboxError('');
       setConversations(current => {
         const result = new Map(current.map(conversation => [conversation.id, conversation]));
         if (id && !rows.length) result.delete(id);
-        for (const row of rows) result.set(row.id, { ...row, messages: row.blocked ? [] : result.get(row.id)?.messages || [] });
+        for (const row of rows) result.set(row.id, { ...row, messages: row.blocked && !row.historyKept ? [] : result.get(row.id)?.messages || [] });
         return [...result.values()].sort((a, b) => (b.activityAt || b.lastMessageAt || '').localeCompare(a.activityAt || a.lastMessageAt || ''));
       });
       if (!id) {
@@ -429,7 +429,7 @@ export function useMessaging({ accountId, live, conversations, setConversations,
           // Realtime already applies message RLS. Display immediately; HTTP reconciliation fills any gaps.
           const message = { messageId: row.id, clientMessageId: row.client_message_id, sequence: row.message_seq,
             body: row.body, createdAt: row.created_at, isMine: row.sender_id === accountId, status: 'sent', isNew: true };
-          setConversations(current => current.map(c => c.id === row.conversation_id && !c.blocked
+          setConversations(current => current.map(c => c.id === row.conversation_id && !(c.blocked && !c.historyKept)
             ? { ...c, messages: mergeMessages(c.messages || [], [{ ...message, senderDisplayName: c.otherOwnerName }]) } : c));
           loadThread(row.conversation_id);
         }
