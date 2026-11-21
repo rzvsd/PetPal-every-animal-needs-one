@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
-import { fosterRpc, reportFosterItem, saveFosterItem } from '../services/fosterApi';
+import { fosterRpc, loadFosterCase, loadFosterHome, reportFosterItem, saveFosterItem } from '../services/fosterApi';
 import { useReducedPetMotion } from '../components/Motion';
 import { useFosterData } from '../foster/useFosterData';
-import { Button, Celebrate, Choices, Field, Notice, Sheet, fmt } from '../foster/ui';
+import { Button, Celebrate, Choices, ConfirmSheet, Field, Notice, Sheet, fmt } from '../foster/ui';
 import Today from '../foster/Today';
 import Find, { CaseDetail, HomeDetail, OfferSheet } from '../foster/Find';
 import MyAnimals from '../foster/MyAnimals';
@@ -41,6 +41,25 @@ function ReportSheet({ target, onClose, onSent }) {
   </Sheet>;
 }
 
+// Accept is one sheet that says what PetPal does not check and swaps phones.
+function AcceptSheet({ request, busy, onClose, onAccept }) {
+  const { t, user } = useApp();
+  const [phone, setPhone] = useState('');
+  useEffect(() => { if (request) setPhone(''); }, [request]);
+  if (!request) return null;
+  const other = person(request.sender_id === user.id ? request.recipient_name : request.sender_name, t);
+  const animal = request.animal_name;
+  return <Sheet open={Boolean(request)} onClose={onClose} title={fmt(t('fx.acceptTitle'), { animal })}
+    footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button disabled={busy} onClick={() => onAccept(request, phone.trim())}>{busy ? t('fx.loading') : t('fx.accept')}</Button></>}>
+    <Notice>{t('fx.acceptNoChecks')}</Notice>
+    <ul className="fx-stack" style={{ paddingLeft: 18, listStyle: 'disc', gap: 6 }}>
+      {['acceptCheck1', 'acceptCheck2', 'acceptCheck3'].map(key => <li key={key}>{fmt(t(`fx.${key}`), { animal, name: other })}</li>)}</ul>
+    <Field label={fmt(t('fx.acceptPhone'), { name: other })} hint={t('fx.acceptPhoneHint')}>
+      <input className="fx-input" type="tel" maxLength={40} value={phone} onChange={event => setPhone(event.target.value)} /></Field>
+  </Sheet>;
+}
+
 export default function FosterTab() {
   const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation, askForNotifications } = useApp();
   const reduced = useReducedPetMotion();
@@ -56,6 +75,8 @@ export default function FosterTab() {
   const [report, setReport] = useState(null);
   const [celebrate, setCelebrate] = useState('');
   const [joining, setJoining] = useState(false);
+  const [accepting, setAccepting] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
   const push = useCallback(screen => setStack(current => [...current, screen]), []);
   const pop = useCallback(() => setStack(current => current.slice(0, -1)), []);
@@ -82,27 +103,61 @@ export default function FosterTab() {
     }
     finally { setBusy(false); }
   };
-  const answer = async (request, action, acknowledge = false) => {
+  // Accept and decline both go through a sheet first; decline cannot be undone.
+  const respond = async (request, action, acknowledge = false, phone = '') => {
     const other = request.sender_id === user.id ? person(request.recipient_name, t) : person(request.sender_name, t);
     try {
-      await act(() => fosterRpc('respond_foster_request', { request_id_input: request.id, action_input: action,
-        expected_updated_at_input: request.updated_at, acknowledge_capacity_input: acknowledge, reason_input: '' }),
-      action === 'ACCEPT' ? fmt(t('fx.acceptedNotice'), { animal: request.animal_name, name: request.home_name || other }) : t('fx.declinedNotice'));
+      const ok = await act(async () => {
+        const placementId = await fosterRpc('respond_foster_request', { request_id_input: request.id, action_input: action,
+          expected_updated_at_input: request.updated_at, acknowledge_capacity_input: acknowledge, reason_input: '' });
+        if (action === 'ACCEPT' && phone && placementId) {
+          await fosterRpc('update_foster_placement', { placement_id_input: placementId, action_input: 'CONTACTS',
+            data_input: request.case_owner_id === user.id ? { emergencyPhone: phone } : { fosterPhone: phone } });
+        }
+      }, action === 'ACCEPT' ? fmt(t('fx.acceptedNotice'), { animal: request.animal_name, name: request.home_name || other })
+        : action === 'WITHDRAW' ? t('fx.withdrawnNotice') : t('fx.declinedNotice'));
       setCapacity(null);
-    } catch { setCapacity(request); }
+      return ok;
+    } catch { setCapacity({ request, phone }); return false; }
   };
-  const arrived = async placement => {
-    if (await act(() => fosterRpc('update_foster_placement', { placement_id_input: placement.id, action_input: 'RECEIVE',
-      data_input: { expectedUpdatedAt: placement.updated_at, body: '' } }))) {
-      setCelebrate(fmt(t('fx.arrivedCelebration'), { animal: placement.name }));
-      setTimeout(() => setCelebrate(''), 1600);
-    }
+  const answer = (request, action) => {
+    if (action === 'ACCEPT') { setAccepting(request); return; }
+    const other = request.sender_id === user.id ? person(request.recipient_name, t) : person(request.sender_name, t);
+    setConfirm({ title: t('fx.declineTitle'), text: fmt(t('fx.declineText'), { name: other, animal: request.animal_name }), label: t('fx.decline'), danger: true,
+      run: () => respond(request, 'DECLINE') });
   };
+  const withdraw = request => setConfirm({ title: t('fx.withdrawTitle'), text: fmt(t('fx.withdrawText'), { animal: request.animal_name }),
+    label: t('fx.withdrawOffer'), danger: true, run: () => respond(request, 'WITHDRAW') });
+  const arrived = placement => setConfirm({ title: fmt(t('fx.arrivedConfirmTitle'), { animal: placement.name }),
+    text: fmt(t('fx.arrivedConfirmText'), { animal: placement.name }), label: t('fx.markArrived'), run: async () => {
+      if (await act(() => fosterRpc('update_foster_placement', { placement_id_input: placement.id, action_input: 'RECEIVE',
+        data_input: { expectedUpdatedAt: placement.updated_at, body: '' } }))) {
+        setCelebrate(fmt(t('fx.arrivedCelebration'), { animal: placement.name }));
+        setTimeout(() => setCelebrate(''), 1600);
+      }
+    } });
   const consent = (request, approve) => act(() => fosterRpc('respond_transfer_consent', { request_id_input: request.id, approve_input: approve, note_input: '' }),
     t(approve ? 'fx.consentAgreed' : 'fx.consentRefused'));
-  const completeTask = task => act(() => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: task.placement_id, data_input: { completed: true } }));
-  const teamInvite = (member, action) => act(() => fosterRpc('manage_foster_member', { home_id_input: member.home_id, profile_id_input: user.id, action_input: action }),
+  const tickTask = (task, completed) => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: task.placement_id, data_input: { completed } });
+  const completeTask = async task => {
+    if (await act(() => tickTask(task, true))) {
+      setNotice({ tone: 'success', text: fmt(t('fx.taskDone'), { task: task.title }), undo: () => { setNotice(null); act(() => tickTask(task, false)); } });
+    }
+  };
+  const runTeamInvite = (member, action) => act(() => fosterRpc('manage_foster_member', { home_id_input: member.home_id, profile_id_input: user.id, action_input: action }),
     t('fx.careUpdated'));
+  const teamInvite = (member, action) => (action === 'DECLINE'
+    ? setConfirm({ title: t('fx.declineTitle'), text: fmt(t('fx.declineTeamText'), { home: member.home_name }), label: t('fx.decline'), danger: true,
+      run: () => runTeamInvite(member, action) })
+    : runTeamInvite(member, action));
+  const openCaseById = async caseId => {
+    const item = await loadFosterCase(caseId).catch(() => null);
+    if (item) push({ type: 'case', item }); else setNotice({ tone: 'error', text: t('fx.notAvailable') });
+  };
+  const openHomeById = async homeId => {
+    const item = await loadFosterHome(homeId).catch(() => null);
+    if (item) push({ type: 'home', item, readOnly: true }); else setNotice({ tone: 'error', text: t('fx.notAvailable') });
+  };
   const openChat = id => requestOpenConversation(id, 'FOSTER');
   const openRequest = request => (request.placement_id ? push({ type: 'placement', id: request.placement_id })
     : request.case_owner_id === user.id ? push({ type: 'myCase', item: data.myCases.find(c => c.id === request.case_id) || { id: request.case_id, name: request.animal_name } })
@@ -120,10 +175,10 @@ export default function FosterTab() {
   const top = stack[stack.length - 1];
   const screen = top && (() => {
     switch (top.type) {
-      case 'case': return <CaseDetail item={top.item} data={data} onBack={pop} onOffer={() => setOffer({ kind: 'APPLICATION', item: top.item })}
+      case 'case': return <CaseDetail item={top.item} data={data} onBack={pop} onOffer={() => setOffer({ kind: 'APPLICATION', item: top.item })} onWithdraw={withdraw}
         onEdit={() => push({ type: 'caseWizard', item: top.item })} onReport={() => setReport({ profileId: top.item.responsible_id, listingId: top.item.id })}
         onToggleSave={() => act(() => saveFosterItem('animals', top.item.id, !data.saved.some(s => s.case_id === top.item.id)))} />;
-      case 'home': return <HomeDetail home={top.item} onBack={pop} onInvite={() => setOffer({ kind: 'INVITE', item: top.item })}
+      case 'home': return <HomeDetail home={top.item} onBack={pop} onInvite={top.readOnly ? null : () => setOffer({ kind: 'INVITE', item: top.item })}
         onReport={() => setReport({ profileId: top.item.profile_id })} />;
       case 'activity': return <Activity onBack={pop} onSeen={refresh} onOpen={payload => {
         const request = [...data.incoming, ...data.outgoing, ...data.consents].find(r => r.id === payload.requestId);
@@ -137,7 +192,7 @@ export default function FosterTab() {
       case 'myCase': {
         const item = data.myCases.find(c => c.id === top.item.id) || top.item;
         return <CaseStory item={item} data={data} busy={busy} onBack={pop} onEdit={() => push({ type: 'caseWizard', item })} onAnswer={answer}
-          onOpenChat={openChat} onOpenPlacement={id => push({ type: 'placement', id })} onChanged={refresh} />;
+          onOpenChat={openChat} onOpenPlacement={id => push({ type: 'placement', id })} onChanged={refresh} onOpenHomeById={openHomeById} onWithdraw={withdraw} />;
       }
       case 'caseWizard': return <CaseWizard item={top.item} transfer={top.transfer} organizations={data.organizations} onClose={pop}
         onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.published') }); if (!top.item) { setActiveTab('foster-mine'); askForNotifications('published'); } }} />;
@@ -157,7 +212,8 @@ export default function FosterTab() {
       {!live ? <><header className="fx-hello"><h1>{t('environment.fosterTitle')}</h1></header><Notice>{t('fx.liveOnly')}</Notice></>
         : data.error ? <Notice tone="error">{t('fx.couldNotLoad')} <button type="button" className="fx-notice-close" onClick={refresh}>{t('fx.retry')}</button></Notice>
           : <>
-            <AnimatePresence>{notice && <Notice tone={notice.tone} onClose={() => setNotice(null)}>{notice.text}</Notice>}</AnimatePresence>
+            <AnimatePresence>{notice && <Notice tone={notice.tone} onClose={() => setNotice(null)}>{notice.text}
+              {notice.undo && <> <button type="button" className="fx-notice-close" onClick={notice.undo}>{t('fx.undo')}</button></>}</Notice>}</AnimatePresence>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div key={tab} initial={reduced ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? undefined : { opacity: 0, y: -6 }}
                 transition={{ duration: reduced ? 0 : 0.22 }}>
@@ -165,7 +221,7 @@ export default function FosterTab() {
                   ? <div className="fx-stack" style={{ marginTop: 24 }}>{[0, 1, 2].map(i => <div key={i} className="fx-skeleton" style={{ height: 110 }} />)}</div>
                   : tab === 'today' ? <Today data={data} busy={busy} onAnswer={answer} onArrived={arrived} onCompleteTask={completeTask}
                     onOpenPlacement={id => push({ type: 'placement', id })} onOpenRequest={openRequest} onOpenChat={openChat}
-                    onTeamInvite={teamInvite} onConsent={consent} onOpenActivity={() => push({ type: 'activity' })} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
+                    onTeamInvite={teamInvite} onConsent={consent} onOpenActivity={() => push({ type: 'activity' })} onOpenCaseById={openCaseById} onOpenHomeById={openHomeById} onWithdraw={withdraw} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
                     : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })} />
                       : <MyAnimals data={data} onOpenPlacement={id => push({ type: 'placement', id })} onOpenCase={item => push({ type: 'myCase', item })}
                         onOpenHomeSettings={home => push({ type: 'homeSettings', home })} onSetUpHome={() => push({ type: 'homeWizard' })} onPostAnimal={needHome} />}
@@ -179,9 +235,13 @@ export default function FosterTab() {
       onSetUpHome={() => { setPendingOffer(offer); setOffer(null); push({ type: 'homeWizard' }); }} />
     <Sheet open={Boolean(capacity)} onClose={() => setCapacity(null)} title={t('fx.capacityTitle')}
       footer={<><Button variant="secondary" onClick={() => setCapacity(null)}>{t('common.cancel')}</Button>
-        <Button disabled={busy} onClick={() => answer(capacity, 'ACCEPT', true)}>{t('fx.continueAnyway')}</Button></>}>
+        <Button disabled={busy} onClick={() => respond(capacity.request, 'ACCEPT', true, capacity.phone)}>{t('fx.continueAnyway')}</Button></>}>
       <p className="fx-lead">{t('fx.capacityText')}</p>
     </Sheet>
+    <AcceptSheet request={accepting} busy={busy} onClose={() => setAccepting(null)}
+      onAccept={async (request, phone) => { setAccepting(null); await respond(request, 'ACCEPT', false, phone); }} />
+    <ConfirmSheet open={Boolean(confirm)} title={confirm?.title} text={confirm?.text} confirmLabel={confirm?.label} danger={confirm?.danger} busy={busy}
+      onClose={() => setConfirm(null)} onConfirm={async () => { const next = confirm; setConfirm(null); await next.run(); }} />
     <JoinHomeSheet open={joining} onClose={() => setJoining(false)} onJoined={home => {
       setJoining(false); refresh(); setNotice({ tone: 'success', text: fmt(t('fx.joined'), { home }) });
     }} />

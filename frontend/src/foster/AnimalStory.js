@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, ArrowRightLeft, Check, Flag, LifeBuoy, Home, MessageCircle, MoreHorizontal, Phone, Plus, Send, Star, StopCircle, Undo2, X } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Camera, Check, Flag, LifeBuoy, Home, MessageCircle, MoreHorizontal, Phone, Plus, Send, Star, StopCircle, Undo2, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterPlacement } from '../services/fosterApi';
-import { Button, Card, Celebrate, Choices, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, TaskCheck, fmt, itemMotion, listMotion } from './ui';
+import { animalPhotoUrl, uploadSupabaseAnimalPhotoPath } from '../services/supabaseApi';
+import { prepareImageForUpload } from '../services/imageUpload';
+import { CareFacts } from './Find';
+import { Button, Card, Celebrate, Choices, ConfirmSheet, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, TaskCheck, fmt, itemMotion, listMotion } from './ui';
 import { dueLabel } from './Today';
 import { person } from '../ui/kit';
 
@@ -103,6 +106,8 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
   const [taskTitle, setTaskTitle] = useState('');
   const [taskWhen, setTaskWhen] = useState('today');
   const [note, setNote] = useState('');
+  const [notePhoto, setNotePhoto] = useState('');
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [review, setReview] = useState({ rating: 5, comment: '' });
 
   const load = useCallback(() => loadFosterPlacement(id).then(value => { setStory(value); setError(''); })
@@ -130,7 +135,10 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
     CANCEL: 'fx.diaryCancelled', CANCELLED: 'fx.diaryCancelled', DISPUTE: 'fx.diaryDispute', CLARIFY: 'fx.diaryClarify',
     OWNER_NO_ANSWER: 'fx.diaryOwnerNoAnswer', CONTACTS: 'fx.diaryContacts', CONFIRM_END: 'fx.diaryConfirmEnd', TRANSFERRED: 'fx.diaryTransferred' };
   const diary = (story?.journal || []).filter(entry => entry.event !== 'TASK_CREATED').map(entry => {
-    if (entry.event === 'NOTE') return { id: entry.id, created_at: entry.created_at, title: person(entry.actor_name, t), text: entry.body };
+    if (entry.event === 'NOTE') return { id: entry.id, created_at: entry.created_at, title: person(entry.actor_name, t),
+      text: entry.photo_path && entry.body === 'Photo' ? '' : entry.body, photo: entry.photo_path };
+    if (entry.event === 'TASK_REOPENED') return { id: entry.id, created_at: entry.created_at, milestone: true,
+      title: fmt(t('fx.diaryTaskReopened'), { task: entry.body }), text: person(entry.actor_name, t) };
     if (entry.event === 'TASK_COMPLETED') return { id: entry.id, created_at: entry.created_at, milestone: true,
       title: fmt(t('fx.diaryTaskDone'), { task: entry.body }), text: person(entry.actor_name, t) };
     const withReason = ['END', 'CANCEL', 'CANCELLED', 'DISPUTE', 'CLARIFY', 'OWNER_NO_ANSWER'].includes(entry.event);
@@ -153,6 +161,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
   const mutate = (action, body = '') => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: action,
     data_input: { expectedUpdatedAt: p.updated_at, body } });
   const markArrived = async () => {
+    setSheet(null);
     if (await run(() => mutate('RECEIVE'))) { setCelebrate(true); setTimeout(() => setCelebrate(false), 1600); }
   };
   const setCare = careState => run(() => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: 'CARE',
@@ -162,10 +171,26 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
   const addTask = async () => {
     if (!taskTitle.trim()) return;
     if (await run(() => fosterRpc('save_foster_task', { task_id_input: crypto.randomUUID(), placement_id_input: p.id,
-      data_input: { title: taskTitle.trim(), dueAt: dueFromChoice(taskWhen), assigneeId: canCare ? p.carer_id || '' : '' } }))) setTaskTitle('');
+      data_input: { title: taskTitle.trim(), dueAt: taskWhen === 'daily' ? null : dueFromChoice(taskWhen), daily: taskWhen === 'daily',
+        assigneeId: canCare ? p.carer_id || '' : '' } }))) setTaskTitle('');
   };
-  const completeTask = task => run(() => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: p.id, data_input: { completed: true } }));
-  const addNote = async () => { if (note.trim() && await run(() => mutate('NOTE', note.trim()))) setNote(''); };
+  // A tick is one tap; tapping a ticked task undoes it.
+  const toggleTask = task => run(() => fosterRpc('save_foster_task', { task_id_input: task.id, placement_id_input: p.id,
+    data_input: { completed: !task.completed_at } }), task.completed_at ? t('fx.taskReopened') : '');
+  const pickPhoto = async event => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) { setNotice('JPEG, PNG, WebP · max 10 MB'); return; }
+    setPhotoBusy(true);
+    try { setNotePhoto(await uploadSupabaseAnimalPhotoPath({ ownerId: user.id, animalId: p.animal_id, file: await prepareImageForUpload(file) })); }
+    catch (failure) { setNotice(friendlyError(failure, t)); }
+    finally { setPhotoBusy(false); }
+  };
+  const addNote = async () => {
+    if (!note.trim() && !notePhoto) return;
+    if (await run(() => fosterRpc('add_foster_note', { placement_id_input: p.id, body_input: note.trim(), photo_input: notePhoto || null }))) { setNote(''); setNotePhoto(''); }
+  };
   const endCare = async (outcome, body) => {
     if (await run(() => fosterRpc('update_foster_placement', { placement_id_input: p.id, action_input: 'END',
       data_input: { outcome, body, expectedUpdatedAt: p.updated_at } }), t('fx.careUpdated'))) setSheet(null);
@@ -179,7 +204,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
 
   const nextStep = !p ? null
     : p.status === 'RESERVED' && owner ? { text: fmt(t('fx.nextArrive'), { animal: p.name, name: other || '' }),
-      action: <Button className="fx-button-block" icon={Home} disabled={busy} onClick={markArrived}>{t('fx.markArrived')}</Button> }
+      action: <Button className="fx-button-block" icon={Home} disabled={busy} onClick={() => setSheet({ type: 'ARRIVE' })}>{t('fx.markArrived')}</Button> }
       : p.status === 'RESERVED' ? { text: fmt(t('fx.nextArriveOther'), { animal: p.name, home: p.home_name }) }
         : p.status === 'IN_CARE' ? { text: fmt(t('fx.nextCare'), { animal: p.name }) }
           : p.status === 'COMPLETED' ? { text: p.outcome ? fmt(t('fx.endedAs'), { outcome: t(`fx.outcome${p.outcome}`) }) : t('fx.nextFinished'),
@@ -233,6 +258,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
           </Card>
 
           <AnimatePresence>{notice && <Notice onClose={() => setNotice('')}>{notice}</Notice>}</AnimatePresence>
+          <div style={{ marginTop: 14 }}><CareFacts item={p} /></div>
           {p.discrepancy && <Notice tone="error">{t('care.discrepancyInfo')}</Notice>}
 
           <Card className="fx-next" style={{ marginTop: 14 }}>
@@ -269,9 +295,9 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
             <SectionTitle>{t('fx.checklist')}</SectionTitle>
             <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
               {story.tasks.map(task => {
-                const label = task.completed_at ? t('fx.done') : dueLabel(task.due_at, t);
-                return <TaskCheck key={task.id} done={Boolean(task.completed_at)} label={task.title} meta={label}
-                  late={label === t('fx.overdue')} disabled={!canCare || busy} onToggle={() => completeTask(task)} />;
+                const label = task.completed_at ? t('fx.doneTapToUndo') : dueLabel(task.due_at, t);
+                return <TaskCheck key={task.id} done={Boolean(task.completed_at)} label={task.title} meta={task.repeat_daily && !task.completed_at ? `${label} · ${t('fx.everyDay')}` : label}
+                  late={label === t('fx.overdue')} disabled={!canCare || busy} onToggle={() => toggleTask(task)} />;
               })}
             </motion.div>
             {canWrite && active && <Card style={{ marginTop: 12 }}>
@@ -280,7 +306,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
                   onChange={event => setTaskTitle(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addTask(); }} />
                 <div className="fx-row">
                   <div className="fx-grow"><Choices label={t('fx.when')} value={taskWhen} onChange={setTaskWhen}
-                    options={[['today', t('fx.dueToday')], ['tomorrow', t('fx.dueTomorrow')], ['none', t('fx.noDate')]]} /></div>
+                    options={[['today', t('fx.dueToday')], ['tomorrow', t('fx.dueTomorrow')], ['daily', t('fx.everyDay')], ['none', t('fx.noDate')]]} /></div>
                 </div>
                 <Button variant="soft" icon={Plus} disabled={busy || !taskTitle.trim()} onClick={addTask}>{t('fx.addTask')}</Button>
               </div>
@@ -288,13 +314,20 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
           </>}
 
           <SectionTitle>{t('fx.diary')}</SectionTitle>
-          {canWrite && active && <div className="fx-composer" style={{ marginBottom: 16 }}>
-            <input className="fx-input" value={note} maxLength={2000} placeholder={fmt(t('fx.diaryPlaceholder'), { animal: p.name })}
-              aria-label={t('fx.diary')} onChange={event => setNote(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addNote(); }} />
-            <Button className="fx-button-small" aria-label={t('fx.add')} icon={Send} disabled={busy || !note.trim()} onClick={addNote} style={{ minHeight: 50 }} />
+          {canWrite && active && <div className="fx-stack" style={{ gap: 8, marginBottom: 16 }}>
+            {notePhoto && <div className="fx-note-photo"><img src={animalPhotoUrl(notePhoto)} alt="" />
+              <button type="button" aria-label={t('fx.removePhoto')} onClick={() => setNotePhoto('')}><X size={16} /></button></div>}
+            <div className="fx-composer">
+              <label className="fx-photo-button" aria-label={t('fx.addPhoto')}><Camera size={20} aria-hidden="true" />
+                <input type="file" accept="image/jpeg,image/png,image/webp" disabled={photoBusy || busy} onChange={pickPhoto} aria-label={t('fx.addPhoto')} /></label>
+              <input className="fx-input" value={note} maxLength={2000} placeholder={fmt(t('fx.diaryPlaceholder'), { animal: p.name })}
+                aria-label={t('fx.diary')} onChange={event => setNote(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addNote(); }} />
+              <Button className="fx-button-small" aria-label={t('fx.add')} icon={Send} disabled={busy || photoBusy || (!note.trim() && !notePhoto)} onClick={addNote} style={{ minHeight: 50 }} />
+            </div>
           </div>}
           {diary.length ? <div className="fx-diary">{diary.map(entry => <motion.article key={entry.id} variants={itemMotion} className={entry.milestone ? 'is-milestone' : ''}>
-            <strong>{entry.title}</strong><time>{date(entry.created_at)}</time>{entry.text && <p>{entry.text}</p>}</motion.article>)}</div>
+            <strong>{entry.title}</strong><time>{date(entry.created_at)}</time>{entry.text && <p>{entry.text}</p>}
+            {entry.photo && <img className="fx-diary-photo" src={animalPhotoUrl(entry.photo)} alt={fmt(t('fx.diaryPhotoAlt'), { animal: p.name })} loading="lazy" />}</motion.article>)}</div>
             : <p className="fx-muted">{t('fx.noDiary')}</p>}
 
           {story.reviews.length > 0 && <><SectionTitle>{t('care.reviews')}</SectionTitle>
@@ -318,7 +351,10 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
           <span key={key} style={{ display: 'block' }}>{t(label)}: <a href={`tel:${p[key].replace(/[^+0-9]/g, '')}`} style={{ fontWeight: 650 }}>{p[key]}</a></span>)}</p>}
       <p className="fx-muted" style={{ marginTop: 10 }}>{t('profile.emergencyHelpNote')}</p>
     </Sheet>
-    <ReasonSheet open={Boolean(sheet && !['review', 'END', 'CONTACTS', 'HELP'].includes(sheet.type))} title={sheet?.title} description={sheet?.description} danger={sheet?.danger}
+    <ConfirmSheet open={sheet?.type === 'ARRIVE'} title={p ? fmt(t('fx.arrivedConfirmTitle'), { animal: p.name }) : ''}
+      text={p ? fmt(t('fx.arrivedConfirmText'), { animal: p.name }) : ''} confirmLabel={t('fx.markArrived')} busy={busy}
+      onClose={() => setSheet(null)} onConfirm={markArrived} />
+    <ReasonSheet open={Boolean(sheet && !['review', 'END', 'CONTACTS', 'HELP', 'ARRIVE'].includes(sheet.type))} title={sheet?.title} description={sheet?.description} danger={sheet?.danger}
       onClose={() => setSheet(null)} onConfirm={confirmSheet} />
 
     <Sheet open={sheet?.type === 'review'} onClose={() => setSheet(null)} title={t('fx.howWasIt')}

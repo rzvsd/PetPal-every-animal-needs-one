@@ -9,7 +9,7 @@ import { prepareImageForUpload } from '../services/imageUpload';
 import { motionSpring, useReducedPetMotion } from '../components/Motion';
 import { useDiscardGuard } from '../components/FormGuard';
 import { Button, Card, Choices, Field, Notice, Photo, Screen, fmt } from './ui';
-import { durationLabel } from './Find';
+import { durationLabel, traitAnswers, traitKeys, traitQuestion } from './Find';
 
 export function Toggle({ label, description, value, onChange, disabled = false }) {
   const reduced = useReducedPetMotion();
@@ -83,7 +83,8 @@ export function caseToData(item) {
     urgency: item.urgency || 'MEDIUM', duration: item.duration || 'UNKNOWN', foodCovered: Boolean(item.food_covered),
     vetCovered: Boolean(item.vet_covered), transport: Boolean(item.transport_available), medicalNeeds: item.medical_needs || '',
     homeFit: item.home_fit || '', status: ['ACTIVE', 'PAUSED', 'ARCHIVED'].includes(item.status) ? item.status : 'PAUSED',
-    organizationId: item.organization_id || '', expectedUpdatedAt: item.updated_at || null };
+    organizationId: item.organization_id || '', expectedUpdatedAt: item.updated_at || null,
+    traits: Object.fromEntries(traitKeys.map(key => [key, item.care_traits?.[key] || 'UNKNOWN'])) };
 }
 
 export function CaseWizard({ item, transfer, organizations = [], onClose, onSaved }) {
@@ -116,6 +117,10 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
         options={[['SMALL', t('fx.small')], ['MEDIUM', t('fx.medium')], ['LARGE', t('fx.large')]]} /></Field>
       <Field label={t('fx.city')}><input className="fx-input" maxLength={100} value={data.city} onChange={event => field('city', event.target.value)} /></Field>
       <Field label={t('fx.area')}><input className="fx-input" maxLength={100} value={data.area} onChange={event => field('area', event.target.value)} /></Field></>,
+    <><h2>{fmt(t('fx.caseStepTraits'), { name })}</h2>
+      <p className="fx-muted">{t('fx.caseStepTraitsHint')}</p>
+      {traitKeys.map(key => <Field key={key} label={traitQuestion(key, t)}><Choices label={traitQuestion(key, t)} value={data.traits[key]} columns={3}
+        onChange={value => field('traits', { ...data.traits, [key]: value })} options={traitAnswers(t)} /></Field>)}</>,
     <><h2>{t('fx.caseStep3')}</h2>
       <Field label={t('fx.howLong')}><Choices label={t('fx.howLong')} value={data.duration} columns={2} onChange={value => field('duration', value)}
         options={['FEW_DAYS', 'ONE_TWO_WEEKS', 'ONE_MONTH', 'UNTIL_ADOPTION', 'UNKNOWN'].map(value => [value, durationLabel(value, t)])} /></Field>
@@ -136,10 +141,15 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
       <Toggle label={t('fx.visibleToHomes')} value={data.status === 'ACTIVE'} onChange={value => field('status', value ? 'ACTIVE' : 'PAUSED')} />
       <p className="fx-muted">{t('fx.notInPetPal')}</p></>,
   ];
-  const canNext = [data.name.trim().length > 0, data.description.trim().length > 0 && data.city.trim().length > 0, true, true, true][step];
+  const canNext = [data.name.trim().length > 0, data.description.trim().length > 0 && data.city.trim().length > 0, true, true, true, true][step];
   const finish = async () => {
     setBusy(true); setError('');
-    try { await fosterRpc('save_foster_case', { case_id_input: caseId, animal_id_input: animalId, data_input: data }); onSaved(caseId); }
+    const { traits, ...payload } = data;
+    try {
+      await fosterRpc('save_foster_case', { case_id_input: caseId, animal_id_input: animalId, data_input: payload });
+      await fosterRpc('save_animal_care_traits', { animal_id_input: animalId, traits_input: traits });
+      onSaved(caseId);
+    }
     catch (failure) { setError(friendlyError(failure, t)); }
     finally { setBusy(false); }
   };

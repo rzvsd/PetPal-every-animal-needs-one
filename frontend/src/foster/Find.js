@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bookmark, BookmarkCheck, Cat, Dog, Flag, Home, MapPin, Search, Star, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
-import { loadFosterDirectory } from '../services/fosterApi';
+import { loadFosterDirectory, loadHomeReviews } from '../services/fosterApi';
 import { Button, Card, Choices, Empty, Field, Notice, Photo, Screen, Sheet, fmt, itemMotion, listMotion } from './ui';
 import { Segment, person } from '../ui/kit';
 
@@ -62,6 +62,30 @@ export default function Find({ data, onOpenCase, onOpenHome }) {
   </>;
 }
 
+export const traitKeys = ['bites', 'children', 'animals', 'vaccinated', 'sterilised'];
+const traitLabel = { bites: 'fx.traitBites', children: 'fx.traitChildren', animals: 'fx.traitAnimals', vaccinated: 'fx.traitVaccinated', sterilised: 'fx.traitSterilised' };
+export const traitQuestion = (key, t) => t(traitLabel[key]);
+export const traitAnswers = t => [['YES', t('fx.answerYes')], ['NO', t('fx.answerNo')], ['UNKNOWN', t('fx.answerUnknown')]];
+const ageKey = months => (months == null || months === '' ? '' : months < 12 ? 'young' : months >= 96 ? 'senior' : 'adult');
+const sizeKey = { SMALL: 'small', MEDIUM: 'medium', LARGE: 'large' };
+
+// Age, size and the five plain answers, on the animal's page and in care.
+export function CareFacts({ item }) {
+  const { t } = useApp();
+  const traits = item.care_traits || {};
+  const age = ageKey(item.age_months);
+  const size = sizeKey[item.size_label];
+  const answer = Object.fromEntries(traitAnswers(t));
+  return <Card><p className="fx-eyebrow">{fmt(t('fx.factsTitle'), { name: item.name })}</p>
+    {(age || size) && <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+      {age && <span className="fx-badge">{t('fx.age')}: {t(`fx.${age}`)}</span>}
+      {size && <span className="fx-badge">{t('fx.size')}: {t(`fx.${size}`)}</span>}
+    </div>}
+    <dl className="fx-facts">{traitKeys.map(key => <div key={key}><dt>{traitQuestion(key, t)}</dt>
+      <dd className={traits[key] === 'YES' && key === 'bites' ? 'is-warn' : ''}>{answer[traits[key] || 'UNKNOWN']}</dd></div>)}</dl>
+  </Card>;
+}
+
 export function freePlaces(home) {
   return Math.max(0, (home.capacity || 0) - (home.occupied || 0) - (home.reserved || 0));
 }
@@ -82,17 +106,19 @@ function HomeCard({ home, onClick }) {
   </Card>;
 }
 
-export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, onReport }) {
+export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, onReport, onWithdraw }) {
   const { t, user } = useApp();
   const mine = item.responsible_id === user.id;
-  const alreadyOffered = data.outgoing.some(r => r.case_id === item.id && ['PENDING', 'ACCEPTED'].includes(r.status));
+  const myOffer = data.outgoing.find(r => r.case_id === item.id && ['PENDING', 'ACCEPTED'].includes(r.status));
   const saved = data.saved.some(s => s.case_id === item.id);
   const covered = [['food_covered', 'fx.food'], ['vet_covered', 'fx.vet'], ['transport_available', 'fx.transport']].filter(([key]) => item[key]);
   return <Screen title={item.name} onBack={onBack}
     action={!mine && <button type="button" className="fx-icon-button" aria-pressed={saved} aria-label={t(saved ? 'fx.unsave' : 'fx.save')} onClick={onToggleSave}>
       {saved ? <BookmarkCheck size={20} color="var(--pp-green)" /> : <Bookmark size={20} />}</button>}
     footer={mine ? <Button className="fx-button-block" variant="secondary" onClick={onEdit}>{t('fx.edit')}</Button>
-      : alreadyOffered ? <Button className="fx-button-block" variant="soft" disabled>{t('fx.offered')}</Button>
+      : myOffer ? (myOffer.status === 'PENDING' && onWithdraw
+        ? <Button className="fx-button-block" variant="secondary" onClick={() => onWithdraw(myOffer)}>{t('fx.withdrawOffer')}</Button>
+        : <Button className="fx-button-block" variant="soft" disabled>{t('fx.offered')}</Button>)
         : <Button className="fx-button-block" icon={Home} onClick={onOffer}>{t('fx.offerMyHome')}</Button>}>
     <div className="fx-hero">
       <Photo src={item.photo} name={item.name} species={item.species} className="fx-photo-hero" layoutId={`case-photo-${item.id}`} />
@@ -109,6 +135,7 @@ export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, 
       </motion.div>
       <Card><p className="fx-eyebrow">{fmt(t('fx.aboutAnimal'), { name: item.name })}</p>
         <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.description}</p></Card>
+      <CareFacts item={item} />
       {covered.length > 0 && <Card><p className="fx-eyebrow">{t('fx.covered')}</p>
         <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>{covered.map(([key, label]) => <span key={key} className="fx-badge">✓ {t(label)}</span>)}</div></Card>}
       {item.medical_needs && <Card><p className="fx-eyebrow">{t('fx.medical')}</p><p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>{item.medical_needs}</p></Card>}
@@ -121,11 +148,18 @@ export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, 
 }
 
 export function HomeDetail({ home, onBack, onInvite, onReport }) {
-  const { t, user } = useApp();
+  const { t, user, lang } = useApp();
+  const [reviews, setReviews] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadHomeReviews(home.id).then(rows => { if (!cancelled) setReviews(rows); }).catch(() => { if (!cancelled) setReviews([]); });
+    return () => { cancelled = true; };
+  }, [home.id]);
   const free = freePlaces(home);
   const mine = home.profile_id === user.id;
+  const since = home.owner_since && new Date(home.owner_since).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB', { month: 'long', year: 'numeric' });
   return <Screen title={home.name} onBack={onBack}
-    footer={!mine && <Button className="fx-button-block" onClick={onInvite} disabled={!free}>{t('care.invite')}</Button>}>
+    footer={!mine && onInvite && <Button className="fx-button-block" onClick={onInvite} disabled={!free}>{t('care.invite')}</Button>}>
     <div className="fx-hero"><Photo src={home.photos?.[0]} name={home.name} className="fx-photo-hero" /></div>
     <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show" style={{ marginTop: 16 }}>
       <motion.div variants={itemMotion}>
@@ -137,10 +171,25 @@ export function HomeDetail({ home, onBack, onInvite, onReport }) {
           {home.review_count > 0 && <span className="fx-badge is-sun"><Star size={12} />{home.rating} · {fmt(t('fx.reviews'), { count: home.review_count })}</span>}
         </div>
       </motion.div>
+      <Card><p className="fx-eyebrow">{t('fx.whoRunsHome')}</p>
+        <p style={{ marginTop: 6, fontWeight: 650 }}>{person(home.owner_name, t)}</p>
+        {since && <p className="fx-muted">{fmt(t('fx.memberSince'), { date: since })}</p>}
+        <dl className="fx-facts">
+          <div><dt>{t('fx.inCareNow')}</dt><dd>{home.occupied || 0}</dd></div>
+          <div><dt>{t('fx.finishedFosterings')}</dt><dd>{home.completed_placements || 0}</dd></div>
+        </dl>
+      </Card>
       {home.bio && <Card><p style={{ fontSize: 15, lineHeight: 1.6 }}>{home.bio}</p></Card>}
       {home.experience && <Card><p className="fx-eyebrow">{t('fx.experience')}</p><p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>{home.experience}</p></Card>}
+      <Card><p className="fx-eyebrow">{t('fx.whatReviewersWrote')}</p>
+        {reviews === null ? <div className="fx-skeleton" style={{ height: 40, marginTop: 8 }} />
+          : !reviews.length ? <p className="fx-muted" style={{ marginTop: 6 }}>{t('fx.noReviewsYet')}</p>
+            : reviews.map(review => <div key={review.id} style={{ marginTop: 10 }}>
+              <p style={{ fontWeight: 650 }}>{'★'.repeat(review.rating)} · {person(review.author_name, t)}</p>
+              {review.comment && <p className="fx-muted" style={{ marginTop: 2 }}>{review.comment}</p>}</div>)}
+      </Card>
       <p className="fx-muted" style={{ padding: '0 4px' }}>{t('fx.notInPetPal')}</p>
-      {!mine && <Button variant="ghost" icon={Flag} onClick={onReport}>{t('fx.report')}</Button>}
+      {!mine && onReport && <Button variant="ghost" icon={Flag} onClick={onReport}>{t('fx.report')}</Button>}
     </motion.div>
   </Screen>;
 }

@@ -4,6 +4,7 @@ import { AlertCircle, ArrowDown, ArrowLeft, Check, ChevronDown, Clock, Lock, Mor
 import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
 import { SafetyMenu } from '../components/SharedComponents';
+import DialogLayer from '../components/DialogLayer';
 import { useBackHandler } from '../navigation/backNavigation';
 import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Skeleton, fmt, person } from '../ui/kit';
 import { list, listItem, push, spring } from '../ui/motion';
@@ -42,6 +43,7 @@ function ConversationThread({ conv, onBack, t }) {
   const [input, setInput] = useState(drafts[conv.id] || '');
   const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
+  const [confirmBlock, setConfirmBlock] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [notice, setNotice] = useState('');
   const [newMessages, setNewMessages] = useState(false);
@@ -111,6 +113,12 @@ function ConversationThread({ conv, onBack, t }) {
   };
   const safetyAction = async action => {
     setShowSafety(false);
+    // Blocking cannot be taken back from here, so it asks once.
+    if (action === 'block') { setConfirmBlock(true); return; }
+    await runSafety(action);
+  };
+  const runSafety = async action => {
+    setConfirmBlock(false);
     try {
       if (action === 'block') await blockConversation(conv.id);
       else await reportConversation(conv.id, t('messages.conversationReported'));
@@ -230,6 +238,16 @@ function ConversationThread({ conv, onBack, t }) {
     </footer>
     <SafetyMenu open={showSafety} onClose={() => setShowSafety(false)} onReport={() => safetyAction('report')} onBlock={() => safetyAction('block')}
       onViewContext={() => { setShowSafety(false); setShowContext(true); }} />
+    <DialogLayer open={confirmBlock} onClose={() => setConfirmBlock(false)} label={t('messages.blockConfirmTitle')} priority={40}>
+      <div className="pp-confirm">
+        <h2 className="ui-title-m">{t('messages.blockConfirmTitle')}</h2>
+        <p className="ui-small">{t(conv.source === 'FOSTER' ? 'messages.blockConfirmFoster' : 'messages.blockConfirmText')}</p>
+        <div className="pp-confirm-actions">
+          <button type="button" className="ui-btn ui-btn-danger" onClick={() => runSafety('block')}>{t('messages.block')}</button>
+          <button type="button" className="ui-btn ui-btn-secondary" onClick={() => setConfirmBlock(false)}>{t('common.cancel')}</button>
+        </div>
+      </div>
+    </DialogLayer>
   </motion.section>;
 }
 

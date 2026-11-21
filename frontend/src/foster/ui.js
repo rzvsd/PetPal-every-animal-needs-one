@@ -137,7 +137,7 @@ export function Journey({ steps, current }) {
 export function TaskCheck({ done, label, meta, late, disabled, onToggle }) {
   const reduced = useReducedPetMotion();
   return <motion.button type="button" variants={itemMotion} layout={!reduced} className={`fx-task ${done ? 'is-done' : ''} ${late && !done ? 'is-late' : ''}`}
-    aria-pressed={done} disabled={disabled || done} onClick={onToggle} whileTap={reduced || done ? undefined : { scale: 0.98 }}>
+    aria-pressed={done} disabled={disabled} onClick={onToggle} whileTap={reduced || done ? undefined : { scale: 0.98 }}>
     <span className="fx-task-box" aria-hidden="true">
       <AnimatePresence>{done && <motion.svg viewBox="0 0 24 24" width="16" height="16" initial={reduced ? false : { scale: 0.4 }} animate={{ scale: 1 }}>
         <motion.path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
@@ -175,4 +175,15 @@ export function Celebrate({ show, text }) {
       transition={{ duration: 0.9, ease: 'easeOut' }} />)}
     <motion.p initial={reduced ? false : { scale: 0.8, y: 10 }} animate={{ scale: 1, y: 0 }} transition={motionSpring}>{text}</motion.p>
   </motion.div>}</AnimatePresence>;
+}
+
+// A plain "are you sure" for steps that cannot be undone.
+export function ConfirmSheet({ open, title, text, confirmLabel, danger, busy, onClose, onConfirm, children }) {
+  const { t } = useApp();
+  return <Sheet open={open} onClose={onClose} title={title}
+    footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button variant={danger ? 'danger' : 'primary'} disabled={busy} onClick={onConfirm}>{busy ? t('fx.loading') : confirmLabel}</Button></>}>
+    {text && <p className="fx-lead">{text}</p>}
+    {children}
+  </Sheet>;
 }
