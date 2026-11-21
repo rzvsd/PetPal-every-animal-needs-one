@@ -57,7 +57,7 @@ select is((select unread_count from public.conversation_inbox_view where convers
   'read position does not mark later unseen messages read');
 select lives_ok($$select public.mark_conversation_read(conversation_id,message_id) from qa_chat$$,'repeat read position is harmless');
 select is((select count(*)::integer from public.notification_events where payload->>'messageId'=(select message_id::text from qa_chat)
-  and event_type='MESSAGE_RECEIVED'),1,'retry emits one recipient notification event');
+  and event_type='NEW_MESSAGE'),1,'retry emits one recipient notification event');
 select throws_ok($$insert into public.conversation_typing(conversation_id,profile_id,is_typing)
   select conversation_id,auth.uid(),true from qa_chat$$,'42501',null,
   'typing rows are writable through RPCs only');

@@ -172,9 +172,9 @@ select ok(
     select 1
     from public.notification_events
     where profile_id = '10000000-0000-4000-8000-000000000001'
-      and event_type = 'MESSAGE_RECEIVED'
+      and event_type = 'NEW_MESSAGE'
   ),
-  'message received notification is queued for organization participant'
+  'new message notification is queued for organization participant'
 );
 
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);

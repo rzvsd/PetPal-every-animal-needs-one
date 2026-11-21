@@ -270,6 +270,16 @@ export async function updateSupabaseProfile(profile) {
   return completeSupabaseProfile(profile);
 }
 
+export const defaultNotificationPreferences = { push: true, matches: true, foster: true, safety: true };
+
+// Saved on the account; the server skips the push for a category that is off.
+export async function updateSupabaseNotificationPreferences(preferences) {
+  if (!isSupabaseConfigured) return { ...defaultNotificationPreferences, ...preferences };
+  const { data, error } = await supabase.rpc('set_notification_preferences', { preferences_input: preferences });
+  if (error) throw error;
+  return { ...defaultNotificationPreferences, ...(data || {}) };
+}
+
 export async function updateSupabaseTypingPreference(enabled) {
   if (!isSupabaseConfigured) return Boolean(enabled);
   const { data, error } = await supabase.rpc('update_typing_preference', {
@@ -348,7 +358,7 @@ async function loadProfile() {
     { data: roles, error: rolesError },
     { data: accessRows, error: accessError },
   ] = await Promise.all([
-    supabase.from('profiles').select('id, display_name, city, coarse_area, verification_status, show_typing_activity').eq('id', userId).maybeSingle(),
+    supabase.from('profiles').select('id, display_name, city, coarse_area, verification_status, show_typing_activity, notification_preferences').eq('id', userId).maybeSingle(),
     supabase.from('profile_roles').select('role').eq('profile_id', userId),
     supabase.from('my_rescuer_access_view').select('*').limit(1),
   ]);
@@ -373,6 +383,7 @@ async function loadProfile() {
     rescuerAccessRequestId: accessRow?.request_id || null,
     rescuerOrganizationId: accessRow?.organization_id || null,
     showTypingActivity: profile.show_typing_activity !== false,
+    notificationPreferences: { ...defaultNotificationPreferences, ...(profile.notification_preferences || {}) },
     email: userData.user.email || '',
     phone: userData.user.phone || '',
   };

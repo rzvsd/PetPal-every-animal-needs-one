@@ -52,6 +52,12 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
     ...data.placedElsewhere.filter(r => r.placement_status === 'RESERVED').map(r => ({ key: `placed-${r.id}`, request: r,
       text: fmt(t('fx.arrivingElsewhere'), { animal: r.animal_name, home: r.home_name }) })),
   ];
+  // Closed answers to my own offers from the last week, so a foster is never left wondering.
+  const weekAgo = Date.now() - 7 * 86400000;
+  const answers = data.outgoing.filter(r => ['PLACED_ELSEWHERE', 'DECLINED'].includes(r.status) && new Date(r.updated_at).getTime() > weekAgo)
+    .map(r => ({ key: `answer-${r.id}`, request: r, text: r.status === 'PLACED_ELSEWHERE'
+      ? fmt(t('fx.answerPlacedElsewhere'), { animal: r.animal_name })
+      : fmt(t('fx.answerDeclined'), { name: person(r.recipient_name, t), animal: r.animal_name }) }));
   const needsCount = offers.length + arriving.length + data.dueTasks.length + invites.length;
   const isNew = !data.homes.length && !data.myCases.length && !data.incoming.length && !data.outgoing.length;
   const animalOf = task => data.placements.find(p => p.id === task.placement_id);
@@ -126,6 +132,18 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
               <Photo src={item.request.photo} name={item.request.animal_name} species={item.request.species} className="fx-photo-sm" />
               <p className="fx-grow" style={{ fontSize: 14, lineHeight: 1.4 }}>{item.text}</p>
               <Clock size={18} className="fx-chevron" />
+            </div>
+          </Card>)}
+        </motion.div>
+      </>}
+
+      {answers.length > 0 && <>
+        <SectionTitle>{t('fx.recentAnswers')}</SectionTitle>
+        <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
+          {answers.map(item => <Card key={item.key} onClick={item.request.conversation_id ? () => onOpenChat(item.request.conversation_id) : undefined}>
+            <div className="fx-row">
+              <Photo src={item.request.photo} name={item.request.animal_name} species={item.request.species} className="fx-photo-sm" />
+              <p className="fx-grow" style={{ fontSize: 14, lineHeight: 1.4 }}>{item.text}</p>
             </div>
           </Card>)}
         </motion.div>

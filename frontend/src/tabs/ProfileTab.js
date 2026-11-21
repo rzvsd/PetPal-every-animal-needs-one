@@ -290,7 +290,7 @@ function BlockedScreen({ t, onBack, lang }) {
   </Screen>;
 }
 
-function ComfortScreen({ t, onBack, environment, prefs, onToggle, reduceMotion, onReduceMotionToggle, showTypingActivity, onTypingToggle, typingBusy, preferenceError }) {
+function ComfortScreen({ t, onBack, environment, prefs, onToggle, prefsBusy, reduceMotion, onReduceMotionToggle, showTypingActivity, onTypingToggle, typingBusy, preferenceError }) {
   const rows = [
     ['push', t('profile.pushNotifications'), t('profile.pushNotificationsDesc')],
     environment === 'foster'
@@ -308,7 +308,7 @@ function ComfortScreen({ t, onBack, environment, prefs, onToggle, reduceMotion, 
       {preferenceError && <Notice tone="error">{preferenceError}</Notice>}
       <h3 className="ui-overline pp-info-head">{t('profile.notifications')}</h3>
       <p className="ui-small">{t('profile.notificationPreferencesDesc')}</p>
-      <div>{rows.map(([key, label, description]) => <Toggle key={key} label={label} description={description} value={Boolean(prefs[key])} onChange={() => onToggle(key)} />)}</div>
+      <div>{rows.map(([key, label, description]) => <Toggle key={key} label={label} description={description} value={Boolean(prefs[key])} disabled={prefsBusy} onChange={() => onToggle(key)} />)}</div>
       <p className="ui-small">{t('profile.notificationPreferencesNotice')}</p>
     </div>
   </Screen>;
@@ -318,7 +318,7 @@ export default function ProfileTab({ environment = 'match' }) {
   const {
     t, lang, setLang, user, updateUserProfile, myAnimals, saveAnimalProfile, deleteAnimalProfile, authConfigured, signOut,
     dataSource, paymentSessions, createDonationSession, paymentReturnNotice, clearPaymentReturnNotice,
-    activeScreen, screenParams, goBack, setActiveTab, reduceMotion, setReduceMotion, setShowTypingActivity,
+    activeScreen, screenParams, goBack, setActiveTab, reduceMotion, setReduceMotion, setShowTypingActivity, setNotificationPreferences,
   } = useApp();
   const reduced = useReducedPetMotion();
   const isFoster = environment === 'foster';
@@ -332,7 +332,15 @@ export default function ProfileTab({ environment = 'match' }) {
   const [savingAnimal, setSavingAnimal] = useState(false);
   const [typingBusy, setTypingBusy] = useState(false);
   const [preferenceError, setPreferenceError] = useState('');
-  const [notificationPrefs, setNotificationPrefs] = useState({ push: true, matches: true, foster: true, safety: true });
+  const notificationPrefs = { push: true, matches: true, foster: true, safety: true, ...(user.notificationPreferences || {}) };
+  const [prefsBusy, setPrefsBusy] = useState(false);
+  const toggleNotificationPref = async key => {
+    if (prefsBusy) return;
+    setPreferenceError(''); setPrefsBusy(true);
+    try { await setNotificationPreferences({ [key]: !notificationPrefs[key] }); }
+    catch (error) { setPreferenceError(friendlyError(error, t, t('motion.preferenceError'))); }
+    finally { setPrefsBusy(false); }
+  };
   const say = (text, tone = 'success') => setNotice({ text, tone });
 
   const blankAnimal = { id: null, name: '', species: 'DOG', breed: '', sex: 'UNKNOWN', ageMonths: '', sizeLabel: 'MEDIUM',
@@ -510,7 +518,7 @@ export default function ProfileTab({ environment = 'match' }) {
       primary={<Button block icon={Download} onClick={exportProfileData}>{t('profile.downloadDataExport')}</Button>} />;
   } else if (page === 'comfort') {
     screen = <ComfortScreen key="comfort" t={t} onBack={back} environment={environment} prefs={notificationPrefs}
-      onToggle={key => setNotificationPrefs(current => ({ ...current, [key]: !current[key] }))}
+      onToggle={toggleNotificationPref} prefsBusy={prefsBusy}
       reduceMotion={reduceMotion} onReduceMotionToggle={() => { setPreferenceError(''); setReduceMotion(!reduceMotion); }}
       showTypingActivity={user.showTypingActivity !== false} onTypingToggle={toggleTypingActivity} typingBusy={typingBusy} preferenceError={preferenceError} />;
   } else if (page === 'blocked') {
