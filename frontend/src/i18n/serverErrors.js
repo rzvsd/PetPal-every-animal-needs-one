@@ -55,6 +55,7 @@ export const serverErrorsRo = {
   'Message request ID was already used for different content': 'Mesajul a fost deja trimis. Reîncarcă discuția.',
   'Messaging is blocked for this conversation': 'Nu mai poți scrie liber în această discuție.',
   'Name, city and valid description are required': 'Scrie numele, orașul și o descriere.',
+  'Website must be a web address': 'Site-ul trebuie să fie o adresă web, de exemplu casalabute.ro.',
   'New tasks require active care': 'Poți adăuga sarcini doar cât timp animalul e rezervat sau în grijă.',
   'No discrepancy is open': 'Nu există nicio problemă deschisă.',
   'Not authenticated': 'Conectează-te din nou.',

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bookmark, BookmarkCheck, Cat, Dog, Flag, Home, MapPin, Search, Star, Zap } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Cat, Dog, ExternalLink, Flag, Home, MapPin, Search, Star, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { loadFosterDirectory, loadHomeReviews } from '../services/fosterApi';
@@ -147,6 +147,11 @@ export function CaseDetail({ item, data, onBack, onOffer, onEdit, onToggleSave, 
   </Screen>;
 }
 
+// Only ever link to a plain web page, whatever is stored.
+export function safeWebsite(value) {
+  try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
+}
+const websiteHost = value => { try { return new URL(value).host.replace(/^www\./, ''); } catch { return ''; } };
 export function HomeDetail({ home, onBack, onInvite, onReport }) {
   const { t, user, lang } = useApp();
   const [reviews, setReviews] = useState(null);
@@ -178,6 +183,8 @@ export function HomeDetail({ home, onBack, onInvite, onReport }) {
           <div><dt>{t('fx.inCareNow')}</dt><dd>{home.occupied || 0}</dd></div>
           <div><dt>{t('fx.finishedFosterings')}</dt><dd>{home.completed_placements || 0}</dd></div>
         </dl>
+        {safeWebsite(home.website) && <a className="fx-link-row" href={safeWebsite(home.website)} target="_blank" rel="noopener noreferrer nofollow ugc">
+          <ExternalLink size={16} aria-hidden="true" /><span>{t('fx.visitWebsite')}<small className="fx-muted">{websiteHost(home.website)} · {t('fx.websiteOutside')}</small></span></a>}
       </Card>
       {home.bio && <Card><p style={{ fontSize: 15, lineHeight: 1.6 }}>{home.bio}</p></Card>}
       {home.experience && <Card><p className="fx-eyebrow">{t('fx.experience')}</p><p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>{home.experience}</p></Card>}
