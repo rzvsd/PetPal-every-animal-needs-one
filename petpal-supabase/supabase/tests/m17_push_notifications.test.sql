@@ -126,7 +126,7 @@ select ok(
     where profile_id = '10000000-0000-4000-8000-000000000002'
       and event_type = 'FOSTER_APPLICATION_ACCEPTED'
       and delivery_status = 'QUEUED'
-      and title = 'Foster request accepted'
+      and title = 'Cerere foster acceptată'
   ),
   'accepted foster application queues a push notification event'
 );

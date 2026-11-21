@@ -2,8 +2,8 @@
    the paper below it, and everything fits one screen without scrolling. */
 .pp-match { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .pp-match-controls { display: flex; align-items: center; gap: 8px; padding: 2px var(--pp-gutter) 12px; }
-.pp-toggle[aria-pressed='true'] { background: var(--pp-green-soft); color: var(--pp-green); }
-.pp-match-mode-note { margin: -4px var(--pp-gutter) 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-green); }
+.pp-toggle[aria-pressed='true'] { background: var(--pp-green-soft); color: var(--pp-action-ink); }
+.pp-match-mode-note { margin: -4px var(--pp-gutter) 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pp-action-ink); }
 
 .pp-match-stage { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 0 10px; }
 .pp-match-stage > * { grid-area: 1 / 1; min-height: 0; min-width: 0; }
@@ -35,7 +35,7 @@
 .ui-icon-btn-ring:disabled { opacity: .5; }
 .pp-action-main { flex: 1; max-width: 220px; min-height: 58px; border-radius: 29px; font-size: 17px; box-shadow: 0 10px 30px var(--pp-glow); }
 .pp-saved { color: var(--pp-accent-2); fill: var(--pp-accent-2); }
-.pp-hearts { position: absolute; z-index: 4; pointer-events: none; color: var(--pp-clay); }
+.pp-hearts { position: absolute; z-index: 4; pointer-events: none; color: var(--pp-clay-ink); }
 .pp-hearts span { position: absolute; left: -10px; top: -10px; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 30%)); }
 .pp-match-hint { padding: 2px var(--pp-gutter) 10px; text-align: center; font-size: 13px; line-height: 1.4; color: var(--pp-muted); }
 .pp-match-notice { padding: 10px var(--pp-gutter) 0; }

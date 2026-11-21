@@ -10,6 +10,7 @@ import {
   setSupabaseConversationTyping,
   loadSupabaseConversationTyping,
 } from './supabaseApi';
+import { translateServerMessage } from './errors';
 import { readChatStorage, writeChatStorage, mergeMessages, reconcileOutbox } from './messageStorage';
 
 export function useMessaging({ accountId, live, conversations, setConversations, showTypingActivity = true }) {
@@ -279,8 +280,10 @@ export function useMessaging({ accountId, live, conversations, setConversations,
         }
         persist({ ...state.current.local, outbox: state.current.local.outbox.filter(m => m.clientMessageId !== requestId) });
         refreshInbox(undefined, false, conversationId).catch(() => {});
-      } catch {
+      } catch (error) {
         if (version !== generation.current) return;
+        // Say why when the server refused on purpose (for example, sending too fast).
+        if (error?.code === 'P0001' && error.message) setChatError(translateServerMessage(error.message));
         const next = { ...state.current.local, outbox: state.current.local.outbox.map(m => m.clientMessageId === requestId ? { ...m, status: 'failed' } : m) };
         try { persist(next); } catch { setLocal(next); setChatError('readiness.storageFailed'); }
       } finally { pendingSends.current.delete(requestId); }

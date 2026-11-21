@@ -134,7 +134,7 @@
 .pp-sheet { display: flex; flex-direction: column; min-height: 0; padding: 0 var(--pp-gutter) 16px; }
 .pp-sheet-title { padding: 4px 0 8px; }
 .pp-sheet-list { overflow-y: auto; }
-.pp-check { color: var(--pp-green); flex-shrink: 0; }
+.pp-check { color: var(--pp-action-ink); flex-shrink: 0; }
 
 .pp-tabs { display: flex; align-items: stretch; justify-content: space-around; height: calc(64px + env(safe-area-inset-bottom)); padding: 0 8px env(safe-area-inset-bottom);
   background: var(--pp-night); color: #fff; z-index: 50; }
@@ -157,7 +157,7 @@
 .pp-chooser-option:active { background: color-mix(in srgb, var(--pp-bg-deep) 55%, transparent); }
 .pp-chooser-option .ui-art { flex-shrink: 0; margin-left: -6px; }
 .pp-chooser-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.pp-chooser-go { display: flex; align-items: center; gap: 8px; color: var(--pp-green); flex-shrink: 0; }
+.pp-chooser-go { display: flex; align-items: center; gap: 8px; color: var(--pp-action-ink); flex-shrink: 0; }
 .pp-chooser-note { margin-top: auto; padding-top: 24px; }
 
 /* Sign in: the brand at the top, the form within thumb reach below. */
@@ -171,12 +171,12 @@
 .pp-auth-brand .ui-lede { margin-top: 10px; }
 .pp-auth-modes { margin-top: auto; }
 .pp-auth-reset-intro { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
-.pp-auth-link { align-self: flex-start; min-height: 44px; margin-top: -8px; font-size: 14.5px; font-weight: 650; color: var(--pp-green); text-decoration: underline; text-underline-offset: 3px; }
+.pp-auth-link { align-self: flex-start; min-height: 44px; margin-top: -8px; font-size: 14.5px; font-weight: 650; color: var(--pp-action-ink); text-decoration: underline; text-underline-offset: 3px; }
 .pp-auth-form { display: flex; flex-direction: column; gap: 16px; padding-top: 22px; }
 .pp-auth-group { display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
 .pp-auth-pair { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 10px; }
 .pp-auth-terms { font-size: 14px; line-height: 1.45; color: var(--pp-muted); }
-.pp-auth-terms summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; color: var(--pp-green); cursor: pointer; }
+.pp-auth-terms summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; color: var(--pp-action-ink); cursor: pointer; }
 .pp-auth-terms ul { padding: 4px 0 4px 18px; list-style: disc; display: flex; flex-direction: column; gap: 4px; }
 .pp-auth-demo { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; padding-top: 14px; }
 .pp-auth-demo .ui-btn { font-size: 14.5px; }

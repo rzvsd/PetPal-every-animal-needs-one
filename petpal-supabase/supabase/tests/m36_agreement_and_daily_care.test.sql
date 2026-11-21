@@ -77,7 +77,7 @@ reset role;
 update public.foster_tasks set due_at = now() where id = (select id from ids where name='task');
 select is(public.send_task_reminders(),1,'one reminder for the one carer');
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003602'
-  and event_type = 'FOSTER_TASKS_TODAY' and body like '1 task today for Bobi%'),'the reminder names the animal');
+  and event_type = 'FOSTER_TASKS_TODAY' and body like '1 sarcină azi pentru Bobi%'),'the reminder names the animal');
 select ok(not has_function_privilege('authenticated','public.send_task_reminders()','execute'),'only the scheduler can send reminders');
 
 select * from finish();

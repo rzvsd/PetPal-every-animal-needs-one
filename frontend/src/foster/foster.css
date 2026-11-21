@@ -65,8 +65,8 @@
 .fx-photo-sm { width: 52px; height: 52px; border-radius: 16px; }
 .fx-photo-md { width: 64px; height: 64px; border-radius: 18px; }
 .fx-photo-hero { width: 100%; height: 300px; border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
-.fx-intent-icon { display: grid; place-items: center; width: 56px; height: 56px; flex-shrink: 0; border-radius: 16px; color: var(--pp-green); background: var(--pp-green-soft); }
-.fx-intent-icon.is-clay { color: var(--pp-clay); background: var(--pp-clay-soft); }
+.fx-intent-icon { display: grid; place-items: center; width: 56px; height: 56px; flex-shrink: 0; border-radius: 16px; color: var(--pp-action-ink); background: var(--pp-green-soft); }
+.fx-intent-icon.is-clay { color: var(--pp-clay-ink); background: var(--pp-clay-soft); }
 .fx-intent-icon.is-art { width: 64px; height: 64px; background: transparent; }
 
 /* Tap-to-choose options */
@@ -120,7 +120,7 @@ textarea.fx-input { min-height: 112px; resize: vertical; line-height: 1.5; }
 .fx-how { counter-reset: how; display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
 .fx-how li { display: flex; align-items: flex-start; gap: 14px; list-style: none; font-size: 15px; line-height: 1.5; color: var(--pp-ink); }
 .fx-how li::before { counter-increment: how; content: counter(how); flex-shrink: 0; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
-  font-family: var(--pp-font-display); font-size: 15px; font-weight: 620; color: var(--pp-green); box-shadow: inset 0 0 0 1.5px var(--pp-green); }
+  font-family: var(--pp-font-display); font-size: 15px; font-weight: 620; color: var(--pp-action-ink); box-shadow: inset 0 0 0 1.5px var(--pp-green); }
 
 /* Find: photo tiles. The picture carries the card. */
 .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -232,17 +232,17 @@ html:not([data-petpal-reduced-motion='true']) .fx-skeleton { animation: ui-breat
 @media (prefers-reduced-motion: reduce) { .fx-skeleton { animation: none !important; } }
 
 /* Team invite codes */
-.fx-code { margin: 14px 0 6px; padding: 18px 12px; border-radius: 18px; text-align: center; color: var(--pp-green); background: var(--pp-green-soft);
+.fx-code { margin: 14px 0 6px; padding: 18px 12px; border-radius: 18px; text-align: center; color: var(--pp-action-ink); background: var(--pp-green-soft);
   font: 700 32px/1 ui-monospace, 'Cascadia Mono', monospace; letter-spacing: 4px; user-select: all; }
 .fx-code-input { text-transform: uppercase; letter-spacing: 3px; font-family: ui-monospace, 'Cascadia Mono', monospace; font-size: 20px; text-align: center; }
-.fx-link-button { display: block; width: 100%; min-height: 44px; margin-top: 8px; font-size: 15px; font-weight: 650; color: var(--pp-green); text-decoration: underline; text-underline-offset: 3px; }
+.fx-link-button { display: block; width: 100%; min-height: 44px; margin-top: 8px; font-size: 15px; font-weight: 650; color: var(--pp-action-ink); text-decoration: underline; text-underline-offset: 3px; }
 .fx-toggle-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fx-toggle-text small { font-size: 13.5px; font-weight: 500; line-height: 1.4; color: var(--pp-muted); }
 .fx-toggle:disabled { opacity: .6; }
 
 /* Alive: photos carry the Foster screens. */
 .fx-hello h1 { font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 40px; }
-.fx-section-title h2 { color: var(--pp-accent); }
+.fx-section-title h2 { color: var(--pp-action-ink); }
 .fx-button-primary { box-shadow: 0 8px 24px var(--pp-glow); }
 .fx-card.fx-hero-card { position: relative; min-height: 420px; padding: 0; margin: 4px 0 8px; border-radius: var(--pp-radius-xl); overflow: hidden; color: #fff;
   background: var(--pp-night-2); box-shadow: var(--pp-shadow-lift); justify-content: flex-end; }

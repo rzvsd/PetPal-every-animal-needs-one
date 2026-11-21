@@ -5,14 +5,20 @@ import { Art, Button, Notice, Segment, TextField } from '../ui/kit';
 import { expand } from '../ui/motion';
 
 const emptyForm = { displayName: '', city: 'Bucharest', coarseArea: '', email: '', password: '', ageConfirmed: false, termsAccepted: false };
+// The screen unmounts while a sign-in or sign-up is checked; what was typed
+// waits here in memory (never in storage) so a failed attempt keeps it.
+const remembered = { form: emptyForm, mode: 'login' };
 
 export default function AuthScreen() {
   const {
     t, lang, setLang, authLoading, authError, authNotice, signIn, signUp, signInDemo, continueLocalDemo, requestPasswordReset,
     backendStatus, refreshSupabaseData, localDemoAvailable, demoSupabaseLoginAvailable,
   } = useApp();
-  const [mode, setMode] = useState('login');
-  const [form, setForm] = useState(emptyForm);
+  const [mode, setModeState] = useState(remembered.mode);
+  // The password survives only a failed attempt, never a later visit.
+  const [form, setFormState] = useState(() => (authError ? remembered.form : { ...remembered.form, password: '' }));
+  const setMode = next => { remembered.mode = next; setModeState(next); };
+  const setForm = next => setFormState(current => { remembered.form = typeof next === 'function' ? next(current) : next; return remembered.form; });
   const [errors, setErrors] = useState({});
   const register = mode === 'register';
   const reset = mode === 'reset';
