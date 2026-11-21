@@ -47,3 +47,9 @@ Conflicting participant statements about a placement, retained alongside their c
 
 **Care journal**:
 Participant-authored observations and care actions, not veterinary advice from PetPal.
+
+**Ending**:
+Either side of a placement records that care ended, with an outcome (returned, adopted by the foster, adopted elsewhere, moved, lost, died, other). The other side is told and has 7 days to contest it; the chat stays open for 14 days. Only the animal's owner can record "returned" as confirmed.
+
+**Transfer consent**:
+Before an animal in care moves to another foster home, the person who first posted it is asked. After 7 days without an answer the receiving side may go ahead; the placement records "owner did not answer" and moderation is told.

@@ -63,7 +63,7 @@ select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000003302'
 select lives_ok($$select public.update_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),'RECEIVE',
   jsonb_build_object('expectedUpdatedAt',(select updated_at from public.foster_placements where request_id = (select id from ids where name='reqA'))))$$,'the foster declares receipt');
 select lives_ok($$select public.update_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),'END',
-  jsonb_build_object('body','Adopted','expectedUpdatedAt',(select updated_at from public.foster_placements where request_id = (select id from ids where name='reqA'))))$$,'the foster ends care');
+  jsonb_build_object('body','Adopted','outcome','ADOPTED_ELSEWHERE','expectedUpdatedAt',(select updated_at from public.foster_placements where request_id = (select id from ids where name='reqA'))))$$,'the foster ends care');
 select throws_ok($$select public.review_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),5,'We are the best')$$,
   'P0001','You cannot review your own foster home','a foster cannot review their own home');
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000003301',true);

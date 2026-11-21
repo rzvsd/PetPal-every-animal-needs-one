@@ -27,7 +27,8 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
   const coming = data.placements.filter(p => p.status === 'RESERVED');
   const inCare = data.placements.filter(p => p.status === 'IN_CARE');
   const looking = data.myCases.filter(c => ['ACTIVE', 'PAUSED'].includes(c.status) && !c.placed);
-  const hasAnything = coming.length || inCare.length || looking.length || data.placedElsewhere.length || data.finished.length;
+  const hasAnything = coming.length || inCare.length || looking.length || data.placedElsewhere.length || data.finished.length
+    || data.finishedElsewhere.length;
 
   const placementRow = p => {
     const badges = [];
@@ -99,6 +100,14 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
           onClick={() => onOpenCase(c)} />;
       })}
     </motion.div>}
+
+    {data.finishedElsewhere.length > 0 && <><SectionTitle>{t('fx.finishedWithFoster')}</SectionTitle>
+      <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">
+        {data.finishedElsewhere.map(r => <AnimalRow key={r.id} photo={r.photo} name={r.animal_name} species={r.species}
+          subtitle={r.placement_outcome ? t(`fx.outcome${r.placement_outcome}`) : r.home_name}
+          badges={[<span key="s" className="fx-badge is-sun">{t('fx.reviewHome')}</span>]}
+          onClick={() => onOpenPlacement(r.placement_id)} />)}
+      </motion.div></>}
 
     {data.finished.length > 0 && <><SectionTitle>{t('fx.finished')}</SectionTitle>
       <motion.div className="fx-shelf" variants={listMotion} initial="hidden" animate="show">

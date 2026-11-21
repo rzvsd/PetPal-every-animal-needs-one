@@ -186,8 +186,10 @@ function mapConversation(row, messages) {
     coarseArea: row.coarse_area || '',
     otherParticipantIds: row.other_participant_ids || [],
     blocked: Boolean(row.messaging_blocked || row.blocked_by_me),
+    // A placement chat stays readable after a block while the animal is in care.
+    historyKept: Boolean(row.history_kept),
     reported: Boolean(row.reported_by_me),
-    lastMessage: row.messaging_blocked ? '' : row.last_message_body || '',
+    lastMessage: row.messaging_blocked && !row.history_kept ? '' : row.last_message_body || '',
     lastMessageAt: row.last_message_at || row.created_at,
     unread: row.unread_count || 0,
     messages: conversationMessages,

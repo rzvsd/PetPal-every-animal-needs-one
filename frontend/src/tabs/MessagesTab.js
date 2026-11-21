@@ -54,8 +54,9 @@ function ConversationThread({ conv, onBack, t }) {
   const isMatch = conv.source === 'MATCH';
   const locale = lang === 'ro' ? 'ro-RO' : 'en-GB';
   const canWrite = !conv.blocked && !conv.fosterReadOnly && (!conv.socialRequestStatus || conv.socialRequestStatus === 'ACCEPTED');
-  const messages = useMemo(() => conv.blocked ? [] : [...conv.messages, ...outbox.filter(message => message.conversationId === conv.id
-    && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId))], [conv.blocked, conv.id, conv.messages, outbox]);
+  const hidden = conv.blocked && !conv.historyKept;
+  const messages = useMemo(() => hidden ? [] : [...conv.messages, ...outbox.filter(message => message.conversationId === conv.id
+    && !conv.messages.some(accepted => accepted.clientMessageId === message.clientMessageId))], [hidden, conv.id, conv.messages, outbox]);
   const messageKey = message => message.clientMessageId || message.messageId;
   const seenMessages = useRef(null);
   if (!seenMessages.current) seenMessages.current = new Set(messages.map(messageKey));
@@ -78,12 +79,12 @@ function ConversationThread({ conv, onBack, t }) {
   }, [conv.messages, outbox]);
   useEffect(() => {
     const read = () => {
-      if (atBottom.current && document.visibilityState !== 'hidden' && !conv.blocked) markRead(conv.id, latest);
+      if (atBottom.current && document.visibilityState !== 'hidden' && !hidden) markRead(conv.id, latest);
     };
     read();
     document.addEventListener('visibilitychange', read);
     return () => document.removeEventListener('visibilitychange', read);
-  }, [conv.id, conv.blocked, latest, markRead]);
+  }, [conv.id, hidden, latest, markRead]);
   const handleSend = async () => {
     if (sending.current || !input.trim() || !canWrite) return;
     sending.current = true; setSendError('');
@@ -151,7 +152,7 @@ function ConversationThread({ conv, onBack, t }) {
     </motion.div>}</AnimatePresence>
 
     <div className="pp-thread-notes">
-      {conv.blocked && <Notice tone="error">{t('readiness.blockedChat')}</Notice>}
+      {conv.blocked && <Notice tone="error">{t(conv.historyKept ? 'fx.historyKept' : 'readiness.blockedChat')}</Notice>}
       {conv.fosterReadOnly && <Notice>{t('care.readOnlyChat')}</Notice>}
       {notice && <Notice tone="success" onClose={() => setNotice('')}>{notice}</Notice>}
       {chatError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => loadThread(conv.id)}>{t('readiness.retry')}</button>}>{t(chatError)}</Notice>}
@@ -162,7 +163,7 @@ function ConversationThread({ conv, onBack, t }) {
       {threadHasMore[conv.id] && <Button variant="quiet" block disabled={loadingThread} onClick={loadEarlier}>{t('readiness.earlierMessages')}</Button>}
       {loadingThread && !messages.length && <div className="pp-thread-skeleton" aria-hidden="true">
         <Skeleton width="62%" height={44} radius={20} /><Skeleton width="48%" height={44} radius={20} className="is-mine" /><Skeleton width="55%" height={60} radius={20} /></div>}
-      {!loadingThread && !messages.length && !conv.blocked && <p className="pp-thread-empty">{t('messages.sayHello')}</p>}
+      {!loadingThread && !messages.length && !hidden && <p className="pp-thread-empty">{t('messages.sayHello')}</p>}
       {messages.map((msg, index) => {
         const previous = messages[index - 1];
         const next = messages[index + 1];

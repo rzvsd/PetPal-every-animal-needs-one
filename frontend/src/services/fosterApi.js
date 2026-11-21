@@ -76,8 +76,9 @@ export async function loadFosterHomeDetails(homeId) {
 }
 
 export async function loadFosterRequests(accountId, direction, page = 0) {
+  const column = { incoming: 'recipient_id', outgoing: 'sender_id', consent: 'consent_owner_id' }[direction];
   const response = await result(supabase.from('foster_requests_view').select('*', { count: 'exact' })
-    .eq(direction === 'incoming' ? 'recipient_id' : 'sender_id', accountId)
+    .eq(column, accountId)
     .order('created_at', { ascending: false }).order('id').range(page * 25, page * 25 + 24));
   return { rows: response.data, count: response.count };
 }
@@ -90,6 +91,16 @@ export async function loadFosterPlacement(id) {
     result(supabase.from('foster_reviews_view').select('*').eq('placement_id', id)),
   ]);
   return { placement: placement.data, journal: journal.data, tasks: tasks.data, reviews: reviews.data };
+}
+
+// Placements of my animals in homes I am not part of, across transfers,
+// including finished ones from the last 60 days so I can review the home.
+export async function loadMyAnimalsElsewhere(accountId, myHomeIds) {
+  const since = new Date(Date.now() - 60 * 86400000).toISOString();
+  let request = supabase.from('foster_registry_view').select('*').neq('home_owner_id', accountId)
+    .or(`status.in.(RESERVED,IN_CARE),ended_at.gte."${since}"`);
+  if (myHomeIds.length) request = request.not('home_id', 'in', `(${myHomeIds.join(',')})`);
+  return (await result(request.order('created_at', { ascending: false }).limit(50))).data;
 }
 
 // Open tasks due by the end of tomorrow, for the Today screen.
