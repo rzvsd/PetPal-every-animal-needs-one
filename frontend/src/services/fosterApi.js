@@ -183,3 +183,17 @@ export async function loadPlatformItem(type, id) {
   const table = type === 'ACCOUNT' ? 'platform_accounts_view' : type === 'LISTING' ? 'platform_listings_view' : 'platform_reports_view';
   return (await result(supabase.from(table).select('*').eq('id', id).single())).data;
 }
+
+// One animal or home by id, for opening it from an invitation or an offer.
+export async function loadFosterCase(caseId) {
+  return (await result(supabase.from('foster_cases_directory').select('*').eq('id', caseId).maybeSingle())).data;
+}
+
+export async function loadFosterHome(homeId) {
+  return (await result(supabase.from('foster_homes_directory').select('*').eq('id', homeId).maybeSingle())).data;
+}
+
+export async function loadHomeReviews(homeId) {
+  return (await result(supabase.from('foster_reviews_view').select('*').eq('home_id', homeId)
+    .order('created_at', { ascending: false }).limit(20))).data;
+}

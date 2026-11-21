@@ -9,7 +9,7 @@ import { durationLabel, freePlaces } from './Find';
 import { PhotoPicker, Toggle, caseToData } from './Wizard';
 import { person } from '../ui/kit';
 
-export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenChat, onOpenPlacement, onChanged }) {
+export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenChat, onOpenPlacement, onChanged, onOpenHomeById, onWithdraw }) {
   const { t } = useApp();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -50,13 +50,15 @@ export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenCh
         <div className="fx-todo-head"><span className="fx-intent-icon is-green" aria-hidden="true">🏡</span>
           <div className="fx-grow"><h3>{r.home_name}</h3><p>{person(r.sender_name, t)}</p></div></div>
         {r.message && <p className="fx-quote">{r.message}</p>}
+        {onOpenHomeById && <button type="button" className="fx-link-button" onClick={() => onOpenHomeById(r.home_id)}>{fmt(t('fx.seeHome'), { home: r.home_name || '' })}</button>}
         <div className="fx-actions">
           <Button disabled={busy} onClick={() => onAnswer(r, 'ACCEPT')}>{t('fx.accept')}</Button>
-          <Button variant="secondary" disabled={busy} onClick={() => onAnswer(r, 'DECLINE')}>{t('fx.notNow')}</Button>
+          <Button variant="secondary" disabled={busy} onClick={() => onAnswer(r, 'DECLINE')}>{t('fx.decline')}</Button>
           {r.conversation_id && <Button variant="soft" icon={MessageCircle} aria-label={t('fx.chat')} onClick={() => onOpenChat(r.conversation_id)} style={{ flex: '0 0 50px', padding: 0 }} />}
         </div>
       </Card>) : <Empty art="house" title={t('fx.noOffers')} text={visible ? t('fx.noOffersHint') : t('fx.hidden')} />}
-      {invitesSent.map(r => <Card key={r.id}><p style={{ fontSize: 14 }}>{fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: item.name })}</p></Card>)}
+      {invitesSent.map(r => <Card key={r.id}><p style={{ fontSize: 14 }}>{fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: item.name })}</p>
+        {onWithdraw && r.status === 'PENDING' && <div className="fx-actions"><Button variant="secondary" disabled={busy} onClick={() => onWithdraw(r)}>{t('fx.withdrawOffer')}</Button></div>}</Card>)}
     </motion.div></>}
 
     <SectionTitle>{t('fx.settings')}</SectionTitle>

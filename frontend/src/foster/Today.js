@@ -41,13 +41,13 @@ export function HowItWorks() {
 }
 
 export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask, onOpenPlacement, onOpenRequest,
-  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent, onOpenActivity }) {
+  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent, onOpenActivity, onOpenCaseById, onOpenHomeById, onWithdraw }) {
   const { t, user } = useApp();
   const offers = data.incoming.filter(r => r.status === 'PENDING');
   const arriving = data.placements.filter(p => p.status === 'RESERVED');
   const invites = data.team.filter(m => m.profile_id === user.id && m.status === 'INVITED');
   const waiting = [
-    ...data.outgoing.filter(r => r.status === 'PENDING').map(r => ({ key: r.id, request: r,
+    ...data.outgoing.filter(r => r.status === 'PENDING').map(r => ({ key: r.id, request: r, withdraw: true,
       text: fmt(t('fx.waitingFor'), { name: person(r.recipient_name, t), animal: r.animal_name }) })),
     ...[...data.incoming, ...data.outgoing].filter(r => r.owner_consent === 'PENDING' && r.status === 'PENDING')
       .map(r => ({ key: `consent-${r.id}`, request: r, text: fmt(t('fx.consentWaiting'), { animal: r.animal_name }) })),
@@ -113,9 +113,13 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
               </div>
             </div>
             {request.message && <p className="fx-quote">{request.message}</p>}
+            {request.kind === 'INVITE' ? onOpenCaseById && <button type="button" className="fx-link-button" onClick={() => onOpenCaseById(request.case_id)}>
+              {fmt(t('fx.seeAnimal'), { animal: request.animal_name })}</button>
+              : onOpenHomeById && <button type="button" className="fx-link-button" onClick={() => onOpenHomeById(request.home_id)}>
+                {fmt(t('fx.seeHome'), { home: request.home_name || '' })}</button>}
             <div className="fx-actions">
               <Button disabled={busy} onClick={() => onAnswer(request, 'ACCEPT')}>{t('fx.accept')}</Button>
-              <Button variant="secondary" disabled={busy} onClick={() => onAnswer(request, 'DECLINE')}>{t('fx.notNow')}</Button>
+              <Button variant="secondary" disabled={busy} onClick={() => onAnswer(request, 'DECLINE')}>{t('fx.decline')}</Button>
               {request.conversation_id && <Button variant="soft" className="fx-button-icon" aria-label={t('fx.chat')}
                 onClick={() => onOpenChat(request.conversation_id)} icon={MessageCircle} style={{ flex: '0 0 50px', padding: 0 }} />}
             </div>
@@ -145,7 +149,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
               <div className="fx-grow"><h3>{fmt(t('fx.teamInvite'), { home: invite.home_name })}</h3></div></div>
             <div className="fx-actions">
               <Button disabled={busy} onClick={() => onTeamInvite(invite, 'ACCEPT')}>{t('fx.accept')}</Button>
-              <Button variant="secondary" disabled={busy} onClick={() => onTeamInvite(invite, 'DECLINE')}>{t('fx.notNow')}</Button>
+              <Button variant="secondary" disabled={busy} onClick={() => onTeamInvite(invite, 'DECLINE')}>{t('fx.decline')}</Button>
             </div>
           </Card>)}
         </motion.div>
@@ -154,7 +158,17 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       {waiting.length > 0 && <>
         <SectionTitle>{t('fx.waitingOthers')}</SectionTitle>
         <motion.div className="fx-stack" variants={listMotion} initial="hidden" animate="show">
-          {waiting.map(item => <Card key={item.key} onClick={() => onOpenRequest(item.request)}>
+          {waiting.map(item => item.withdraw && onWithdraw ? <Card key={item.key}>
+            <div className="fx-row">
+              <Photo src={item.request.photo} name={item.request.animal_name} species={item.request.species} className="fx-photo-sm" />
+              <p className="fx-grow" style={{ fontSize: 14, lineHeight: 1.4 }}>{item.text}</p>
+              <Clock size={18} className="fx-chevron" />
+            </div>
+            <div className="fx-actions">
+              {item.request.conversation_id && <Button variant="soft" icon={MessageCircle} onClick={() => onOpenChat(item.request.conversation_id)}>{t('fx.chat')}</Button>}
+              <Button variant="secondary" disabled={busy} onClick={() => onWithdraw(item.request)}>{t('fx.withdrawOffer')}</Button>
+            </div>
+          </Card> : <Card key={item.key} onClick={() => onOpenRequest(item.request)}>
             <div className="fx-row">
               <Photo src={item.request.photo} name={item.request.animal_name} species={item.request.species} className="fx-photo-sm" />
               <p className="fx-grow" style={{ fontSize: 14, lineHeight: 1.4 }}>{item.text}</p>
