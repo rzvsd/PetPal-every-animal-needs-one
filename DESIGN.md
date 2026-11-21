@@ -29,23 +29,28 @@ Rules that follow from this:
 
 ## Tokens (`frontend/src/index.css`)
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--pp-night` | `#0e1612` | Launch, doors, tab bar |
-| `--pp-bg` | world tint (peach `#ffe9d6` / mint `#dff1de`) | Page background inside a world |
-| `--pp-bg-deep` | `#ece4d6` | Fields, segmented tracks, skeletons, secondary buttons |
-| `--pp-surface` | `#fffdf8` | Sheets, tab bar, raised panels |
-| `--pp-ink` | `#1b2520` | Text (13.9:1 on paper) |
-| `--pp-muted` | `#5a665f` | Secondary text (5.3:1 on paper, 4.75:1 on deep) |
-| `--pp-faint` | `#8b948d` | Chevrons and decorative marks only (2.75:1, never text) |
-| `--pp-line` | `#e2d8c7` | Hairlines |
-| `--pp-green` / `--pp-accent` | coral `#ff5a3c` / green `#157a45` | The world's action colour; text on it is `--pp-on-accent` |
-| `--pp-accent-2` | amber `#ffb347` / gold `#f7c948` | Tags, active tab, highlights |
-| `--pp-clay` / `-soft` | `#a94f33` / `#f4e2d8` | Unread counts, urgency, attention |
-| `--pp-sun` / `-soft` | `#edc063` / `#fbf0d6` | Highlights on dark ground |
-| `--pp-danger` / `-soft` | `#a8402f` / `#f6deda` | Errors and destructive actions |
+| Token | Match (sunset) | Foster (forest) | Use |
+| --- | --- | --- | --- |
+| `--pp-night` | `#0e1612` | same | Launch, doors, tab bar |
+| `--pp-bg` | `#ffe9d6` | `#dff1de` | Page background |
+| `--pp-bg-deep` | `#ffd9bd` | `#c6e6c6` | Fields, segmented tracks, skeletons, secondary buttons |
+| `--pp-surface` | `#fff7ef` | `#f3fbf1` | Sheets, raised panels, chat bubbles |
+| `--pp-ink` | `#2a1208` | `#082616` | Text (15.0:1 / 13.7:1 on the page) |
+| `--pp-muted` | `#7a4a36` | `#2f5a3f` | Secondary text (6.3:1 / 6.7:1) |
+| `--pp-faint` | `#b48a78` | `#7fa88c` | Chevrons and decorative marks only, never text (2.6:1 / 2.3:1) |
+| `--pp-line` | `#f2c9ad` | `#b6dcb8` | Hairlines |
+| `--pp-accent` (`--pp-green`) | `#ff5a3c` | `#157a45` | The world's action colour |
+| `--pp-on-accent` | `#2a1208` | `#ffffff` | Text on the action colour (5.7:1 / 5.4:1) |
+| `--pp-green-strong` | `#d8391f` | `#0c5a31` | Pressed buttons, the profile colour block (white text, 4.6:1 / 8.3:1) |
+| `--pp-action-ink` | `#b8371c` | `#0c5a31` | Links, section labels and "good" statuses in the action colour |
+| `--pp-accent-2` | `#ffb347` | `#f7c948` | Tags on photos, active tab, highlights on dark ground (never on the page background) |
+| `--pp-clay` | `#ff3d7f` | `#e2891a` | Unread counts and new dots, everywhere in the world; text on it is `--pp-on-clay` |
+| `--pp-clay-ink` | `#b3134f` | `#8a4d00` | "Waiting" statuses as text |
+| `--pp-danger` | `#c81e1e` | `#c81e1e` | Errors, destructive actions, urgent notices |
 
-All text meets WCAG AA. White on green is 7.8:1, white on clay 5.4:1.
+Statuses in lists use three tones: done in `--pp-action-ink`, waiting in
+`--pp-clay-ink`, over (declined, withdrawn, found another home) in `--pp-muted`.
+All text pairs above meet WCAG AA (4.5:1).
 
 **Type.** Fraunces (variable, `SOFT 100`) for titles, animal names and big
 numbers; DM Sans for everything else. Both ship with the app

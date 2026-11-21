@@ -169,6 +169,8 @@
 .pp-auth-brand { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3vh 0 26px; }
 .pp-wordmark { margin-top: 6px; font-size: 46px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; }
 .pp-auth-brand .ui-lede { margin-top: 10px; }
+.pp-auth-brand.is-compact { flex-direction: row; justify-content: center; gap: 10px; padding: 0 0 8px; }
+.pp-auth-brand.is-compact .pp-wordmark { margin-top: 0; font-size: 32px; }
 .pp-auth-modes { margin-top: auto; }
 .pp-auth-reset-intro { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
 .pp-auth-link { align-self: flex-start; min-height: 44px; margin-top: -8px; font-size: 14.5px; font-weight: 650; color: var(--pp-action-ink); text-decoration: underline; text-underline-offset: 3px; }

@@ -62,12 +62,13 @@
 .pp-status.is-bad { color: var(--pp-danger); }
 .pp-check { color: var(--pp-action-ink); }
 
-/* Alive: the person on a colour block. */
+/* Alive: the person on a colour block. White text in both worlds: dark ink on the
+   Match red was 3.8:1, under the 4.5:1 minimum; white is 4.6:1 there and 8:1 on green. */
 .pp-identity { align-items: center; padding-top: 22px; padding-bottom: 26px; margin-bottom: 4px; color: #fff;
   background: var(--pp-green-strong); border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl); }
 .pp-initial { width: 76px; height: 76px; font-size: 36px; color: var(--pp-action-ink); background: #fff; box-shadow: 0 10px 30px rgb(0 0 0 / 20%); }
-.pp-identity-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 36px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; color: var(--pp-on-accent); }
-.pp-identity-sub { margin-top: 6px; font-size: 14.5px; color: var(--pp-on-accent); opacity: .9; }
-.pp-identity .pp-edit { color: var(--pp-on-accent); text-decoration: underline; text-underline-offset: 3px; }
+.pp-identity-name { font-family: var(--pp-font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; font-size: 36px; line-height: 1; font-weight: 640; letter-spacing: -0.03em; color: #fff; }
+.pp-identity-sub { margin-top: 6px; font-size: 14.5px; color: #fff; }
+.pp-identity .pp-edit { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .pp-profile .ui-overline { color: var(--pp-action-ink); }
 .pp-row-icon { color: var(--pp-action-ink); background: var(--pp-green-soft); }

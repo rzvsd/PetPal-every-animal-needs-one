@@ -20,11 +20,21 @@ function conversationKind(conv, t) {
   return t('messages.match');
 }
 
+// The status word is coloured by what it means: done, waiting on someone, or over.
+const STATUS_TONE = { ACCEPTED: 'good', COMPLETED: 'good', IN_CARE: 'good', PENDING: 'waiting', RESERVED: 'waiting',
+  DECLINED: 'ended', WITHDRAWN: 'ended', CANCELLED: 'ended', PLACED_ELSEWHERE: 'ended' };
+function statusTone(conv) {
+  if (conv.source === 'FOSTER') return conv.fosterRequestId ? STATUS_TONE[conv.fosterStatus] || '' : '';
+  if (conv.socialRequestStatus === 'PENDING') return 'waiting';
+  if (conv.socialRequestStatus === 'DECLINED') return 'ended';
+  return '';
+}
+
 function ConversationRow({ conv, onClick, t }) {
   const time = conv.lastMessageAt ? getTimeAgo(conv.lastMessageAt, t) : '';
   return <Row variants={listItem} data-testid={`conversation-card-${conv.id}`} onClick={onClick} unread={conv.unread > 0}
       aria-label={`${t('messages.openConversation')}: ${conv.title}`}
-      className={conv.source === 'FOSTER' ? 'pp-conv-foster' : ''}
+      className={`${conv.source === 'FOSTER' ? 'pp-conv-foster' : ''} ${statusTone(conv) ? `is-tone-${statusTone(conv)}` : ''}`}
       leading={<Avatar src={conv.animalPhoto} name="" size={56} />}
       overline={conversationKind(conv, t)} title={conv.title} subtitle={conv.lastMessage || t('messages.sayHello')}
       meta={time} trailing={<Count value={conv.unread} />} />;

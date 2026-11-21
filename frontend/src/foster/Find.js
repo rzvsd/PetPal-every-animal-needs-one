@@ -76,13 +76,18 @@ export function CareFacts({ item }) {
   const age = ageKey(item.age_months);
   const size = sizeKey[item.size_label];
   const answer = Object.fromEntries(traitAnswers(t));
+  const known = traitKeys.filter(key => traits[key] === 'YES' || traits[key] === 'NO');
+  const unknown = traitKeys.filter(key => !known.includes(key));
   return <Card><p className="fx-eyebrow">{fmt(t('fx.factsTitle'), { name: item.name })}</p>
     {(age || size) && <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
       {age && <span className="fx-badge">{t('fx.age')}: {t(`fx.${age}`)}</span>}
       {size && <span className="fx-badge">{t('fx.size')}: {t(`fx.${size}`)}</span>}
     </div>}
-    <dl className="fx-facts">{traitKeys.map(key => <div key={key}><dt>{traitQuestion(key, t)}</dt>
-      <dd className={traits[key] === 'YES' && key === 'bites' ? 'is-warn' : ''}>{answer[traits[key] || 'UNKNOWN']}</dd></div>)}</dl>
+    {known.length > 0 && <dl className="fx-facts">{known.map(key => <div key={key}><dt>{traitQuestion(key, t)}</dt>
+      <dd className={traits[key] === 'YES' && key === 'bites' ? 'is-warn' : ''}>{answer[traits[key]]}</dd></div>)}</dl>}
+    {/* Unknowns share one quiet line instead of five bold "Don't know" answers. */}
+    {unknown.length > 0 && <p className="fx-muted fx-unknown">{fmt(t('fx.notKnownYet'), {
+      list: unknown.map(key => { const q = traitQuestion(key, t); return q.charAt(0).toLocaleLowerCase() + q.slice(1); }).join(', ') })}</p>}
   </Card>;
 }
 

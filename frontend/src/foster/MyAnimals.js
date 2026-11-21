@@ -53,7 +53,7 @@ export default function MyAnimals({ data, onOpenPlacement, onOpenCase, onOpenHom
             <Art name="house" size={56} play={false} />
             <div className="fx-grow">
               <p className="fx-eyebrow">{t('fx.myHome')}</p>
-              <h2>{home.name}</h2>
+              <h2>{home.name || t('fx.unnamedHome')}</h2>
               <p className="fx-muted">{fmt(t('fx.placesUsed'), { used, total })}</p>
             </div>
             <Settings size={20} className="fx-chevron" />
