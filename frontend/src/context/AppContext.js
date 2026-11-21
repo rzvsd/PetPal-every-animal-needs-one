@@ -15,6 +15,8 @@ import {
   signOutOfSupabase,
   updateSupabaseProfile,
   updateSupabaseTypingPreference,
+  updateSupabaseNotificationPreferences,
+  defaultNotificationPreferences,
   upsertSupabaseAnimalProfile,
   deleteSupabaseAnimalProfile,
   uploadSupabaseAnimalPhoto,
@@ -126,6 +128,13 @@ export function AppProvider({ children }) {
     const version = authVersion.current;
     const saved = dataSource === 'supabase' ? await updateSupabaseTypingPreference(enabled) : Boolean(enabled);
     if (version === authVersion.current) setUser(current => ({ ...current, showTypingActivity: saved }));
+    return saved;
+  };
+  const setNotificationPreferences = async preferences => {
+    const version = authVersion.current;
+    const saved = dataSource === 'supabase' ? await updateSupabaseNotificationPreferences(preferences)
+      : { ...defaultNotificationPreferences, ...(user.notificationPreferences || {}), ...preferences };
+    if (version === authVersion.current) setUser(current => ({ ...current, notificationPreferences: saved }));
     return saved;
   };
   const { sendMessage } = messaging;
@@ -906,7 +915,7 @@ export function AppProvider({ children }) {
       lang, t, toggleLang, setLang,
       activeTab, setActiveTab,
       user, setUser, updateUserProfile,
-      reduceMotion, setReduceMotion, setShowTypingActivity,
+      reduceMotion, setReduceMotion, setShowTypingActivity, setNotificationPreferences,
       myAnimals, setMyAnimals, saveAnimalProfile, deleteAnimalProfile, selectedAnimalId, setSelectedAnimalId, selectedAnimal,
       matchMode, setMatchMode,
       candidates, setCandidates,
