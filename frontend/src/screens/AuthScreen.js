@@ -66,10 +66,11 @@ export default function AuthScreen() {
         <Segment label={t('profile.language')} value={lang} onChange={setLang} options={[['ro', 'RO'], ['en', 'EN']]} />
       </div>
 
-      <header className="pp-auth-brand">
-        <Art name="paw" size={88} />
+      {/* Registering needs the room: the brand shrinks so Create account stays reachable. */}
+      <header className={`pp-auth-brand ${register ? 'is-compact' : ''}`}>
+        <Art name="paw" size={register ? 44 : 88} />
         <h1 className="ui-display pp-wordmark">PetPal</h1>
-        <p className="ui-lede">{t('intro.tagline')}</p>
+        {!register && <p className="ui-lede">{t('intro.tagline')}</p>}
       </header>
 
       {backendStatus.message === 'readiness.loadError' && <Notice tone="error" action={

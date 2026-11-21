@@ -67,7 +67,10 @@
 /* Alive */
 .pp-inbox .ui-row-lead .ui-avatar { width: 64px !important; height: 64px !important; border-radius: 20px; box-shadow: var(--pp-shadow); }
 .pp-inbox .ui-list-inset .ui-row { --row-inset: 78px; }
-.pp-inbox .ui-row.is-unread::after { content: ''; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--pp-accent); }
+/* Unread is shown once, by the count and the bold preview; the side bar doubled it. */
+.pp-inbox .ui-row.is-tone-good .ui-row-overline { color: var(--pp-action-ink); }
+.pp-inbox .ui-row.is-tone-waiting .ui-row-overline { color: var(--pp-clay-ink); }
+.pp-inbox .ui-row.is-tone-ended .ui-row-overline { color: var(--pp-muted); }
 .pp-inbox .ui-row-overline { color: var(--pp-action-ink); }
 .pp-thread-head { background: var(--pp-surface); }
 .pp-msg.is-mine .pp-msg-bubble { background: var(--pp-green); color: var(--pp-on-accent); box-shadow: 0 6px 18px var(--pp-glow); }

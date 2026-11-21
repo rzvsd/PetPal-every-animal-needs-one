@@ -68,7 +68,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
   return <>
     <header className="fx-hello">
       <div className="fx-row">
-        <h1 className="fx-grow">{fmt(t('fx.hi'), { name: user.displayName || '' })}</h1>
+        <h1 className="fx-grow">{fmt(t('fx.hi'), { name: (user.displayName || '').trim().split(/\s+/)[0] })}</h1>
         {onOpenActivity && <button type="button" className="fx-icon-button fx-bell" onClick={onOpenActivity}
           aria-label={data.unreadActivity ? fmt(t('fx.activityUnread'), { count: data.unreadActivity }) : t('fx.activity')}>
           <Bell size={20} aria-hidden="true" />{data.unreadActivity > 0 && <span className="fx-bell-count" aria-hidden="true">{data.unreadActivity > 9 ? '9+' : data.unreadActivity}</span>}
@@ -107,10 +107,15 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
             {index === 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-hero-card-photo" />}
             <div className="fx-todo-head">
               {index > 0 && <Photo src={request.photo} name={request.animal_name} species={request.species} className="fx-photo-sm" />}
-              <div className="fx-grow">
+              {/* On the photo card the animal's name is the headline and the ask sits under it;
+                  the full sentence was three lines of display type over the picture. */}
+              {index === 0 ? <div className="fx-grow">
+                <h3>{request.animal_name}</h3>
+                <p>{fmt(t(request.kind === 'INVITE' ? 'fx.inviteReceived' : 'fx.offerReceived'), { name: person(request.sender_name, t), animal: request.animal_name })}</p>
+              </div> : <div className="fx-grow">
                 <h3>{fmt(t(request.kind === 'INVITE' ? 'fx.inviteReceived' : 'fx.offerReceived'), { name: person(request.sender_name, t), animal: request.animal_name })}</h3>
                 <p>{t('fx.offerReceivedHint')}</p>
-              </div>
+              </div>}
             </div>
             {request.message && <p className="fx-quote">{request.message}</p>}
             {request.kind === 'INVITE' ? onOpenCaseById && <button type="button" className="fx-link-button" onClick={() => onOpenCaseById(request.case_id)}>
@@ -166,7 +171,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
             </div>
             <div className="fx-actions">
               {item.request.conversation_id && <Button variant="soft" icon={MessageCircle} onClick={() => onOpenChat(item.request.conversation_id)}>{t('fx.chat')}</Button>}
-              <Button variant="secondary" disabled={busy} onClick={() => onWithdraw(item.request)}>{t('fx.withdrawOffer')}</Button>
+              <Button variant="ghost" disabled={busy} onClick={() => onWithdraw(item.request)}>{t('fx.withdrawOffer')}</Button>
             </div>
           </Card> : <Card key={item.key} onClick={() => onOpenRequest(item.request)}>
             <div className="fx-row">

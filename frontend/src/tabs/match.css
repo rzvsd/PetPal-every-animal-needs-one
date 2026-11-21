@@ -31,7 +31,8 @@
 .pp-match-float { position: absolute; left: 10px; right: 10px; bottom: 0; z-index: 3; }
 .pp-actions { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 18px 18px; }
 .pp-action-round { width: 58px !important; height: 58px !important; border-radius: 50% !important; }
-.ui-icon-btn-ring { background: rgb(0 0 0 / 28%); color: #fff; }
+/* A light ring keeps Not now and Save readable as buttons on dark or busy photos. */
+.ui-icon-btn-ring { background: rgb(0 0 0 / 42%); color: #fff; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 55%); }
 .ui-icon-btn-ring:disabled { opacity: .5; }
 .pp-action-main { flex: 1; max-width: 220px; min-height: 58px; border-radius: 29px; font-size: 17px; box-shadow: 0 10px 30px var(--pp-glow); }
 .pp-saved { color: var(--pp-accent-2); fill: var(--pp-accent-2); }
@@ -52,7 +53,7 @@
 .pp-detail-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
 .pp-detail-top > * { pointer-events: auto; }
 .pp-detail-foot { flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: var(--pp-bg); border-top: 1px solid var(--pp-line); }
-.pp-detail-foot .ui-icon-btn-ring { background: var(--pp-bg-deep); color: var(--pp-ink); backdrop-filter: none; }
+.pp-detail-foot .ui-icon-btn-ring { background: var(--pp-bg-deep); color: var(--pp-ink); backdrop-filter: none; box-shadow: none; }
 
 /* It's a match: the whole screen turns sunset, two faces meet, hearts rise. */
 .pp-celebrate-full { position: absolute !important; inset: 0 !important; max-width: none !important; max-height: none !important; height: 100%; border-radius: 0 !important;
