@@ -38,7 +38,7 @@
 .ui-row.is-action:active { background: color-mix(in srgb, var(--pp-bg-deep) 55%, transparent); }
 .ui-row-lead { flex-shrink: 0; display: grid; place-items: center; }
 .ui-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.ui-row-overline { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pp-green); }
+.ui-row-overline { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pp-action-ink); }
 .ui-row-title { font-size: 16px; line-height: 1.3; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-row-sub { font-size: 14.5px; line-height: 1.35; color: var(--pp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-row.is-unread .ui-row-sub { color: var(--pp-ink); font-weight: 600; }
@@ -60,7 +60,7 @@
 .ui-btn-primary:active:not(:disabled) { background: var(--pp-green-strong); }
 .ui-btn-secondary { background: var(--pp-bg-deep); color: var(--pp-ink); }
 .ui-btn-secondary:active:not(:disabled) { background: color-mix(in srgb, var(--pp-bg-deep) 80%, var(--pp-ink)); }
-.ui-btn-quiet { min-height: 44px; padding: 0 6px; background: transparent; color: var(--pp-green); font-weight: 650; }
+.ui-btn-quiet { min-height: 44px; padding: 0 6px; background: transparent; color: var(--pp-action-ink); font-weight: 650; }
 .ui-btn-danger { background: var(--pp-danger-soft); color: var(--pp-danger); }
 .ui-btn:disabled { opacity: .5; }
 .ui-btn[aria-busy='true'] { opacity: .85; }

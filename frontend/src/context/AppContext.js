@@ -154,6 +154,12 @@ export function AppProvider({ children }) {
 
   const toggleLang = () => setLang(l => l === 'en' ? 'ro' : 'en');
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  // Pushes are written on the server, so it needs to know the chosen language.
+  const signedInId = authSession?.user?.id;
+  useEffect(() => {
+    if (!signedInId || dataSource !== 'supabase' || !supabase) return;
+    supabase.rpc('set_my_language', { language_input: lang }).then(({ error }) => { if (error) console.warn('Language not saved', error.message); });
+  }, [lang, signedInId, dataSource]);
 
   const selectedAnimal = myAnimals.find(a => a.id === selectedAnimalId);
   const localDemoAvailable = allowLocalDemo;

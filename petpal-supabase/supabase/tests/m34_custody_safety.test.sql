@@ -59,7 +59,7 @@ select public.update_foster_placement((select id from ids where name='p1'),'CARE
   jsonb_build_object('careState','MEDICAL','expectedUpdatedAt',pg_temp.stamp((select id from ids where name='p1'))));
 reset role;
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003401'
-  and event_type = 'FOSTER_URGENT' and body like 'Coco needs a vet%' and delivery_status = 'QUEUED'),'"needs a vet" is an urgent push to the owner');
+  and event_type = 'FOSTER_URGENT' and body like 'Coco are nevoie de veterinar%' and delivery_status = 'QUEUED'),'"needs a vet" is an urgent push to the owner');
 
 -- A block during care keeps the chat readable, stops free writing and flags the moderator.
 insert into public.blocks(blocker_id,blocked_id) values('10000000-0000-4000-8000-000000003402','10000000-0000-4000-8000-000000003401');
@@ -115,7 +115,7 @@ select public.update_foster_placement((select id from ids where name='p3'),'RECE
 reset role;
 select is((select outcome from public.foster_placements where id = (select id from ids where name='p1')),'MOVED','the first placement ends as moved');
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003401'
-  and event_type = 'FOSTER_URGENT' and title = 'Animal moved'),'the owner is told the animal moved');
+  and event_type = 'FOSTER_URGENT' and title = 'Animalul s-a mutat'),'the owner is told the animal moved');
 set local role authenticated;
 
 -- The owner still sees the new home and says "my animal is back".

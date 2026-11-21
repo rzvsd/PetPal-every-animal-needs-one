@@ -39,7 +39,7 @@ reset role;
 select is((select status from public.foster_requests where id = (select id from ids where name='reqB')),'PLACED_ELSEWHERE',
   'the other pending application closes as placed elsewhere');
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003303'
-  and event_type = 'FOSTER_UPDATE' and body like 'Pufi has found a home%'),'the losing foster is notified with the animal''s name');
+  and event_type = 'FOSTER_UPDATE' and body like 'Pufi și-a găsit o casă%' and title = 'Pufi'),'the losing foster is notified with the animal''s name');
 set local role authenticated;
 
 -- A third home cannot apply to the reserved case.

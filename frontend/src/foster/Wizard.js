@@ -45,7 +45,7 @@ export function PhotoPicker({ value, itemId, onChange }) {
 }
 
 // Step-by-step form: one question per screen, a progress bar and one button.
-function Wizard({ title, steps, step, setStep, canNext, onFinish, finishLabel, busy, error, dirty, onClose }) {
+function Wizard({ title, steps, step, setStep, canNext, missing, onFinish, finishLabel, busy, error, dirty, onClose }) {
   const { t } = useApp();
   const reduced = useReducedPetMotion();
   const [direction, setDirection] = useState(1);
@@ -53,10 +53,10 @@ function Wizard({ title, steps, step, setStep, canNext, onFinish, finishLabel, b
   const go = delta => { setDirection(delta); setStep(step + delta); };
   const last = step === steps.length - 1;
   return <Screen title={title} onBack={step ? () => go(-1) : requestClose}
-    footer={<div className="fx-actions" style={{ marginTop: 0 }}>
+    footer={<>{!canNext && missing && <p className="fx-hint" role="status" style={{ marginBottom: 8 }}>{missing}</p>}<div className="fx-actions" style={{ marginTop: 0 }}>
       {step > 0 && <Button variant="secondary" onClick={() => go(-1)} style={{ flex: '0 0 auto' }}>{t('fx.wizardBack')}</Button>}
       <Button disabled={!canNext || busy} onClick={() => (last ? onFinish() : go(1))}>{busy ? t('fx.loading') : last ? finishLabel : t('fx.wizardNext')}</Button>
-    </div>}>
+    </div></>}>
     <div className="fx-stack" style={{ gap: 8, marginTop: 4 }}>
       <p className="fx-muted">{fmt(t('fx.stepOf'), { step: step + 1, total: steps.length })}</p>
       <div className="fx-progress"><motion.div animate={{ scaleX: (step + 1) / steps.length }} transition={reduced ? { duration: 0 } : motionSpring} /></div>
@@ -91,7 +91,7 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
   const { t, user } = useApp();
   const [caseId] = useState(() => item?.id || crypto.randomUUID());
   const [animalId] = useState(() => item?.animal_id || transfer?.animal_id || crypto.randomUUID());
-  const [data, setData] = useState(() => (item ? caseToData(item) : { ...caseToData({}), name: transfer?.name || '', species: transfer?.species || 'DOG',
+  const [data, setData] = useState(() => (item ? caseToData(item) : { ...caseToData({ care_traits: transfer?.care_traits, age_months: transfer?.age_months, size_label: transfer?.size_label, breed: transfer?.breed }), name: transfer?.name || '', species: transfer?.species || 'DOG',
     photo: transfer?.photo || '', city: user.city || '', status: 'ACTIVE' }));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -142,6 +142,8 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
       <p className="fx-muted">{t('fx.notInPetPal')}</p></>,
   ];
   const canNext = [data.name.trim().length > 0, data.description.trim().length > 0 && data.city.trim().length > 0, true, true, true, true][step];
+  const missing = step === 0 ? t('fx.missingAnimalName')
+    : step === 1 ? [!data.description.trim() && t('fx.missingDescription'), !data.city.trim() && t('fx.missingCity')].filter(Boolean).join(', ') : '';
   const finish = async () => {
     setBusy(true); setError('');
     const { traits, ...payload } = data;
@@ -154,6 +156,7 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
     finally { setBusy(false); }
   };
   return <Wizard title={item ? t('fx.edit') : t('fx.postAnimal')} steps={steps} step={step} setStep={setStep} canNext={canNext}
+    missing={missing && fmt(t('fx.stillMissing'), { what: missing })}
     onFinish={finish} finishLabel={item ? t('fx.saveChanges') : t('fx.publish')} busy={busy} error={error} dirty={dirty} onClose={onClose} />;
 }
 
@@ -201,6 +204,8 @@ export function HomeWizard({ home, onClose, onSaved }) {
       <p className="fx-muted">{t('fx.notInPetPal')}</p></>,
   ];
   const canNext = [data.name.trim() && data.city.trim(), data.species.length > 0, true][step];
+  const missing = step === 0 ? [!data.name.trim() && t('fx.homeName').toLowerCase(), !data.city.trim() && t('fx.missingCity')].filter(Boolean).join(', ')
+    : step === 1 ? t('fx.missingSpecies') : '';
   const finish = async () => {
     setBusy(true); setError('');
     const { housing, ...payload } = data;
@@ -209,5 +214,6 @@ export function HomeWizard({ home, onClose, onSaved }) {
     finally { setBusy(false); }
   };
   return <Wizard title={home ? t('fx.edit') : t('fx.setUpHome')} steps={steps} step={step} setStep={setStep} canNext={Boolean(canNext)}
+    missing={missing && fmt(t('fx.stillMissing'), { what: missing })}
     onFinish={finish} finishLabel={home ? t('fx.saveChanges') : t('fx.saveHome')} busy={busy} error={error} dirty={dirty} onClose={onClose} />;
 }

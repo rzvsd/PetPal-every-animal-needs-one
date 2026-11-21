@@ -2,7 +2,7 @@
 .pp-inbox { background: var(--pp-bg); }
 .pp-inbox-list { padding-top: 10px; padding-bottom: 24px; }
 .pp-inbox .ui-segment .ui-count { margin-left: 6px; }
-.pp-conv-foster .ui-row-overline { color: var(--pp-clay); }
+.pp-conv-foster .ui-row-overline { color: var(--pp-clay-ink); }
 
 .pp-thread { background: var(--pp-bg); }
 .pp-thread-head { flex-shrink: 0; display: flex; align-items: center; gap: 2px; min-height: 60px; padding: 8px 6px 8px 4px;
@@ -68,7 +68,7 @@
 .pp-inbox .ui-row-lead .ui-avatar { width: 64px !important; height: 64px !important; border-radius: 20px; box-shadow: var(--pp-shadow); }
 .pp-inbox .ui-list-inset .ui-row { --row-inset: 78px; }
 .pp-inbox .ui-row.is-unread::after { content: ''; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--pp-accent); }
-.pp-inbox .ui-row-overline { color: var(--pp-accent); }
+.pp-inbox .ui-row-overline { color: var(--pp-action-ink); }
 .pp-thread-head { background: var(--pp-surface); }
-.pp-msg.is-mine .pp-msg-bubble { background: linear-gradient(135deg, var(--pp-accent), var(--pp-accent-2)); color: var(--pp-on-accent); box-shadow: 0 6px 18px var(--pp-glow); }
+.pp-msg.is-mine .pp-msg-bubble { background: var(--pp-green); color: var(--pp-on-accent); box-shadow: 0 6px 18px var(--pp-glow); }
 .pp-send { box-shadow: 0 6px 18px var(--pp-glow); }

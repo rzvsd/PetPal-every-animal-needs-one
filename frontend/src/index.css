@@ -38,6 +38,8 @@
   --pp-glow: rgb(255 90 60 / 45%);
   --pp-on-accent: #2a1208;
   --pp-on-clay: #2a1208;
+  /* Text in the action colour: dark enough to read on every surface (4.5:1+). */
+  --pp-action-ink: #b8371c;
   --pp-font-display: 'Fraunces Variable', Georgia, serif;
   --pp-font-text: 'DM Sans Variable', system-ui, -apple-system, sans-serif;
   --pp-gutter: 20px;
@@ -74,6 +76,7 @@
   --pp-glow: rgb(21 122 69 / 45%);
   --pp-on-accent: #ffffff;
   --pp-on-clay: #082616;
+  --pp-action-ink: #0c5a31;
   --pp-shadow: 0 2px 4px rgb(8 38 22 / 10%), 0 12px 32px rgb(8 38 22 / 16%);
   --pp-shadow-lift: 0 4px 10px rgb(8 38 22 / 14%), 0 24px 60px rgb(8 38 22 / 26%);
 }

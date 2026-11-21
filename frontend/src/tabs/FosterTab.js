@@ -188,7 +188,12 @@ export default function FosterTab() {
       }} />;
       case 'placement': return <AnimalStory id={top.id} data={data} onBack={pop} onChanged={refresh} onOpenChat={openChat}
         onTransfer={placement => push({ type: 'caseWizard', transfer: placement })}
-        onReport={p => setReport({ profileId: p.home_owner_id === user.id ? null : p.home_owner_id, category: 'ANIMAL_DANGER' })} />;
+        onReport={p => {
+          // The other side of this placement: the animal's side when I run the home, the home owner otherwise.
+          const request = [...data.incoming, ...data.outgoing, ...data.consents].find(r => r.id === p.request_id);
+          const animalSide = request && (request.sender_id === p.home_owner_id ? request.recipient_id : request.sender_id);
+          setReport({ profileId: p.home_owner_id === user.id ? animalSide || null : p.home_owner_id, listingId: request?.case_id, category: 'ANIMAL_DANGER' });
+        }} />;
       case 'myCase': {
         const item = data.myCases.find(c => c.id === top.item.id) || top.item;
         return <CaseStory item={item} data={data} busy={busy} onBack={pop} onEdit={() => push({ type: 'caseWizard', item })} onAnswer={answer}

@@ -69,8 +69,12 @@ export function Choices({ options, value, onChange, multiple = false, label, col
   </div>;
 }
 
+// A text field is a <label>. A set of choices is not: a label around buttons
+// would make tapping the title press the first choice.
 export function Field({ label, hint, children }) {
-  return <label className="fx-field"><span className="fx-field-label">{label}</span>{children}{hint && <span className="fx-hint">{hint}</span>}</label>;
+  const group = React.Children.toArray(children).some(child => child?.type === Choices);
+  const Tag = group ? 'div' : 'label';
+  return <Tag className="fx-field"><span className="fx-field-label">{label}</span>{children}{hint && <span className="fx-hint">{hint}</span>}</Tag>;
 }
 
 // A full-screen page that slides in over everything, header and tabs
