@@ -305,10 +305,10 @@ export async function loadSupabaseConversationTyping(conversationId) {
     conversation_id_input: conversationId,
   });
   if (error) throw error;
+  // No row means nobody is typing. An empty list must not count as "true".
   const row = Array.isArray(data) ? data[0] : data;
-  return row && typeof row === 'object'
-    ? { isTyping: Boolean(row.is_typing), updatedAt: row.updated_at || null }
-    : { isTyping: Boolean(data), updatedAt: null };
+  if (row && typeof row === 'object') return { isTyping: Boolean(row.is_typing), updatedAt: row.updated_at || null };
+  return { isTyping: row === true, updatedAt: null };
 }
 
 export async function signUpWithSupabase({

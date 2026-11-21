@@ -25,6 +25,8 @@ export default function Activity({ onBack, onOpen, onSeen }) {
   }, [t, onSeen]);
   useEffect(() => { load(); }, [load]);
 
+  // Notices are stored in both languages; show the one the app is using now.
+  const text = (row, field) => row[`${field}_${lang === 'en' ? 'en' : 'ro'}`] || row[field];
   const when = value => new Date(value).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' });
   return <Screen title={t('fx.activity')} onBack={onBack}>
     {error && <Notice tone="error">{error} <button type="button" className="fx-notice-close" onClick={() => load()}>{t('fx.retry')}</button></Notice>}
@@ -35,8 +37,8 @@ export default function Activity({ onBack, onOpen, onSeen }) {
             <div className="fx-row" style={{ alignItems: 'flex-start' }}>
               <Bell size={18} aria-hidden="true" style={{ marginTop: 3, flex: '0 0 auto' }} />
               <div className="fx-grow">
-                <p style={{ fontWeight: 650 }}>{row.title}</p>
-                {row.body && <p className="fx-muted" style={{ marginTop: 2 }}>{row.body}</p>}
+                <p style={{ fontWeight: 650 }}>{text(row, 'title')}</p>
+                {text(row, 'body') && <p className="fx-muted" style={{ marginTop: 2 }}>{text(row, 'body')}</p>}
                 <p className="fx-hint" style={{ marginTop: 4 }}>{when(row.created_at)}</p>
               </div>
             </div>
