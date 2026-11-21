@@ -91,7 +91,7 @@ export function CaseWizard({ item, transfer, organizations = [], onClose, onSave
   const { t, user } = useApp();
   const [caseId] = useState(() => item?.id || crypto.randomUUID());
   const [animalId] = useState(() => item?.animal_id || transfer?.animal_id || crypto.randomUUID());
-  const [data, setData] = useState(() => (item ? caseToData(item) : { ...caseToData({}), name: transfer?.name || '', species: transfer?.species || 'DOG',
+  const [data, setData] = useState(() => (item ? caseToData(item) : { ...caseToData({ care_traits: transfer?.care_traits, age_months: transfer?.age_months, size_label: transfer?.size_label, breed: transfer?.breed }), name: transfer?.name || '', species: transfer?.species || 'DOG',
     photo: transfer?.photo || '', city: user.city || '', status: 'ACTIVE' }));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);

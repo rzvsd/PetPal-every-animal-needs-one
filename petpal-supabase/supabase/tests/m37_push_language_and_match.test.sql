@@ -41,12 +41,22 @@ select ok(exists(select 1 from public.notification_events where profile_id = '10
 insert into public.owner_animal_profiles(id,owner_id,name,species,sex,active_match_modes)
   values('10000000-0000-4000-8000-0000000037a1','10000000-0000-4000-8000-000000003701','Lola','DOG','FEMALE','{PLAY}'),
         ('10000000-0000-4000-8000-0000000037a2','10000000-0000-4000-8000-000000003702','Max','DOG','MALE','{PLAY}');
+insert into public.animal_matches(id,animal_a_id,animal_b_id,mode) values('10000000-0000-4000-8000-0000000037b1','10000000-0000-4000-8000-0000000037a1','10000000-0000-4000-8000-0000000037a2','PLAY');
+insert into public.conversations(id,source,match_id) values('10000000-0000-4000-8000-0000000037c1','MATCH','10000000-0000-4000-8000-0000000037b1');
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000003702',true);
-insert into public.animal_matches(animal_a_id,animal_b_id,mode) values('10000000-0000-4000-8000-0000000037a1','10000000-0000-4000-8000-0000000037a2','PLAY');
+insert into public.conversation_participants(conversation_id,profile_id) values('10000000-0000-4000-8000-0000000037c1','10000000-0000-4000-8000-000000003702'),
+  ('10000000-0000-4000-8000-0000000037c1','10000000-0000-4000-8000-000000003701');
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003701'
-  and event_type = 'MATCH_MUTUAL' and body = 'Lola și Max se plac. Salută în PetPal.'),'the owner who liked first hears about the match');
+  and event_type = 'MATCH_MUTUAL' and body = 'Lola și Max se plac. Salută în PetPal.'
+  and payload->>'conversationId' = '10000000-0000-4000-8000-0000000037c1'),'the owner who liked first hears about the match');
 select ok(not exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000003702'
   and event_type = 'MATCH_MUTUAL'),'the owner who completed it sees it on screen instead');
+
+-- A Social Walk invitation is not a match.
+insert into public.animal_matches(id,animal_a_id,animal_b_id,mode) values('10000000-0000-4000-8000-0000000037b2','10000000-0000-4000-8000-0000000037a1','10000000-0000-4000-8000-0000000037a2','SOCIAL');
+insert into public.conversations(id,source,match_id,social_request_sender_id,social_request_status) values('10000000-0000-4000-8000-0000000037c2','MATCH','10000000-0000-4000-8000-0000000037b2','10000000-0000-4000-8000-000000003702','PENDING');
+insert into public.conversation_participants(conversation_id,profile_id) values('10000000-0000-4000-8000-0000000037c2','10000000-0000-4000-8000-000000003701');
+select is((select count(*) from public.notification_events where event_type = 'MATCH_MUTUAL'),1::bigint,'a walk invitation sends no match push');
 
 select * from finish();
 rollback;

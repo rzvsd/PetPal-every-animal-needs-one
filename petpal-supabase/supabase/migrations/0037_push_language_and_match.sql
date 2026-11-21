@@ -125,20 +125,25 @@ begin
 end $$;
 revoke all on function public.foster_notify(uuid,text,text) from public,anon,authenticated;
 
--- A mutual match tells the owner who liked first.
+-- A mutual match tells the owner who liked first. It fires when that owner
+-- joins the match chat, so a Social Walk invitation (which has a sender and
+-- waits for an answer) is not presented as a match, and the push opens the chat.
 create or replace function public.notify_mutual_match()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare a public.owner_animal_profiles; b public.owner_animal_profiles;
+declare c public.conversations; mine text; theirs text;
 begin
-  select * into a from public.owner_animal_profiles where id = new.animal_a_id;
-  select * into b from public.owner_animal_profiles where id = new.animal_b_id;
-  perform public.enqueue_push_notification(owner.id,'MATCH_MUTUAL',jsonb_build_object('matchId',new.id),'It''s a match!',
-    owner.mine || ' and ' || owner.theirs || ' like each other. Say hello in PetPal.')
-  from (values(a.owner_id,a.name,b.name),(b.owner_id,b.name,a.name)) owner(id,mine,theirs)
-  where owner.id is not null and owner.id is distinct from auth.uid();
+  select * into c from public.conversations where id = new.conversation_id;
+  if c.source <> 'MATCH' or c.match_id is null or c.social_request_sender_id is not null or new.profile_id = auth.uid() then return new; end if;
+  select case when a.owner_id = new.profile_id then a.name else b.name end, case when a.owner_id = new.profile_id then b.name else a.name end
+    into mine,theirs
+  from public.animal_matches m join public.owner_animal_profiles a on a.id = m.animal_a_id join public.owner_animal_profiles b on b.id = m.animal_b_id
+  where m.id = c.match_id;
+  if mine is null then return new; end if;
+  perform public.enqueue_push_notification(new.profile_id,'MATCH_MUTUAL',jsonb_build_object('matchId',c.match_id,'conversationId',c.id),
+    'It''s a match!',mine || ' and ' || theirs || ' like each other. Say hello in PetPal.');
   return new;
 end $$;
-create trigger notify_mutual_match after insert on public.animal_matches
+create trigger notify_mutual_match after insert on public.conversation_participants
   for each row execute function public.notify_mutual_match();
 revoke all on function public.notify_mutual_match() from public,anon,authenticated;
 

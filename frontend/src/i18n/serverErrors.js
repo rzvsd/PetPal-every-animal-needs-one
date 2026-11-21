@@ -76,6 +76,7 @@ export const serverErrorsRo = {
   'Only the home owner can register animals': 'Doar proprietarul casei poate înregistra animale.',
   "Only the home owner or the animal's owner can end current care": 'Doar proprietarul casei sau stăpânul animalului pot încheia îngrijirea.',
   'Only the invited person can respond': 'Doar persoana invitată poate răspunde.',
+  'Only the latest day of a daily task can be undone': 'Poți anula doar ultima zi a unei sarcini zilnice.',
   'Only the other side can confirm this ending': 'Doar cealaltă parte poate confirma încheierea.',
   'Only the person who posted this animal can change it': 'Doar cine a publicat animalul îl poate modifica.',
   'Only the receiving home owner can apply': 'Doar proprietarul casei poate trimite oferta.',
