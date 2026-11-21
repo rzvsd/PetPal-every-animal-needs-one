@@ -32,22 +32,28 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Method not allowed' }, 405);
   }
 
-  // Fail closed: only the scheduler that knows the secret may run cleanup.
-  const expectedSecret = getEnv('STORAGE_CLEANUP_SECRET');
-  if (!expectedSecret) {
-    return jsonResponse({ error: 'Storage cleanup is not configured' }, 500);
-  }
-  if (!(await sameSecret(request.headers.get('x-petpal-cleanup-secret') || '', expectedSecret))) {
-    return jsonResponse({ error: 'Unauthorized' }, 401);
-  }
-
   const supabaseUrl = getEnv('SUPABASE_URL');
   const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
   if (!supabaseUrl || !serviceRoleKey) {
     return jsonResponse({ error: 'Supabase service credentials are not configured' }, 500);
   }
-
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+  // Fail closed: only the scheduler that knows the secret may run cleanup.
+  // The secret is either the STORAGE_CLEANUP_SECRET function secret or the
+  // one migration 0041 generates in Vault for pg_cron.
+  const given = request.headers.get('x-petpal-cleanup-secret') || '';
+  const envSecret = getEnv('STORAGE_CLEANUP_SECRET');
+  let authorized = Boolean(given) && Boolean(envSecret) && (await sameSecret(given, envSecret));
+  if (!authorized && given) {
+    const { data, error } = await admin.rpc('storage_cleanup_secret_matches', { secret_input: given });
+    if (error) console.error('cleanup secret check failed', error);
+    authorized = data === true;
+  }
+  if (!authorized) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const result = await processStorageCleanupQueue(admin);
     return jsonResponse(result, result.failed > 0 ? 207 : 200);
