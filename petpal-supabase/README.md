@@ -81,10 +81,12 @@ could leave the file behind forever if the Storage call failed.
   queued file for that user. Anything Storage refuses stays queued with
   `attempts` and `last_error`; it no longer fails the deletion.
 - The `storage-cleanup` Edge Function retries what is left, up to 500 entries
-  per run, oldest attempt first. Set the `STORAGE_CLEANUP_SECRET` function
-  secret and call it on a schedule (for example hourly from Supabase Cron),
-  with the header `x-petpal-cleanup-secret: <secret>` and the anon key as
-  bearer token.
+  per run, oldest attempt first. Migration `0041` generates its caller secret
+  in Vault (`storage_cleanup_secret`) and schedules pg_cron job
+  `petpal-storage-cleanup` hourly. The job only fires once each environment has
+  a Vault secret named `petpal_project_url`:
+  `select vault.create_secret('https://<ref>.supabase.co', 'petpal_project_url');`
+  A `STORAGE_CLEANUP_SECRET` function secret is optional, for other schedulers.
 - Unit tests for the queue logic: `deno test supabase/functions/_shared/`.
 
 Entries with many attempts mean a file Storage keeps refusing:

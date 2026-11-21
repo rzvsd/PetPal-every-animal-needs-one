@@ -421,5 +421,6 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = true
 
+# Called by pg_cron, which has no user JWT; the function checks its own secret.
 [functions.storage-cleanup]
-verify_jwt = true
+verify_jwt = false
