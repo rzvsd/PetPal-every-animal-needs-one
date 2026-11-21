@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, ArrowRightLeft, Check, Flag, Home, MessageCircle, MoreHorizontal, Phone, Plus, Send, Star, StopCircle, Undo2, X } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Check, Flag, LifeBuoy, Home, MessageCircle, MoreHorizontal, Phone, Plus, Send, Star, StopCircle, Undo2, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc, loadFosterPlacement } from '../services/fosterApi';
@@ -201,6 +201,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
     p.status === 'RESERVED' && request && (owner || caseSide) && [X, t('fx.cancelReservation'), () => setSheet({ type: 'CANCEL', title: t('fx.cancelReservation'), danger: true })],
     p.request_id && (owner || caseSide) && (active || contestOpen) && [AlertTriangle, t('fx.somethingWrong'), () => setSheet({ type: 'DISPUTE', title: t('fx.somethingWrong'), description: t('care.discrepancyInfo') })],
     p.discrepancy && (owner || caseSide) && [MessageCircle, t('fx.clarify'), () => setSheet({ type: 'CLARIFY', title: t('fx.clarify') })],
+    [LifeBuoy, t('fx.ifWrong'), () => setSheet({ type: 'HELP' })],
     [Flag, t('fx.report'), () => onReport(p), 'danger'],
   ].filter(Boolean);
 
@@ -308,7 +309,16 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
 
     <EndSheet open={sheet?.type === 'END'} outcome={sheet?.outcome} onClose={() => setSheet(null)} onConfirm={endCare} />
     <ContactsSheet open={sheet?.type === 'CONTACTS'} caseSide={caseSide} placement={p} onClose={() => setSheet(null)} onSave={saveContacts} />
-    <ReasonSheet open={Boolean(sheet && !['review', 'END', 'CONTACTS'].includes(sheet.type))} title={sheet?.title} description={sheet?.description} danger={sheet?.danger}
+    <Sheet open={sheet?.type === 'HELP'} onClose={() => setSheet(null)} title={t('fx.ifWrong')}
+      footer={<Button className="fx-button-block" onClick={() => setSheet(null)}>{t('fx.done')}</Button>}>
+      <p className="fx-lead">{t('profile.emergencyHelpIntro')}</p>
+      <ul className="fx-stack" style={{ paddingLeft: 18, listStyle: 'disc' }}>{[1, 2, 3, 4, 5, 6].map(n => <li key={n}>{t(`profile.emergencyHelpBullet${n}`)}</li>)}</ul>
+      {(p?.emergency_phone || p?.foster_phone) && <p style={{ marginTop: 10 }}>
+        {[['emergency_phone', 'fx.ownerPhone'], ['foster_phone', 'fx.fosterPhone']].filter(([key]) => p[key]).map(([key, label]) =>
+          <span key={key} style={{ display: 'block' }}>{t(label)}: <a href={`tel:${p[key].replace(/[^+0-9]/g, '')}`} style={{ fontWeight: 650 }}>{p[key]}</a></span>)}</p>}
+      <p className="fx-muted" style={{ marginTop: 10 }}>{t('profile.emergencyHelpNote')}</p>
+    </Sheet>
+    <ReasonSheet open={Boolean(sheet && !['review', 'END', 'CONTACTS', 'HELP'].includes(sheet.type))} title={sheet?.title} description={sheet?.description} danger={sheet?.danger}
       onClose={() => setSheet(null)} onConfirm={confirmSheet} />
 
     <Sheet open={sheet?.type === 'review'} onClose={() => setSheet(null)} title={t('fx.howWasIt')}

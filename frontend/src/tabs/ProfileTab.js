@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
+import { SUPPORT_EMAIL, SUPPORT_PETPAL_ENABLED } from '../services/support';
 import { deleteSupabaseAccount, exportSupabaseData, loadSupabaseBlockedProfiles, loadSupabaseDeletionBlockers, unblockSupabaseProfile } from '../services/supabaseApi';
 import { useReducedPetMotion } from '../components/Motion';
 import { useDiscardGuard } from '../components/FormGuard';
@@ -496,6 +497,7 @@ export default function ProfileTab({ environment = 'match' }) {
   });
   const helpTopics = [
     ['howItWorks', isFoster ? t('profile.howFosterWorks') : t('profile.howMatchingWorks'), isFoster ? 'fosterHelp' : 'matchingHelp', isFoster ? Home : Heart],
+    ['emergency', t('profile.emergencyHelp'), 'emergencyHelp', Shield],
     ['safety', t('profile.safetyRules'), 'safetyRules', Shield],
     ['termsSafety', t('profile.termsAndSafety'), 'termsSafety', HelpCircle],
     ['terms', t('profile.terms'), 'terms', HelpCircle],
@@ -509,10 +511,15 @@ export default function ProfileTab({ environment = 'match' }) {
   let screen = null;
   if (page === 'help') {
     screen = <Screen key="help" title={t('profile.help')} onBack={back}>
-      <div className="ui-list pp-screen-list">{helpTopics.map(([key, label, , Icon]) => <Row key={key} leading={icon(Icon)} title={label} onClick={() => setPage(key)} />)}</div>
+      <div className="ui-list pp-screen-list">
+        <Row leading={icon(HelpCircle)} title={t('profile.contactPetPal')}
+          subtitle={SUPPORT_EMAIL ? fmt(t('profile.contactPetPalEmail'), { email: SUPPORT_EMAIL }) : t('profile.contactPetPalInApp')}
+          onClick={SUPPORT_EMAIL ? () => { window.location.href = `mailto:${SUPPORT_EMAIL}`; } : undefined} />
+        {helpTopics.map(([key, label, , Icon]) => <Row key={key} leading={icon(Icon)} title={label} onClick={() => setPage(key)} />)}
+      </div>
     </Screen>;
   } else if (openTopic) {
-    screen = <InfoScreen key={page} title={openTopic[1]} {...topic(openTopic[2])} onBack={back} />;
+    screen = <InfoScreen key={page} title={openTopic[1]} {...topic(openTopic[2], openTopic[2] === 'emergencyHelp' ? 6 : 4)} onBack={back} />;
   } else if (page === 'dataExport') {
     screen = <InfoScreen key="export" title={t('profile.dataExport')} {...topic('dataExport', 3)} onBack={back}
       primary={<Button block icon={Download} onClick={exportProfileData}>{t('profile.downloadDataExport')}</Button>} />;
@@ -583,7 +590,7 @@ export default function ProfileTab({ environment = 'match' }) {
           <div className="ui-list pp-list">
             <Row leading={icon(Shield)} title={t('profile.helpAndRules')} subtitle={t('profile.helpAndRulesDesc')} onClick={() => setPage('help')} />
             {dataSource === 'supabase' && <Row leading={icon(Ban)} title={t('profile.blockedPeople')} onClick={() => setPage('blocked')} />}
-            <Row leading={icon(Heart)} title={t('profile.supportPetPal')} onClick={() => setPage('support')} />
+            {SUPPORT_PETPAL_ENABLED && <Row leading={icon(Heart)} title={t('profile.supportPetPal')} onClick={() => setPage('support')} />}
           </div>
         </Section></motion.div>
 

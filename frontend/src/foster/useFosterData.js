@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { loadDueFosterTasks, loadFosterDirectory, loadFosterOverview, loadFosterRegistry, loadFosterRequests, loadMyAnimalsElsewhere } from '../services/fosterApi';
+import { countUnreadActivity, loadDueFosterTasks, loadFosterDirectory, loadFosterOverview, loadFosterRegistry, loadFosterRequests, loadMyAnimalsElsewhere } from '../services/fosterApi';
 
 const emptyData = { homes: [], team: [], saved: [], organizations: [], spaces: [], incoming: [], outgoing: [],
-  placements: [], finished: [], dueTasks: [], myCases: [], consents: [], elsewhere: [] };
+  placements: [], finished: [], dueTasks: [], myCases: [], consents: [], elsewhere: [], unreadActivity: 0 };
 
 // Everything the Foster screens show about the signed-in person, loaded once
 // and refreshed after each change or when the app comes back to the front.
@@ -24,6 +24,7 @@ export function useFosterData(user, live) {
         loadFosterDirectory({ type: 'animals', ownerId: user.id }),
         loadFosterRequests(user.id, 'consent'),
       ]);
+      const unreadActivity = await countUnreadActivity().catch(() => 0);
       const elsewhere = await loadMyAnimalsElsewhere(user.id, overview.homes.map(home => home.id));
       const perHome = await Promise.all(overview.homes.map(home => Promise.all([
         loadFosterRegistry({ homeId: home.id }),
@@ -33,7 +34,7 @@ export function useFosterData(user, live) {
       const finished = perHome.flatMap(([, done]) => done.rows);
       const dueTasks = await loadDueFosterTasks(placements.filter(p => p.status === 'IN_CARE').map(p => p.id));
       return { ...overview, incoming: incoming.rows, outgoing: outgoing.rows, myCases: myCases.rows, placements, finished, dueTasks,
-        consents: consents.rows, elsewhere };
+        consents: consents.rows, elsewhere, unreadActivity };
     })().then(next => {
       if (cancelled) return;
       setData(next);

@@ -14,14 +14,16 @@ import { CaseStory, HomeSettings, JoinHomeSheet } from '../foster/Manage';
 import { CaseWizard, HomeWizard } from '../foster/Wizard';
 import '../foster/foster.css';
 import { person } from '../ui/kit';
+import Activity from '../foster/Activity';
+import { SUPPORT_EMAIL } from '../services/support';
 
 function ReportSheet({ target, onClose, onSent }) {
   const { t } = useApp();
-  const [category, setCategory] = useState('SPAM');
+  const [category, setCategory] = useState('ANIMAL_DANGER');
   const [details, setDetails] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (target) { setCategory('SPAM'); setDetails(''); setError(''); } }, [target]);
+  useEffect(() => { if (target) { setCategory(target.category || 'SPAM'); setDetails(''); setError(''); } }, [target]);
   const send = async () => {
     setBusy(true); setError('');
     try { await reportFosterItem({ profileId: target.profileId, listingId: target.listingId, category, details }); onSent(); }
@@ -32,7 +34,8 @@ function ReportSheet({ target, onClose, onSent }) {
     footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
       <Button variant="danger" disabled={busy || !details.trim()} onClick={send}>{t('fx.report')}</Button></>}>
     <Field label={t('fx.reportWhy')}><Choices label={t('fx.reportWhy')} value={category} onChange={setCategory} columns={2}
-      options={[['SPAM', t('fx.reportSpam')], ['ABUSE', t('fx.reportAbuse')], ['MISLEADING', t('fx.reportMisleading')], ['OTHER', t('fx.reportOther')]]} /></Field>
+      options={[['ANIMAL_DANGER', t('fx.reportDanger')], ['SPAM', t('fx.reportSpam')], ['ABUSE', t('fx.reportAbuse')], ['MISLEADING', t('fx.reportMisleading')], ['OTHER', t('fx.reportOther')]]} /></Field>
+    {category === 'ANIMAL_DANGER' && <Notice>{t('fx.reportDangerHint')}</Notice>}
     <Field label={t('care.details')}><textarea className="fx-input" maxLength={2000} value={details} onChange={event => setDetails(event.target.value)} /></Field>
     {error && <Notice tone="error">{error}</Notice>}
   </Sheet>;
@@ -122,8 +125,15 @@ export default function FosterTab() {
         onToggleSave={() => act(() => saveFosterItem('animals', top.item.id, !data.saved.some(s => s.case_id === top.item.id)))} />;
       case 'home': return <HomeDetail home={top.item} onBack={pop} onInvite={() => setOffer({ kind: 'INVITE', item: top.item })}
         onReport={() => setReport({ profileId: top.item.profile_id })} />;
+      case 'activity': return <Activity onBack={pop} onSeen={refresh} onOpen={payload => {
+        const request = [...data.incoming, ...data.outgoing, ...data.consents].find(r => r.id === payload.requestId);
+        if (payload.placementId) push({ type: 'placement', id: payload.placementId });
+        else if (request) openRequest(request);
+        else if (payload.conversationId) openChat(payload.conversationId);
+      }} />;
       case 'placement': return <AnimalStory id={top.id} data={data} onBack={pop} onChanged={refresh} onOpenChat={openChat}
-        onTransfer={placement => push({ type: 'caseWizard', transfer: placement })} onReport={p => setReport({ profileId: p.home_owner_id })} />;
+        onTransfer={placement => push({ type: 'caseWizard', transfer: placement })}
+        onReport={p => setReport({ profileId: p.home_owner_id === user.id ? null : p.home_owner_id, category: 'ANIMAL_DANGER' })} />;
       case 'myCase': {
         const item = data.myCases.find(c => c.id === top.item.id) || top.item;
         return <CaseStory item={item} data={data} busy={busy} onBack={pop} onEdit={() => push({ type: 'caseWizard', item })} onAnswer={answer}
@@ -155,7 +165,7 @@ export default function FosterTab() {
                   ? <div className="fx-stack" style={{ marginTop: 24 }}>{[0, 1, 2].map(i => <div key={i} className="fx-skeleton" style={{ height: 110 }} />)}</div>
                   : tab === 'today' ? <Today data={data} busy={busy} onAnswer={answer} onArrived={arrived} onCompleteTask={completeTask}
                     onOpenPlacement={id => push({ type: 'placement', id })} onOpenRequest={openRequest} onOpenChat={openChat}
-                    onTeamInvite={teamInvite} onConsent={consent} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
+                    onTeamInvite={teamInvite} onConsent={consent} onOpenActivity={() => push({ type: 'activity' })} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
                     : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })} />
                       : <MyAnimals data={data} onOpenPlacement={id => push({ type: 'placement', id })} onOpenCase={item => push({ type: 'myCase', item })}
                         onOpenHomeSettings={home => push({ type: 'homeSettings', home })} onSetUpHome={() => push({ type: 'homeWizard' })} onPostAnimal={needHome} />}
@@ -175,7 +185,8 @@ export default function FosterTab() {
     <JoinHomeSheet open={joining} onClose={() => setJoining(false)} onJoined={home => {
       setJoining(false); refresh(); setNotice({ tone: 'success', text: fmt(t('fx.joined'), { home }) });
     }} />
-    <ReportSheet target={report} onClose={() => setReport(null)} onSent={() => { setReport(null); setNotice({ tone: 'success', text: t('care.reportSent') }); }} />
+    <ReportSheet target={report} onClose={() => setReport(null)} onSent={() => { setReport(null);
+      setNotice({ tone: 'success', text: `${t('care.reportSent')} ${SUPPORT_EMAIL ? fmt(t('fx.supportEmailLine'), { email: SUPPORT_EMAIL }) : t('fx.supportInAppLine')}` }); }} />
     <Celebrate show={Boolean(celebrate)} text={celebrate} />
   </div>;
 }
