@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Clock, Home, MessageCircle, Users } from 'lucide-react';
+import { Bell, ChevronRight, Clock, Home, MessageCircle, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Card, Photo, SectionTitle, TaskCheck, fmt, listMotion } from './ui';
 import { Art, person } from '../ui/kit';
@@ -41,7 +41,7 @@ export function HowItWorks() {
 }
 
 export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask, onOpenPlacement, onOpenRequest,
-  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent }) {
+  onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent, onOpenActivity }) {
   const { t, user } = useApp();
   const offers = data.incoming.filter(r => r.status === 'PENDING');
   const arriving = data.placements.filter(p => p.status === 'RESERVED');
@@ -67,7 +67,13 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
 
   return <>
     <header className="fx-hello">
-      <h1>{fmt(t('fx.hi'), { name: user.displayName || '' })}</h1>
+      <div className="fx-row">
+        <h1 className="fx-grow">{fmt(t('fx.hi'), { name: user.displayName || '' })}</h1>
+        {onOpenActivity && <button type="button" className="fx-icon-button fx-bell" onClick={onOpenActivity}
+          aria-label={data.unreadActivity ? fmt(t('fx.activityUnread'), { count: data.unreadActivity }) : t('fx.activity')}>
+          <Bell size={20} aria-hidden="true" />{data.unreadActivity > 0 && <span className="fx-bell-count" aria-hidden="true">{data.unreadActivity > 9 ? '9+' : data.unreadActivity}</span>}
+        </button>}
+      </div>
       <p>{isNew ? t('fx.whatToDo') : needsCount ? t('fx.todaySubtitle') : t('fx.allCalm')}</p>
     </header>
 

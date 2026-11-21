@@ -142,9 +142,24 @@ export async function reportFosterItem({ profileId, listingId, category, details
     listing_id: listingId || null, category, details }));
 }
 
+export async function loadActivity(offset = 0) {
+  return (await result(supabase.from('my_activity_view').select('*').order('created_at', { ascending: false }).order('id')
+    .range(offset, offset + 29))).data;
+}
+
+export async function countUnreadActivity() {
+  return (await result(supabase.from('my_activity_view').select('id', { count: 'exact', head: true }).is('read_at', null))).count || 0;
+}
+
+export async function markActivityRead(before) {
+  return fosterRpc('mark_activity_read', { before_input: before });
+}
+
 export async function loadPlatformQueue(type, query = '', page = 0) {
   let request;
-  if (type === 'REPORT') request = supabase.from('reports').select('*', { count: 'exact' }).in('status', ['OPEN', 'IN_REVIEW']).order('created_at');
+  // Animal in danger first, then automatic flags, then the rest, oldest first.
+  if (type === 'REPORT') request = supabase.from('platform_reports_view').select('*', { count: 'exact' }).in('status', ['OPEN', 'IN_REVIEW'])
+    .order('priority').order('created_at');
   else if (type === 'ACCOUNT') request = supabase.from('platform_accounts_view').select('*', { count: 'exact' }).order('display_name');
   else request = supabase.from('platform_listings_view').select('*', { count: 'exact' }).order('title');
   if (query.trim()) {
@@ -165,6 +180,6 @@ export async function loadPlatformRole() {
 }
 
 export async function loadPlatformItem(type, id) {
-  const table = type === 'ACCOUNT' ? 'platform_accounts_view' : type === 'LISTING' ? 'platform_listings_view' : 'reports';
+  const table = type === 'ACCOUNT' ? 'platform_accounts_view' : type === 'LISTING' ? 'platform_listings_view' : 'platform_reports_view';
   return (await result(supabase.from(table).select('*').eq('id', id).single())).data;
 }

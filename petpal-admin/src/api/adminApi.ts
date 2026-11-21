@@ -103,7 +103,7 @@ export async function fetchAdminRole() {
 export async function fetchAdminQueues() {
   const client = requireClient()
   const responses = await Promise.all([
-    client.from('reports').select('*').in('status', ['OPEN', 'IN_REVIEW']).order('created_at').limit(500),
+    client.from('platform_reports_view').select('*').in('status', ['OPEN', 'IN_REVIEW']).order('priority').order('created_at').limit(500),
     client.from('platform_listings_view').select('*').in('status', ['ACTIVE', 'PAUSED']).order('updated_at').limit(500),
     client.from('platform_accounts_view').select('*').eq('suspended', true).order('updated_at').limit(500),
   ])
@@ -112,10 +112,10 @@ export async function fetchAdminQueues() {
     id: row.id,
     type: (['report', 'listing', 'suspension'] as const)[index],
     title: row.category || row.title || row.display_name,
-    subtitle: 'Platform moderation only',
-    owner: row.reported_profile_id || row.responsible_name || row.display_name,
+    subtitle: index === 0 ? `Reported by ${row.reporter_name ?? 'Automatic flag'}` : 'Platform moderation only',
+    owner: row.reported_name || row.reported_profile_id || row.responsible_name || row.display_name,
     status: mapStatus(row.status || 'ACTIVE'),
-    risk: 'medium' as const,
+    risk: (index === 0 && row.priority === 0 ? 'high' : 'medium') as 'high' | 'medium',
     submittedAt: formatDate(row.created_at || row.updated_at),
     details: row.details || row.city || '',
     payload: { ...row, reportedProfileId: row.reported_profile_id, profileId: row.id },

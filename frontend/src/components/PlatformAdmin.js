@@ -60,7 +60,7 @@ function PlatformAdmin({ role, onClose }) {
     <button type="button" className="foster-secondary" onClick={() => setRevision(value => value + 1)}>{t('care.refresh')}</button>
     {error && <p role="alert" className="foster-alert">{error}</p>}
     {loading ? <p role="status">{t('care.loading')}</p> : queue.rows.map(row => <button type="button" key={row.id} className="foster-animal-row" onClick={() => setSelected({ type, item: row })}>
-      <span className="foster-animal-info"><strong>{row.display_name || row.title || row.category}</strong><span className="foster-muted">{row.status ? t(`care.${row.status}`) : t(row.suspended ? 'care.suspended' : 'care.platformActive')}</span></span><ChevronRight size={19} />
+      <span className="foster-animal-info"><strong>{row.priority === 0 ? '⚠ ' : ''}{row.display_name || row.title || row.category}</strong><span className="foster-muted">{row.status ? t(`care.${row.status}`) : t(row.suspended ? 'care.suspended' : 'care.platformActive')}</span></span><ChevronRight size={19} />
     </button>)}
     <FosterPager page={page} count={queue.count} onChange={setPage} disabled={loading} />
     <h3>{t('care.audit')}</h3><div className="foster-timeline">{audit.map(row => <article key={row.id}><strong>{row.action}</strong>
@@ -68,7 +68,7 @@ function PlatformAdmin({ role, onClose }) {
     {selected && <FosterScreen title={item.display_name || item.title || item.category} onClose={() => setSelected(null)}><div className="foster-detail-body">
       <p className="foster-id">{item.id}</p><p>{item.details || item.city}</p>
       {selected.type === 'REPORT' && <>
-        <p className="foster-muted">{item.reporter_id || t('care.autoFlag')} → {item.reported_profile_id}</p>
+        <p className="foster-muted">{item.reporter_id ? item.reporter_name : t('care.autoFlag')} → {item.reported_name || item.reported_profile_id}</p>
         <div className="foster-actions">{item.reported_profile_id && <button type="button" className="foster-secondary" onClick={() => openLinked('ACCOUNT', item.reported_profile_id)}>{t('care.ACCOUNT')}</button>}
           {item.listing_id && <button type="button" className="foster-secondary" onClick={() => openLinked('LISTING', item.listing_id)}>{t('care.LISTING')}</button>}</div>
         <div className="foster-stack">{['IN_REVIEW', 'RESOLVED', 'DISMISSED'].map(action => <button type="button" key={action} className="foster-secondary" onClick={() => choose(action)}>{t(`care.${action}`)}</button>)}</div>
