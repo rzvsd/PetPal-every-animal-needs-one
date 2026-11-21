@@ -249,6 +249,10 @@ export function AppProvider({ children }) {
           (async () => {
             const session = await getSupabaseSession();
             if (cancelled) return;
+            // Record whose data this load is for. Otherwise the INITIAL_SESSION
+            // event below sees a "new" account and the load is thrown away,
+            // leaving the demo user on screen after a cold start.
+            sessionAccount.current = session?.user?.id || null;
             setAuthSession(session);
             await applySupabaseData();
           })(),
