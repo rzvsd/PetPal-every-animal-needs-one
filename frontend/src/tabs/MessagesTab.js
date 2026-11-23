@@ -8,6 +8,7 @@ import DialogLayer from '../components/DialogLayer';
 import { useBackHandler } from '../navigation/backNavigation';
 import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Skeleton, fmt, person } from '../ui/kit';
 import { list, listItem, push, spring } from '../ui/motion';
+import { MATCH_ENABLED } from '../navigation/environments';
 import './messages.css';
 
 // What kind of conversation this is, in two or three words.
@@ -301,6 +302,11 @@ export default function MessagesTab({ environment = 'match' }) {
       const existing = conversations.find(c => c.id === requestedConversation.id);
       const conversation = existing || (await refreshInbox(undefined, false, requestedConversation.id))[0];
       if (!alive) return;
+      if (conversation && conversation.source !== source && !MATCH_ENABLED) {
+        // Match is hidden in this build, so its chats have nowhere to open.
+        setRequestedConversation(null);
+        return;
+      }
       if (conversation && conversation.source !== source) {
         // It belongs to the other space: the app switches there and opens it then.
         if (requestedConversation.source !== conversation.source) {
