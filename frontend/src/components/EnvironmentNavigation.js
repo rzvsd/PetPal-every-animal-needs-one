@@ -8,6 +8,7 @@ import { Art, Avatar, Count, Row } from '../ui/kit';
 import { spring } from '../ui/motion';
 import {
   FOSTER_ENVIRONMENT,
+  MATCH_ENABLED,
   MATCH_ENVIRONMENT,
   getEnvironmentHomeTab,
 } from '../navigation/environments';
@@ -15,7 +16,7 @@ import {
 const SPACES = [
   [MATCH_ENVIRONMENT, 'heart', 'environment.matchTitle', 'environment.matchDescription', 'MATCH'],
   [FOSTER_ENVIRONMENT, 'house', 'environment.fosterTitle', 'environment.fosterDescription', 'FOSTER'],
-];
+].filter(([key]) => MATCH_ENABLED || key !== MATCH_ENVIRONMENT);
 
 function useUnread() {
   const { messaging, dataSource, conversations } = useApp();
@@ -53,7 +54,12 @@ export function EnvironmentHeader({ environment, onSwitch }) {
   const unread = useUnread();
   const current = SPACES.find(([key]) => key === environment);
   const other = SPACES.find(([key]) => key !== environment);
-  const otherUnread = unread[other[4]] || 0;
+  const otherUnread = other ? unread[other[4]] || 0 : 0;
+
+  // With one space there is nothing to switch to, so the name is just a label.
+  if (!other) return <header className="pp-bar">
+    <span className="pp-bar-space"><Art name={current[1]} size={30} play={false} /><span>{t(current[2])}</span></span>
+  </header>;
 
   return <header className="pp-bar">
     <button type="button" data-testid="back-to-environments" className="pp-bar-space" onClick={() => setOpen(true)}

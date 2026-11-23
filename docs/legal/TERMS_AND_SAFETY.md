@@ -7,6 +7,8 @@ This draft defines the product safety rules PetPal should enforce before public 
 ## Core Rules
 
 - PetPal is for animal welfare, matching, foster care, rescue coordination, and responsible owner communication.
+- Users must be 18 or older.
+- "Animal in danger" reports are answered within 2 hours between 08:00 and 22:00 (Romania time). PetPal is not an emergency service: people in danger call 112, and a hurt animal goes to a vet first.
 - Open animal sales are not allowed.
 - Ungated direct messages from public cards are not allowed.
 - Exact location should not be public.
