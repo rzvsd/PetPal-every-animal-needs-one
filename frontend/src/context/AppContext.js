@@ -566,9 +566,9 @@ export function AppProvider({ children }) {
   };
 
 
-  const reportConversation = async (convId, details = '') => {
+  const reportConversation = async (convId, details = '', category = 'CONVERSATION_SAFETY') => {
     if (dataSource === 'supabase') {
-      await reportSupabaseConversation(convId, details);
+      await reportSupabaseConversation(convId, details, category);
     }
 
     setConversations((current) => current.map((conversation) => (

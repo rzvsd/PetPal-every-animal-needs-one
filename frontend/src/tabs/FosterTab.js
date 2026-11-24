@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
-import { fosterRpc, loadFosterCase, loadFosterHome, loadFosterRequest, reportFosterItem, saveFosterItem } from '../services/fosterApi';
+import { fosterRpc, loadFosterCase, loadFosterHome, loadFosterRequest, saveFosterItem } from '../services/fosterApi';
+import ReportSheet, { reportSentText } from '../components/ReportSheet';
 import { useReducedPetMotion } from '../components/Motion';
 import { useFosterData } from '../foster/useFosterData';
-import { Button, Celebrate, Choices, ConfirmSheet, Field, Notice, Sheet, fmt } from '../foster/ui';
+import { Button, Celebrate, ConfirmSheet, Field, Notice, Sheet, fmt } from '../foster/ui';
 import Today from '../foster/Today';
 import Find, { CaseDetail, HomeDetail, OfferSheet } from '../foster/Find';
 import MyAnimals from '../foster/MyAnimals';
@@ -15,31 +16,6 @@ import { CaseWizard, HomeWizard } from '../foster/Wizard';
 import '../foster/foster.css';
 import { person } from '../ui/kit';
 import Activity from '../foster/Activity';
-import { SUPPORT_EMAIL } from '../services/support';
-
-function ReportSheet({ target, onClose, onSent }) {
-  const { t } = useApp();
-  const [category, setCategory] = useState('ANIMAL_DANGER');
-  const [details, setDetails] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { if (target) { setCategory(target.category || 'SPAM'); setDetails(''); setError(''); } }, [target]);
-  const send = async () => {
-    setBusy(true); setError('');
-    try { await reportFosterItem({ profileId: target.profileId, listingId: target.listingId, category, details }); onSent(); }
-    catch (failure) { setError(friendlyError(failure, t)); }
-    finally { setBusy(false); }
-  };
-  return <Sheet open={Boolean(target)} onClose={onClose} title={t('fx.report')}
-    footer={<><Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
-      <Button variant="danger" disabled={busy || !details.trim()} onClick={send}>{t('fx.report')}</Button></>}>
-    <Field label={t('fx.reportWhy')}><Choices label={t('fx.reportWhy')} value={category} onChange={setCategory} columns={2}
-      options={[['ANIMAL_DANGER', t('fx.reportDanger')], ['SPAM', t('fx.reportSpam')], ['ABUSE', t('fx.reportAbuse')], ['MISLEADING', t('fx.reportMisleading')], ['OTHER', t('fx.reportOther')]]} /></Field>
-    {category === 'ANIMAL_DANGER' && <Notice>{t('fx.reportDangerHint')}</Notice>}
-    <Field label={t('care.details')}><textarea className="fx-input" maxLength={2000} value={details} onChange={event => setDetails(event.target.value)} /></Field>
-    {error && <Notice tone="error">{error}</Notice>}
-  </Sheet>;
-}
 
 // Accept is one sheet that says what PetPal does not check and swaps phones.
 function AcceptSheet({ request, busy, onClose, onAccept }) {
@@ -273,7 +249,7 @@ export default function FosterTab() {
       setJoining(false); refresh(); setNotice({ tone: 'success', text: fmt(t('fx.joined'), { home }) });
     }} />
     <ReportSheet target={report} onClose={() => setReport(null)} onSent={() => { setReport(null);
-      setNotice({ tone: 'success', text: `${t('care.reportSent')} ${SUPPORT_EMAIL ? fmt(t('fx.supportEmailLine'), { email: SUPPORT_EMAIL }) : t('fx.supportInAppLine')}` }); }} />
+      setNotice({ tone: 'success', text: reportSentText(t) }); }} />
     <Celebrate show={Boolean(celebrate)} text={celebrate} />
   </div>;
 }

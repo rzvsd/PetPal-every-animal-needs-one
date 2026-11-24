@@ -323,6 +323,20 @@ function App() {
                 </div>
               </dl>
               <p className="caseDetails">{selectedItem.details}</p>
+              {selectedItem.messages.length > 0 && (
+                <section className="caseMessages" aria-label="Recent messages">
+                  <h3>Recent messages</h3>
+                  <ol>
+                    {selectedItem.messages.map((message, index) => (
+                      <li key={index}>
+                        <strong>{message.from}{message.reporter ? ' (reporter)' : ''}</strong>
+                        <span>{new Date(message.at).toLocaleString('en-GB')}</span>
+                        <p>{message.body}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
               <label className="noteField">
                 Internal moderation note
                 <textarea

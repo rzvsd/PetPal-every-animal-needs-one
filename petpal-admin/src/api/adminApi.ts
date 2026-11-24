@@ -11,6 +11,13 @@ export type AdminRoleInfo = {
   adminSince: string
 }
 
+export type ReportMessage = {
+  from: string
+  reporter: boolean
+  body: string
+  at: string
+}
+
 export type AdminQueueItem = {
   id: string
   type: QueueType
@@ -21,6 +28,7 @@ export type AdminQueueItem = {
   risk: QueueRisk
   submittedAt: string
   details: string
+  messages: ReportMessage[]
   payload: Record<string, unknown>
 }
 
@@ -113,11 +121,13 @@ export async function fetchAdminQueues() {
     type: (['report', 'listing', 'suspension'] as const)[index],
     title: row.category || row.title || row.display_name,
     subtitle: index === 0 ? `Reported by ${row.reporter_name ?? 'Automatic flag'}` : 'Platform moderation only',
-    owner: row.reported_name || row.reported_profile_id || row.responsible_name || row.display_name,
+    owner: (index === 0 ? row.reported_name || 'Deleted account' : row.responsible_name || row.display_name),
     status: mapStatus(row.status || 'ACTIVE'),
     risk: (index === 0 && row.priority === 0 ? 'high' : 'medium') as 'high' | 'medium',
     submittedAt: formatDate(row.created_at || row.updated_at),
-    details: row.details || row.city || '',
+    details: [row.listing_title && `Animal: ${row.listing_title}`, row.context?.animal && `Chat about ${row.context.animal}`, row.details || row.city]
+      .filter(Boolean).join('\n'),
+    messages: (row.context?.messages ?? []) as ReportMessage[],
     payload: { ...row, reportedProfileId: row.reported_profile_id, profileId: row.id },
   })))
 }

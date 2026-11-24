@@ -171,7 +171,7 @@ export async function loadPlatformQueue(type, query = '', page = 0) {
 }
 
 export async function loadPlatformAudit() {
-  return (await result(supabase.from('audit_logs').select('id,actor_id,action,target_table,target_id,metadata,created_at')
+  return (await result(supabase.from('audit_logs').select('id,actor_id,action,target_table,target_id,metadata,created_at,actor:actor_id(display_name)')
     .order('created_at', { ascending: false }).limit(25))).data;
 }
 
