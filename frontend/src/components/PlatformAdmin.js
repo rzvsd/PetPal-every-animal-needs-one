@@ -38,6 +38,15 @@ function PlatformAdmin({ role, onClose }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [revision, setRevision] = useState(0);
+  const [numbers, setNumbers] = useState(null);
+  const [showNumbers, setShowNumbers] = useState(false);
+  useEffect(() => {
+    if (!showNumbers) return undefined;
+    let cancelled = false;
+    fosterRpc('pilot_numbers').then(rows => { if (!cancelled) setNumbers(rows); })
+      .catch(failure => { if (!cancelled) setError(friendlyError(failure, t)); });
+    return () => { cancelled = true; };
+  }, [showNumbers, revision, t]);
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -72,6 +81,11 @@ function PlatformAdmin({ role, onClose }) {
       <span className="foster-animal-info"><strong>{row.priority === 0 ? '⚠ ' : ''}{rowTitle(row)}</strong><span className="foster-muted">{rowStatus(row)}</span></span><ChevronRight size={19} />
     </button>)}
     <FosterPager page={page} count={queue.count} onChange={setPage} disabled={loading} />
+    <button type="button" className="foster-secondary" aria-expanded={showNumbers} onClick={() => setShowNumbers(value => !value)}>{t('care.pilotNumbers')}</button>
+    {showNumbers && <table className="foster-numbers"><thead><tr><th scope="col">{t('care.pilotMetric')}</th><th scope="col">{t('care.pilotTotal')}</th><th scope="col">{t('care.pilotWeek')}</th></tr></thead>
+      <tbody>{(numbers || []).map(row => <tr key={row.sort_order}><th scope="row">{t(`care.pilot${row.sort_order}`)}</th>
+        <td>{row.of_total == null ? row.total : `${row.total}/${row.of_total}`}</td>
+        <td>{row.of_last_7_days == null ? row.last_7_days : `${row.last_7_days}/${row.of_last_7_days}`}</td></tr>)}</tbody></table>}
     <h3>{t('care.audit')}</h3><div className="foster-timeline">{audit.map(row => <article key={row.id}><strong>{row.action}</strong>
       <p className="foster-muted">{row.actor?.display_name || (row.actor_id ? t('care.deletedAccount') : t('care.autoFlag'))}</p><p>{row.metadata?.reason || row.metadata?.notes}</p><span className="foster-muted">{date(row.created_at)}</span></article>)}</div>
     {selected && <FosterScreen title={rowTitle(item)} onClose={() => setSelected(null)}><div className="foster-detail-body">
