@@ -29,8 +29,10 @@ begin
   end loop;
 end $$;
 
+reset role;
 select is((select count(*) from public.foster_requests where case_id = (select id from ids where name='case') and status = 'PENDING'),
   10::bigint,'ten homes can apply');
+set local role authenticated;
 select throws_ok($$select public.create_foster_request(null,(select id from ids where name='case'),(select id from ids where name='home11'),'APPLICATION','Me too')$$,
   'P0001','This animal already has 10 open offers. Try another animal, or try again after the owner answers.','the eleventh open request is refused');
 
