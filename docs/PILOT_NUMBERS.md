@@ -12,7 +12,7 @@ all-time total and the last 7 days.
 | 5 | Requests accepted | Requests that became a reservation. |
 | 6 | Animals received in care | Placements where the home confirmed the animal arrived. |
 | 7 | Animals adopted after care | Care that ended with the foster or someone else adopting. |
-| 8 | Danger reports answered within 2 hours | "Animal in danger" reports with a moderator decision within 2 hours, shown as answered / all. |
+| 8 | Danger reports answered within 2 hours | "Animal in danger" reports resolved or dismissed by a moderator within 2 hours ("in review" does not count), shown as answered / all. |
 
 ## Where to see them
 

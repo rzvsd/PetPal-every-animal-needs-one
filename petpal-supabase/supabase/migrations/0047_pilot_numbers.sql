@@ -42,8 +42,8 @@ begin
     count(*) filter (where d.answered_at <= d.created_at + interval '2 hours'),
     count(*) filter (where d.answered_at <= d.created_at + interval '2 hours' and d.created_at > week),
     count(*), count(*) filter (where d.created_at > week)
-    from (select r.created_at,
-            (select min(a.created_at) from public.audit_logs a where a.target_id = r.id) as answered_at
+    -- Answered means a final decision (resolved or dismissed), not "in review".
+    from (select r.created_at, r.resolved_at as answered_at
           from public.reports r where r.category = 'ANIMAL_DANGER') d
   order by 1;
 end $$;
