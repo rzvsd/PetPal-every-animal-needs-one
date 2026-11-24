@@ -139,6 +139,8 @@ export const serverErrorsRo = {
   'This foster home is hidden by PetPal moderation. Contact support.': 'Această casă foster este ascunsă de moderarea PetPal. Contactează-ne.',
   'This home is not taking animals right now.': 'Această casă nu primește animale acum.',
   'Choose why you are reporting': 'Alege motivul raportului.',
+  'Only the helper can leave': 'Doar persoana care ajută poate ieși.',
+  'You are not helping this home': 'Nu mai ajuți această casă.',
   'Report details are too long': 'Detaliile raportului sunt prea lungi.',
   'You cannot review your own foster home': 'Nu îți poți lăsa recenzie propriei case.',
   'Reviews open only after the animal spent 48 hours in care': 'Recenzia se poate lăsa doar după ce animalul a stat 48 de ore în grijă.',

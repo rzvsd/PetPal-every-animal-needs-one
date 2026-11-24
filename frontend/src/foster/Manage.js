@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Cat, ChevronRight, Copy, Dog, DoorOpen, Edit3, MessageCircle, PawPrint, Plus, Share2, Trash2, UserPlus, Zap } from 'lucide-react';
+import { Cat, ChevronRight, Copy, Dog, DoorOpen, Edit3, LogOut, MessageCircle, PawPrint, Plus, Share2, Trash2, UserPlus, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc } from '../services/fosterApi';
@@ -79,7 +79,7 @@ export function homeToData(home) {
 }
 
 export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
-  const { t } = useApp();
+  const { t, user } = useApp();
   const [sheet, setSheet] = useState(null);
   const [form, setForm] = useState({});
   const [notice, setNotice] = useState('');
@@ -137,6 +137,24 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
           disabled={busy} onClick={() => run(() => fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: member.profile_id, action_input: 'REVOKE' }))} />}
       </div></Card>)}
     </div>
+
+    {!owner && <>
+      <p className="fx-hint" style={{ marginTop: 16 }}>{t('fx.helperNote')}</p>
+      <Button variant="ghost" icon={LogOut} className="fx-button-block" style={{ marginTop: 8 }} onClick={() => open('leave')}>{t('fx.leaveHome')}</Button>
+    </>}
+
+    <Sheet open={sheet === 'leave'} onClose={() => setSheet(null)} title={t('fx.leaveHome')}
+      footer={sheetFooter(t('fx.leaveHome'), async () => {
+        setBusy(true); setError('');
+        try {
+          await fosterRpc('manage_foster_member', { home_id_input: home.id, profile_id_input: user.id, action_input: 'LEAVE' });
+          setSheet(null); onChanged(); onBack();
+        } catch (failure) { setError(friendlyError(failure, t)); }
+        finally { setBusy(false); }
+      })}>
+      <p className="fx-muted">{fmt(t('fx.leaveHomeConfirm'), { home: home.name })}</p>
+      {error && <Notice tone="error">{error}</Notice>}
+    </Sheet>
 
     <Sheet open={sheet === 'space'} onClose={() => setSheet(null)} title={t('fx.addSpace')}
       footer={sheetFooter(t('fx.add'), () => run(() => fosterRpc('save_foster_space', { home_id_input: home.id, name_input: form.name, isolation_input: form.isolation })), !form.name?.trim())}>

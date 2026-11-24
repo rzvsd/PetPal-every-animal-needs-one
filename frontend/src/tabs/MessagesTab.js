@@ -194,9 +194,9 @@ function ConversationThread({ conv, onBack, t }) {
         const day = new Date(msg.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
         const newDay = !previous || new Date(previous.createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
         // Messages from the same person a few minutes apart read as one group.
-        const groupedWithNext = next && next.isMine === msg.isMine && new Date(next.createdAt) - new Date(msg.createdAt) < 5 * 60000
+        const groupedWithNext = next && next.isMine === msg.isMine && next.senderDisplayName === msg.senderDisplayName && new Date(next.createdAt) - new Date(msg.createdAt) < 5 * 60000
           && new Date(next.createdAt).toDateString() === new Date(msg.createdAt).toDateString();
-        const startsGroup = newDay || !previous || previous.isMine !== msg.isMine || new Date(msg.createdAt) - new Date(previous.createdAt) >= 5 * 60000;
+        const startsGroup = newDay || !previous || previous.isMine !== msg.isMine || previous.senderDisplayName !== msg.senderDisplayName || new Date(msg.createdAt) - new Date(previous.createdAt) >= 5 * 60000;
         const shouldAnimate = !seenMessages.current.has(messageKey(msg)) && (msg.isNew || msg.status === 'sending');
         return <React.Fragment key={messageKey(msg)}>
           {newDay && <p className="pp-thread-day">{day}</p>}

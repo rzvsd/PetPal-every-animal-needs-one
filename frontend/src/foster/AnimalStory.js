@@ -250,7 +250,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
             <div className="fx-row">
               <div className="fx-grow"><h2 className="fx-page-title" style={{ fontSize: 24 }}>{p.name}</h2>
                 <p className="fx-muted">{p.home_name}{p.space_name ? ` · ${p.space_name}` : ''}</p></div>
-              {p.conversation_id && (owner || caseSide) && chatOpen && <Button variant="soft" className="fx-button-small" icon={MessageCircle}
+              {p.conversation_id && (canCare || caseSide) && chatOpen && <Button variant="soft" className="fx-button-small" icon={MessageCircle}
                 onClick={() => onOpenChat(p.conversation_id)}>{t('fx.chat')}</Button>}
             </div>
             <div style={{ marginTop: 18 }}><Journey current={stepIndex[p.status] ?? 1}
@@ -297,7 +297,7 @@ export default function AnimalStory({ id, data, onBack, onChanged, onOpenChat, o
               {story.tasks.map(task => {
                 const label = task.completed_at ? t('fx.doneTapToUndo') : dueLabel(task.due_at, t);
                 return <TaskCheck key={task.id} done={Boolean(task.completed_at)} label={task.title} meta={task.repeat_daily && !task.completed_at ? `${label} · ${t('fx.everyDay')}` : label}
-                  late={label === t('fx.overdue')} disabled={!canCare || busy} onToggle={() => toggleTask(task)} />;
+                  late={label === t('fx.overdue')} readOnly={!canCare} disabled={busy} onToggle={() => toggleTask(task)} />;
               })}
             </motion.div>
             {canWrite && active && <Card style={{ marginTop: 12 }}>

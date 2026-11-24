@@ -44,7 +44,10 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
   onOpenChat, onTeamInvite, onNeedHome, onCanFoster, onJoinWithCode, onConsent, onOpenActivity, onOpenCaseById, onOpenHomeById, onWithdraw }) {
   const { t, user } = useApp();
   const offers = data.incoming.filter(r => r.status === 'PENDING');
-  const arriving = data.placements.filter(p => p.status === 'RESERVED');
+  // Only the home owner can mark an arrival; helpers who help with care tick tasks.
+  const roleAt = homeId => data.homes.find(h => h.id === homeId)?.my_role;
+  const arriving = data.placements.filter(p => p.status === 'RESERVED' && roleAt(p.home_id) === 'OWNER');
+  const dueTasks = data.dueTasks.filter(task => ['OWNER', 'CARER'].includes(roleAt(data.placements.find(p => p.id === task.placement_id)?.home_id)));
   const invites = data.team.filter(m => m.profile_id === user.id && m.status === 'INVITED');
   const waiting = [
     ...data.outgoing.filter(r => r.status === 'PENDING').map(r => ({ key: r.id, request: r, withdraw: true,
@@ -61,7 +64,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
       ? fmt(t('fx.answerPlacedElsewhere'), { animal: r.animal_name })
       : fmt(t('fx.answerDeclined'), { name: person(r.recipient_name, t), animal: r.animal_name }) }));
   const consents = data.consentsWaiting || [];
-  const needsCount = offers.length + arriving.length + data.dueTasks.length + invites.length + consents.length;
+  const needsCount = offers.length + arriving.length + dueTasks.length + invites.length + consents.length;
   const isNew = !data.homes.length && !data.myCases.length && !data.incoming.length && !data.outgoing.length;
   const animalOf = task => data.placements.find(p => p.id === task.placement_id);
 
@@ -143,7 +146,7 @@ export default function Today({ data, busy, onAnswer, onArrived, onCompleteTask,
             </div>
           </Card>)}
 
-          {data.dueTasks.map(task => {
+          {dueTasks.map(task => {
             const label = dueLabel(task.due_at, t);
             return <TaskCheck key={task.id} label={fmt(t('fx.taskFor'), { task: task.title, animal: animalOf(task)?.name || '' })}
               meta={label} late={label === t('fx.overdue')} disabled={busy} onToggle={() => onCompleteTask(task)} />;
