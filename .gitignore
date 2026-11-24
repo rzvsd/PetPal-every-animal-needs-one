@@ -46,3 +46,6 @@ memory/
 test_reports/
 .codex-remote-attachments/
 .claude/launch.json
+
+# PetPal test-account logins (scripts/test-accounts)
+*.local.json

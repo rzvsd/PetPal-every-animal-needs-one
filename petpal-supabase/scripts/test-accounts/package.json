@@ -1,0 +1,14 @@
+{
+  "name": "petpal-test-accounts",
+  "private": true,
+  "type": "module",
+  "description": "Seed, load-test and remove clearly marked PetPal test accounts.",
+  "scripts": {
+    "seed": "node seed.mjs",
+    "load": "node load.mjs",
+    "cleanup": "node cleanup.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  }
+}
