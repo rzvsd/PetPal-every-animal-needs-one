@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, ArrowDown, ArrowLeft, Check, ChevronDown, Clock, Lock, MoreVertical, Send } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowLeft, Check, ChevronDown, Clock, Lock, MoreVertical, PawPrint, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
 import { SafetyMenu } from '../components/SharedComponents';
@@ -48,7 +48,7 @@ function MessageStatus({ status, t }) {
 }
 
 function ConversationThread({ conv, onBack, t }) {
-  const { messaging, reportConversation, blockConversation, dataSource, lang } = useApp();
+  const { messaging, reportConversation, blockConversation, dataSource, lang, requestOpenFosterPage } = useApp();
   const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
     threadHasMore, loadingThread, markRead, respondToWalk, typingByConversation, startTyping, stopTyping } = messaging;
   const [input, setInput] = useState(drafts[conv.id] || '');
@@ -167,6 +167,9 @@ function ConversationThread({ conv, onBack, t }) {
         {[conv.city, conv.coarseArea].filter(Boolean).length > 0 && <p className="ui-small">{[conv.coarseArea, conv.city].filter(Boolean).join(', ')}</p>}
         {conv.organizationName && <p className="ui-small">{conv.organizationName}</p>}
         <p className="ui-small pp-detail-private"><Lock size={14} aria-hidden="true" />{t('matches.locationPrivate')}</p>
+        {!isMatch && dataSource === 'supabase' && (conv.fosterRequestId || conv.fosterCaseId) && <Button variant="secondary" icon={PawPrint}
+          data-testid="open-animal-page" onClick={() => requestOpenFosterPage({ requestId: conv.fosterRequestId, caseId: conv.fosterCaseId })}>
+          {fmt(t('messages.openAnimalPage'), { name: conv.animalName || t('messages.theAnimal') })}</Button>}
       </div>
     </motion.div>}</AnimatePresence>
 

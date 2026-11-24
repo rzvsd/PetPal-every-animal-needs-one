@@ -107,6 +107,8 @@ export function AppProvider({ children }) {
   const [screenParams, setScreenParams] = useState(null);
   const [skippedMatches, setSkippedMatches] = useState({});
   const [requestedConversation, setRequestedConversation] = useState(null);
+  // An animal page asked for from outside Foster, such as from a chat.
+  const [requestedFosterPage, setRequestedFosterPage] = useState(null);
   // Reduced motion is a property of the person holding the phone, so it is
   // stored once per device, not per account. Older builds stored a map by account.
   const [reduceMotion, setReduceMotionState] = useState(() => {
@@ -141,6 +143,10 @@ export function AppProvider({ children }) {
   const requestOpenConversation = useCallback((id, source = 'MATCH') => {
     setRequestedConversation({ id, source });
     setActiveTab('messages');
+  }, []);
+  const requestOpenFosterPage = useCallback(target => {
+    setRequestedFosterPage(target);
+    setActiveTab('foster');
   }, []);
 
   const t = useCallback((path) => {
@@ -930,6 +936,7 @@ export function AppProvider({ children }) {
       matchMode, setMatchMode,
       candidates, setCandidates,
       skippedMatches, messaging, requestedConversation, setRequestedConversation, requestOpenConversation,
+      requestedFosterPage, setRequestedFosterPage, requestOpenFosterPage,
       refreshSupabaseData,
       matchSuccess, setMatchSuccess,
       savedAnimals, handleLike, handlePass, handleSave, reportMatchProfile, blockMatchProfile,

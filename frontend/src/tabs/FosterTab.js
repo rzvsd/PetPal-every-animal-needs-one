@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
-import { fosterRpc, loadFosterCase, loadFosterHome, reportFosterItem, saveFosterItem } from '../services/fosterApi';
+import { fosterRpc, loadFosterCase, loadFosterHome, loadFosterRequest, reportFosterItem, saveFosterItem } from '../services/fosterApi';
 import { useReducedPetMotion } from '../components/Motion';
 import { useFosterData } from '../foster/useFosterData';
 import { Button, Celebrate, Choices, ConfirmSheet, Field, Notice, Sheet, fmt } from '../foster/ui';
@@ -61,7 +61,7 @@ function AcceptSheet({ request, busy, onClose, onAccept }) {
 }
 
 export default function FosterTab() {
-  const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation, askForNotifications } = useApp();
+  const { t, user, activeTab, setActiveTab, dataSource, requestOpenConversation, askForNotifications, requestedFosterPage, setRequestedFosterPage } = useApp();
   const reduced = useReducedPetMotion();
   const live = dataSource === 'supabase';
   const data = useFosterData(user, live);
@@ -163,6 +163,28 @@ export default function FosterTab() {
     : request.case_owner_id === user.id ? push({ type: 'myCase', item: data.myCases.find(c => c.id === request.case_id) || { id: request.case_id, name: request.animal_name } })
       : request.conversation_id && openChat(request.conversation_id));
   const openCase = item => push({ type: item.responsible_id === user.id ? 'myCase' : 'case', item });
+  // A chat asked for its animal: the placement once there is one, otherwise the animal's own page.
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    if (!requestedFosterPage) return;
+    // Clearing the request re-runs this effect, so leaving the tab is tracked by `mounted` instead.
+    const { requestId, caseId } = requestedFosterPage;
+    setRequestedFosterPage(null);
+    (async () => {
+      const request = requestId ? await loadFosterRequest(requestId).catch(() => null) : null;
+      if (!mounted.current) return;
+      const animalId = request?.case_id || caseId;
+      if (request?.placement_id) push({ type: 'placement', id: request.placement_id });
+      else if (request ? request.case_owner_id === user.id : data.myCases.some(c => c.id === animalId)) {
+        push({ type: 'myCase', item: data.myCases.find(c => c.id === animalId) || { id: animalId, name: request?.animal_name } });
+      } else if (animalId) {
+        const item = await loadFosterCase(animalId).catch(() => null);
+        if (!mounted.current) return;
+        if (item) push({ type: 'case', item }); else setNotice({ tone: 'error', text: t('fx.notAvailable') });
+      } else setNotice({ tone: 'error', text: t('fx.notAvailable') });
+    })();
+  }, [requestedFosterPage]); // eslint-disable-line react-hooks/exhaustive-deps
   const sendOffer = async ({ kind, caseId, homeId, message }) => {
     await fosterRpc('create_foster_request', { request_id_input: crypto.randomUUID(), case_id_input: caseId, home_id_input: homeId, kind_input: kind, message_input: message });
     setOffer(null); refresh();
