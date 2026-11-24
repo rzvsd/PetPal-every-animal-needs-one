@@ -195,9 +195,10 @@ export default function FosterTab() {
       case 'myCase': {
         const item = data.myCases.find(c => c.id === top.item.id) || top.item;
         return <CaseStory item={item} data={data} busy={busy} onBack={pop} onEdit={() => push({ type: 'caseWizard', item })} onAnswer={answer}
+          onPostAnother={() => push({ type: 'caseWizard', template: item })}
           onOpenChat={openChat} onOpenPlacement={id => push({ type: 'placement', id })} onChanged={refresh} onOpenHomeById={openHomeById} onWithdraw={withdraw} />;
       }
-      case 'caseWizard': return <CaseWizard item={top.item} transfer={top.transfer} organizations={data.organizations} onClose={pop}
+      case 'caseWizard': return <CaseWizard item={top.item} transfer={top.transfer} template={top.template} organizations={data.organizations} onClose={pop}
         onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.published') }); if (!top.item) { setActiveTab('foster-mine'); askForNotifications('published'); } }} />;
       case 'homeWizard': return <HomeWizard home={top.home} onClose={pop}
         onSaved={() => { pop(); refresh(); setNotice({ tone: 'success', text: t('fx.homeSaved') }); }} />;
