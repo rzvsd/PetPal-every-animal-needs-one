@@ -16,7 +16,7 @@ import { PetMotionProvider } from './components/Motion';
 import Launch from './screens/Launch';
 import NewPassword from './screens/NewPassword';
 import NotificationAsk from './components/NotificationAsk';
-import { getEnvironmentHomeTab } from './navigation/environments';
+import { FOSTER_ENVIRONMENT, MATCH_ENABLED, getEnvironmentHomeTab } from './navigation/environments';
 import './App.css';
 import { dismissTopLayer } from './navigation/backNavigation';
 import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
@@ -43,6 +43,12 @@ function AppContent() {
     setActiveTab(getEnvironmentHomeTab(nextEnvironment));
   }, [setActiveTab]);
 
+  // With Match hidden there is no space to choose, so go straight to Foster.
+  useEffect(() => {
+    if (MATCH_ENABLED || authLoading || authRequired) return;
+    if (!environment || activeTab === 'matches') enterEnvironment(FOSTER_ENVIRONMENT);
+  }, [environment, activeTab, authLoading, authRequired, enterEnvironment]);
+
   const handleAppBack = useCallback(() => {
     if (dismissTopLayer()) return;
     const current = backStateRef.current;
@@ -62,7 +68,7 @@ function AppContent() {
   useEffect(() => {
     if (requestedConversation && !authRequired) {
       // Each space has its own inbox, so a conversation opens in its own space.
-      setEnvironment(requestedConversation.source === 'FOSTER' ? 'foster' : 'match');
+      setEnvironment(requestedConversation.source === 'FOSTER' || !MATCH_ENABLED ? 'foster' : 'match');
       setActiveTab('messages');
     }
   }, [requestedConversation, authRequired, setActiveTab]);
@@ -163,7 +169,7 @@ function AppContent() {
             <div role="alert" className="pp-state"><Empty art="paw" title={t('readiness.loadError')}
               action={<Button busy={backendStatus.loading} onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</Button>} /></div>
           ) : !environment ? (
-            <Doors onSelect={enterEnvironment} />
+            MATCH_ENABLED ? <Doors onSelect={enterEnvironment} /> : null
           ) : (
             <>
               <EnvironmentHeader environment={environment} onSwitch={enterEnvironment} />
@@ -171,7 +177,7 @@ function AppContent() {
                   Foster's three tabs are one view with its own transitions. */}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.main key={`${environment}:${activeTab.startsWith('foster') ? 'foster' : activeTab}`} className="pp-tab-view" {...fadeThrough}>
-                  {activeTab === 'matches' && <MatchesTab />}
+                  {activeTab === 'matches' && MATCH_ENABLED && <MatchesTab />}
                   {activeTab.startsWith('foster') && <FosterTab />}
                   {activeTab === 'messages' && <MessagesTab environment={environment} />}
                   {activeTab === 'profile' && <ProfileTab key={environment} environment={environment} />}

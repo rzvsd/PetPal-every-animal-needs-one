@@ -15,9 +15,9 @@ grant all on m26_chat to authenticated;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000026',true);
 select throws_ok($$select public.complete_profile_onboarding('New','Bucharest',null,array['ADOPTER']::public.user_role[])$$,
-  'P0001','Confirm you are at least 16 and accept the Terms and Privacy Policy','new profiles require consent');
+  'P0001','Confirm you are at least 18 and accept the Terms and Privacy Policy','new profiles require consent');
 select throws_ok($$select public.complete_profile_onboarding('New','Bucharest',null,array['ADOPTER']::public.user_role[],true,false)$$,
-  'P0001','Confirm you are at least 16 and accept the Terms and Privacy Policy','age alone is not enough');
+  'P0001','Confirm you are at least 18 and accept the Terms and Privacy Policy','age alone is not enough');
 select lives_ok($$select public.complete_profile_onboarding('New','Bucharest',null,array['ADOPTER']::public.user_role[],true,true)$$,
   'new profile is created with consent');
 select ok((select age_confirmed and terms_accepted_at is not null from public.profiles

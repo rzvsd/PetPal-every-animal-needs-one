@@ -28,7 +28,7 @@ export const serverErrorsRo = {
   'Choose a request type and write a message': 'Alege tipul cererii și scrie un mesaj.',
   'Choose an active carer': 'Alege un îngrijitor activ.',
   'Choose how the care ended': 'Alege cum s-a încheiat îngrijirea.',
-  'Confirm you are at least 16 and accept the Terms and Privacy Policy': 'Confirmă că ai cel puțin 16 ani și acceptă Termenii și Politica de confidențialitate.',
+  'Confirm you are at least 18 and accept the Terms and Privacy Policy': 'Confirmă că ai cel puțin 18 ani și acceptă Termenii și Politica de confidențialitate.',
   'Contact is blocked': 'Contactul este blocat.',
   'Contact is unavailable': 'Contactul nu este disponibil.',
   'Contacts can be shared only by the two sides of an active placement': 'Datele de contact pot fi date doar de cele două părți ale unei găzduiri active.',
