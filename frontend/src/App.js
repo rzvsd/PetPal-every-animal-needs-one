@@ -19,6 +19,7 @@ import Suspended from './screens/Suspended';
 import NotificationAsk from './components/NotificationAsk';
 import { FOSTER_ENVIRONMENT, MATCH_ENABLED, getEnvironmentHomeTab } from './navigation/environments';
 import './App.css';
+import { introSeen } from './screens/introSeen';
 import { dismissTopLayer } from './navigation/backNavigation';
 import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClient';
 
@@ -26,7 +27,8 @@ function AppContent() {
   const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, handleRecoveryLink, passwordRecovery, dataSource,
     backendStatus, refreshSupabaseData, requestedConversation, user } = useApp();
   const [environment, setEnvironment] = useState(null);
-  const [introDone, setIntroDone] = useState(false);
+  // The film plays on the first start only; later starts open straight into the app.
+  const [introDone, setIntroDone] = useState(introSeen);
   const backStateRef = useRef({ activeTab, authLoading, authRequired, environment });
 
   useEffect(() => {

@@ -2,22 +2,27 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
+import { markIntroSeen } from './introSeen';
 import './launch.css';
 
 const FILM = `${process.env.PUBLIC_URL}/film/launch.mp4`;
 const LENGTH = 4500;
 
 // The opening film: six shots of dogs and cats being happy, then the name.
-// Real footage, muted, a few seconds, skippable. Plays once per app start.
+// Real footage, muted, a few seconds, skippable. Plays on the first start only.
 export default function Launch({ onDone }) {
   const { t } = useApp();
   const reduced = useReducedPetMotion();
   const video = useRef(null);
   const [named, setNamed] = useState(false);
   const done = useRef(false);
+  const skip = useRef(null);
   const finish = () => { if (!done.current) { done.current = true; onDone(); } };
 
   useEffect(() => {
+    markIntroSeen();
+    // A screen reader lands on Skip, the one thing to do here.
+    skip.current?.focus({ preventScroll: true });
     const element = video.current;
     // If the phone refuses to autoplay, the name comes in straight away.
     // Some phones allow video only after a touch; the first tap starts it.
@@ -36,6 +41,6 @@ export default function Launch({ onDone }) {
         transition={{ type: 'spring', stiffness: 220, damping: 22 }}>PetPal</motion.h1>
       <motion.p variants={{ out: { opacity: 0, y: 16 }, in: { opacity: 1, y: 0 } }} transition={{ delay: 0.25, duration: 0.5 }}>{t('intro.tagline')}</motion.p>
     </motion.div>
-    <button type="button" className="pp-launch-skip" onClick={finish}>{t('intro.skip')}</button>
+    <button ref={skip} type="button" className="pp-launch-skip" onClick={finish}>{t('intro.skip')}</button>
   </motion.div>;
 }
