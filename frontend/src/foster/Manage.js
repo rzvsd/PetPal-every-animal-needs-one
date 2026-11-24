@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { friendlyError } from '../services/errors';
 import { fosterRpc } from '../services/fosterApi';
 import { Button, Card, Choices, Empty, Field, Journey, Notice, Photo, Screen, SectionTitle, Sheet, fmt, listMotion } from './ui';
+import { SUPPORT_EMAIL } from '../services/support';
 import { durationLabel, freePlaces } from './Find';
 import { PhotoPicker, Toggle, caseToData } from './Wizard';
 import { person } from '../ui/kit';
@@ -108,6 +109,7 @@ export function HomeSettings({ home, data, onBack, onEdit, onChanged }) {
         {!home.published && <span className="fx-badge is-muted">{t('fx.hidden')}</span>}
       </div>
     </Card>
+    {home.moderation_hidden && <Notice tone="error">{SUPPORT_EMAIL ? fmt(t('fx.homeHiddenByModeration'), { email: SUPPORT_EMAIL }) : t('fx.homeHiddenByModerationInApp')}</Notice>}
     {notice && <Notice onClose={() => setNotice('')}>{notice}</Notice>}
     {error && !sheet && <Notice tone="error">{error}</Notice>}
 

@@ -15,6 +15,7 @@ import { Art, Button, Empty } from './ui/kit';
 import { PetMotionProvider } from './components/Motion';
 import Launch from './screens/Launch';
 import NewPassword from './screens/NewPassword';
+import Suspended from './screens/Suspended';
 import NotificationAsk from './components/NotificationAsk';
 import { FOSTER_ENVIRONMENT, MATCH_ENABLED, getEnvironmentHomeTab } from './navigation/environments';
 import './App.css';
@@ -23,7 +24,7 @@ import { isProductionBuild, isSupabaseConfigured } from './services/supabaseClie
 
 function AppContent() {
   const { activeTab, setActiveTab, authLoading, authRequired, t, handlePaymentReturn, handleRecoveryLink, passwordRecovery, dataSource,
-    backendStatus, refreshSupabaseData, requestedConversation } = useApp();
+    backendStatus, refreshSupabaseData, requestedConversation, user } = useApp();
   const [environment, setEnvironment] = useState(null);
   const [introDone, setIntroDone] = useState(false);
   const backStateRef = useRef({ activeTab, authLoading, authRequired, environment });
@@ -165,6 +166,8 @@ function AppContent() {
             <NewPassword />
           ) : authRequired ? (
             <AuthScreen />
+          ) : user?.suspension ? (
+            <Suspended suspension={user.suspension} />
           ) : backendStatus.message === 'readiness.loadError' ? (
             <div role="alert" className="pp-state"><Empty art="paw" title={t('readiness.loadError')}
               action={<Button busy={backendStatus.loading} onClick={() => refreshSupabaseData().catch(() => {})}>{t('readiness.retry')}</Button>} /></div>

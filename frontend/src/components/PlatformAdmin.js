@@ -52,20 +52,29 @@ function PlatformAdmin({ role, onClose }) {
   };
   const choose = (action, kind = selected.type) => { setReason(''); setDecision({ action, kind }); };
   const item = selected?.item;
+  const rowTitle = row => row.display_name || row.title || row.name || (row.home_name ? `${row.home_name} · ${'★'.repeat(row.rating || 0)}` : row.category);
+  const rowStatus = row => {
+    if (row.status) return t(`care.${row.status}`);
+    if ('moderation_hidden' in row) return t(row.moderation_hidden ? 'care.hidden' : 'care.platformActive');
+    if ('hidden_at' in row) return t(row.hidden_at ? 'care.hidden' : 'care.platformActive');
+    if (row.suspended) return row.suspended_until ? fmtUntil(row.suspended_until) : t('care.suspended');
+    return t('care.platformActive');
+  };
+  const fmtUntil = value => `${t('care.suspendedUntil')} ${new Date(value).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'en-GB')}`;
   const date = value => new Date(value).toLocaleString(lang === 'ro' ? 'ro-RO' : 'en-GB');
   return <FosterScreen title={t('care.admin')} onClose={onClose}><div className="foster-detail-body">
     <p className="foster-alert">{t('care.adminHint')}</p>
-    <div className="foster-tabs">{['REPORT', 'ACCOUNT', 'LISTING'].map(value => <button type="button" key={value} aria-pressed={type === value} onClick={() => { setType(value); setPage(0); setSelected(null); }}>{t(`care.${value}`)}</button>)}</div>
+    <div className="foster-tabs">{['REPORT', 'ACCOUNT', 'LISTING', 'HOME', 'REVIEW'].map(value => <button type="button" key={value} aria-pressed={type === value} onClick={() => { setType(value); setPage(0); setSelected(null); }}>{t(`care.${value}`)}</button>)}</div>
     <FosterField label={t('care.search')} value={query} onChange={e => { setQuery(e.target.value); setPage(0); }} />
     <button type="button" className="foster-secondary" onClick={() => setRevision(value => value + 1)}>{t('care.refresh')}</button>
     {error && <p role="alert" className="foster-alert">{error}</p>}
     {loading ? <p role="status">{t('care.loading')}</p> : queue.rows.map(row => <button type="button" key={row.id} className="foster-animal-row" onClick={() => setSelected({ type, item: row })}>
-      <span className="foster-animal-info"><strong>{row.priority === 0 ? '⚠ ' : ''}{row.display_name || row.title || row.category}</strong><span className="foster-muted">{row.status ? t(`care.${row.status}`) : t(row.suspended ? 'care.suspended' : 'care.platformActive')}</span></span><ChevronRight size={19} />
+      <span className="foster-animal-info"><strong>{row.priority === 0 ? '⚠ ' : ''}{rowTitle(row)}</strong><span className="foster-muted">{rowStatus(row)}</span></span><ChevronRight size={19} />
     </button>)}
     <FosterPager page={page} count={queue.count} onChange={setPage} disabled={loading} />
     <h3>{t('care.audit')}</h3><div className="foster-timeline">{audit.map(row => <article key={row.id}><strong>{row.action}</strong>
       <p className="foster-muted">{row.actor?.display_name || (row.actor_id ? t('care.deletedAccount') : t('care.autoFlag'))}</p><p>{row.metadata?.reason || row.metadata?.notes}</p><span className="foster-muted">{date(row.created_at)}</span></article>)}</div>
-    {selected && <FosterScreen title={item.display_name || item.title || item.category} onClose={() => setSelected(null)}><div className="foster-detail-body">
+    {selected && <FosterScreen title={rowTitle(item)} onClose={() => setSelected(null)}><div className="foster-detail-body">
       {selected.type !== 'REPORT' && <p className="foster-id">{item.id}</p>}<p>{item.details || item.city}</p>
       {selected.type === 'REPORT' && <>
         <p className="foster-muted">{item.reporter_id ? item.reporter_name : t('care.autoFlag')} → {item.reported_name || t('care.deletedAccount')}</p>
@@ -81,15 +90,27 @@ function PlatformAdmin({ role, onClose }) {
         <div className="foster-stack">{['IN_REVIEW', 'RESOLVED', 'DISMISSED'].map(action => <button type="button" key={action} className="foster-secondary" onClick={() => choose(action)}>{t(`care.${action}`)}</button>)}</div>
       </>}
       {selected.type === 'ACCOUNT' && item.id !== user.id && item.role !== 'SUPER_ADMIN' && <div className="foster-stack">
-        <p>{item.role}</p><button type="button" className="foster-danger" onClick={() => choose(item.suspended ? 'RESTORE' : 'SUSPEND')}>{t(item.suspended ? 'care.RESTORE' : 'care.SUSPEND')}</button>
+        <p>{item.role}</p>
+        {item.suspended && <p className="foster-muted">{item.suspended_until ? fmtUntil(item.suspended_until) : t('care.suspended')}</p>}
+        {(item.suspended ? ['RESTORE', 'SUSPEND_7', 'SUSPEND_30', 'SUSPEND'] : ['SUSPEND_7', 'SUSPEND_30', 'SUSPEND']).map(action =>
+          <button type="button" key={action} className={action === 'RESTORE' ? 'foster-secondary' : 'foster-danger'} onClick={() => choose(action)}>{t(`care.${action}`)}</button>)}
         {role === 'SUPER_ADMIN' && <button type="button" className="foster-secondary" onClick={() => choose(item.role === 'MODERATOR' ? 'REVOKE_MODERATOR' : 'GRANT_MODERATOR', 'ROLE')}>{t(item.role === 'MODERATOR' ? 'care.REVOKE_MODERATOR' : 'care.GRANT_MODERATOR')}</button>}
       </div>}
+      {selected.type === 'HOME' && <div className="foster-stack"><p>{item.owner_name || t('care.deletedAccount')} · {item.city}</p>
+        <p className="foster-muted">{t(item.moderation_hidden ? 'care.hidden' : 'care.platformActive')}</p>
+        {item.profile_id && <button type="button" className="foster-secondary" onClick={() => openLinked('ACCOUNT', item.profile_id)}>{t('care.ACCOUNT')}</button>}
+        <button type="button" className="foster-danger" onClick={() => choose(item.moderation_hidden ? 'RESTORE' : 'HIDE')}>{t(item.moderation_hidden ? 'care.RESTORE' : 'care.HIDE')}</button></div>}
+      {selected.type === 'REVIEW' && <div className="foster-stack"><p>{item.author_name || t('care.deletedAccount')} → {item.home_name}</p>
+        <p>{'★'.repeat(item.rating || 0)}</p><p>{item.comment}</p>
+        <p className="foster-muted">{t(item.hidden_at ? 'care.hidden' : 'care.platformActive')}</p>
+        <button type="button" className="foster-secondary" onClick={() => openLinked('HOME', item.home_id)}>{t('care.HOME')}</button>
+        <button type="button" className="foster-danger" onClick={() => choose(item.hidden_at ? 'RESTORE' : 'HIDE')}>{t(item.hidden_at ? 'care.RESTORE' : 'care.HIDE')}</button></div>}
       {selected.type === 'LISTING' && <div className="foster-stack"><p>{item.responsible_name}</p><p>{t(`care.${item.status}`)}</p>
         <button type="button" className="foster-danger" onClick={() => choose(item.status === 'PAUSED' ? 'RESTORE' : 'PAUSE')}>{t(item.status === 'PAUSED' ? 'care.RESTORE' : 'care.PAUSE')}</button></div>}
     </div></FosterScreen>}
     {decision && selected && <FosterForm values={reason} title={t(`care.${decision.action}`)} submitLabel="care.confirmDecision" onClose={() => setDecision(null)}
       onSaved={() => { setSelected(null); setRevision(value => value + 1); }} onSave={() => fosterRpc('moderate_platform', {
-        kind_input: decision.kind, item_id_input: item.id, action_input: decision.action, expected_updated_at_input: item.updated_at, reason_input: reason,
+        kind_input: decision.kind, item_id_input: item.id, action_input: decision.action, expected_updated_at_input: item.updated_at ?? null, reason_input: reason,
       })}>
       <p>{item.display_name || item.title || item.category}</p><p className="foster-muted">{t('care.adminHint')}</p>
       <FosterField label={t('care.moderationReason')}><textarea required maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></FosterField>
