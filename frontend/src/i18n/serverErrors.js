@@ -148,7 +148,7 @@ export const serverErrorsRo = {
   // Supabase Auth
   'Invalid login credentials': 'Emailul sau parola nu sunt corecte.',
   'User already registered': 'Există deja un cont cu acest email.',
-  'Email not confirmed': 'Emailul nu a fost confirmat încă.',
+  'Email not confirmed': 'Emailul nu a fost confirmat încă. Deschide linkul din emailul de la PetPal, apoi încearcă din nou.',
   'Password should be at least 6 characters.': 'Parola trebuie să aibă cel puțin 6 caractere.',
   'Password should be at least 6 characters': 'Parola trebuie să aibă cel puțin 6 caractere.',
   'Unable to validate email address: invalid format': 'Adresa de email nu este validă.',
