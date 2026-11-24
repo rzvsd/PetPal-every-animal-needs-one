@@ -60,9 +60,12 @@ export default function AuthScreen() {
     });
     // Created, waiting for the email link: show sign-in with the email filled
     // in, so after confirming the person only types the password.
+    // The screen unmounts while signing up (the loading state), so the
+    // remembered values are set directly; they are what the next mount reads.
     if (outcome === 'check-email') {
       setMode('login');
-      setForm(current => ({ ...emptyForm, email: current.email }));
+      remembered.form = { ...emptyForm, email: form.email.trim() };
+      setFormState(remembered.form);
     }
   };
 
