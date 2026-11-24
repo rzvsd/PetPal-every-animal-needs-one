@@ -6,7 +6,7 @@
   "scripts": {
     "seed": "node seed.mjs",
     "load": "node load.mjs",
-    "cleanup": "node cleanup.mjs"
+    "cleanup": "psql \"${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}\" -v ON_ERROR_STOP=1 -f cleanup.sql"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4"

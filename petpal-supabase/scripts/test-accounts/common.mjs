@@ -17,7 +17,7 @@ export function config() {
   const anonKey = process.env.SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!anonKey) throw new Error('Set SUPABASE_ANON_KEY (publishable/anon key).');
-  const local = /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(url);
+  const local = ['127.0.0.1', 'localhost'].includes(new URL(url).hostname);
   if (!local && process.env.PETPAL_ALLOW_HOSTED !== 'yes') {
     throw new Error(`${url} is not a local stack. Set PETPAL_ALLOW_HOSTED=yes only if you really mean to touch that database.`);
   }
