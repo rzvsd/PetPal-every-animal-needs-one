@@ -49,6 +49,10 @@ jobs:
         working-directory: petpal-supabase
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Migration numbers are unique
+        run: |
+          dupes=$(ls supabase/migrations | grep -oE '^[0-9]{4}' | sort | uniq -d)
+          if [ -n "$dupes" ]; then echo "::error::Duplicate migration numbers: $dupes"; exit 1; fi
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 10
