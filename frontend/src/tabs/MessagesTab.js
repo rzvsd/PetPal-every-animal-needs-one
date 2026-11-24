@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
 import { SafetyMenu } from '../components/SharedComponents';
 import DialogLayer from '../components/DialogLayer';
+import { useCoverFocus } from '../components/coverFocus';
 import ReportSheet, { reportSentText } from '../components/ReportSheet';
 import { useBackHandler } from '../navigation/backNavigation';
 import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Skeleton, fmt, person } from '../ui/kit';
@@ -53,6 +54,8 @@ function ConversationThread({ conv, onBack, t }) {
   const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
     threadHasMore, loadingThread, markRead, respondToWalk, typingByConversation, startTyping, stopTyping } = messaging;
   const [input, setInput] = useState(drafts[conv.id] || '');
+  const page = useRef(null);
+  useCoverFocus(page);
   const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
@@ -149,7 +152,7 @@ function ConversationThread({ conv, onBack, t }) {
   };
   const other = isMatch ? conv.relatedAnimalName || conv.title : conv.animalName || conv.title;
 
-  return <motion.section data-testid="conversation-thread" className="petpal-fullscreen pp-thread" aria-label={other} {...push}>
+  return <motion.section ref={page} tabIndex={-1} data-testid="conversation-thread" className="petpal-fullscreen pp-thread" aria-label={other} {...push}>
     <header className="pp-thread-head">
       <IconButton icon={ArrowLeft} label={t('common.back')} onClick={onBack} data-testid="back-button" />
       <button type="button" className="pp-thread-who" onClick={() => setShowContext(value => !value)} aria-expanded={showContext}
