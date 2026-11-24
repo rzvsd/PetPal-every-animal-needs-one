@@ -46,7 +46,7 @@ async function retry429(fn) {
   for (let wait = 15; ; wait *= 2) {
     try { return await fn(); } catch (e) {
       if (!(e.status === 429 || /rate limit/i.test(e.message)) || wait > 240) throw e;
-      console.log(`  auth rate limit, waiting ${wait}s`);
+      console.log(`  auth rate limit (${e.message}), waiting ${wait}s`);
       await new Promise(r => setTimeout(r, wait * 1000));
     }
   }
