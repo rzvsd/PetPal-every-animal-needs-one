@@ -67,6 +67,11 @@ select lives_ok($$select public.update_foster_placement((select id from public.f
 select throws_ok($$select public.review_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),5,'We are the best')$$,
   'P0001','You cannot review your own foster home','a foster cannot review their own home');
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000003301',true);
+select throws_ok($$select public.review_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),5,'Too soon')$$,
+  'P0001','Reviews open only after the animal spent 48 hours in care','a placement shorter than 48 hours cannot be reviewed (0044)');
+reset role;
+update public.foster_placements set received_at = ended_at - interval '3 days' where request_id = (select id from ids where name='reqA');
+set local role authenticated;
 select lives_ok($$select public.review_foster_placement((select id from public.foster_placements where request_id = (select id from ids where name='reqA')),5,'Lovely care')$$,
   'the case owner can review the home');
 select is((select count(*) from public.foster_reviews_view where home_id = (select id from ids where name='homeA')),1::bigint,'only the owner''s review is public');
