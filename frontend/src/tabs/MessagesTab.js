@@ -280,7 +280,7 @@ function getTimeAgo(dateStr, t) {
 }
 
 export default function MessagesTab({ environment = 'match' }) {
-  const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation } = useApp();
+  const { t, conversations, messaging, dataSource, requestedConversation, setRequestedConversation, setActiveTab } = useApp();
   const { refreshInbox, inboxHasMore, inboxError } = messaging;
   const reduced = useReducedPetMotion();
   const [activeConvId, setActiveConvId] = useState(null);
@@ -334,7 +334,8 @@ export default function MessagesTab({ environment = 'match' }) {
         {inboxError && <Notice tone="error" action={<button type="button" className="ui-notice-close" onClick={() => refreshInbox(source).catch(() => {})}>{t('readiness.retry')}</button>}>{t(inboxError)}</Notice>}
         {loading && !shown.length ? <div className="ui-list" aria-hidden="true">{[0, 1, 2, 3].map(key => <div key={key} className="ui-row">
           <Skeleton width={56} height={56} radius={16} /><span className="ui-row-body"><Skeleton width="30%" height={11} /><Skeleton width="55%" height={16} /><Skeleton width="80%" height={13} /></span></div>)}</div>
-          : !shown.length ? <Empty art={empty[2]} title={t(empty[0])} text={t(empty[1])} />
+          : !shown.length ? <Empty art={empty[2]} title={t(empty[0])} text={t(empty[1])}
+            action={source === 'FOSTER' && <Button variant="secondary" onClick={() => setActiveTab('foster-find')}>{t('messages.findAnimalsOrHomes')}</Button>} />
             : <motion.div key={source} className="ui-list ui-list-inset" variants={list} initial={reduced ? false : 'hidden'} animate="show">
               {shown.map((conversation) => <ConversationRow key={conversation.id} conv={conversation} onClick={() => setActiveConvId(conversation.id)} t={t} />)}
             </motion.div>}

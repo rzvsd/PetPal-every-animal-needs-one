@@ -226,7 +226,8 @@ export default function FosterTab() {
                   : tab === 'today' ? <Today data={data} busy={busy} onAnswer={answer} onArrived={arrived} onCompleteTask={completeTask}
                     onOpenPlacement={id => push({ type: 'placement', id })} onOpenRequest={openRequest} onOpenChat={openChat}
                     onTeamInvite={teamInvite} onConsent={consent} onOpenActivity={() => push({ type: 'activity' })} onOpenCaseById={openCaseById} onOpenHomeById={openHomeById} onWithdraw={withdraw} onNeedHome={needHome} onCanFoster={canFoster} onJoinWithCode={() => setJoining(true)} />
-                    : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })} />
+                    : tab === 'find' ? <Find data={data} onOpenCase={openCase} onOpenHome={home => push({ type: 'home', item: home })}
+                      onPostAnimal={needHome} onOfferHome={() => push({ type: 'homeWizard' })} />
                       : <MyAnimals data={data} onOpenPlacement={id => push({ type: 'placement', id })} onOpenCase={item => push({ type: 'myCase', item })}
                         onOpenHomeSettings={home => push({ type: 'homeSettings', home })} onSetUpHome={() => push({ type: 'homeWizard' })} onPostAnimal={needHome} />}
               </motion.div>
