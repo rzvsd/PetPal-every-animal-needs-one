@@ -30,7 +30,6 @@ import {
   passSupabaseCandidate,
   reportSupabaseMatchProfile,
   blockSupabaseProfile,
-  requestSupabaseRescuerAccess,
   registerSupabasePushToken,
 } from '../services/supabaseApi';
 import { allowLocalDemo, demoSupabaseCredentials, isSupabaseConfigured, supabase } from '../services/supabaseClient';
@@ -102,7 +101,6 @@ export function AppProvider({ children }) {
     setNotifyAsk(null);
     if (allow) setPushAllowed(true);
   }, []);
-  const [rescuerAccessState, setRescuerAccessState] = useState('not_requested');
   const [activeScreen, setActiveScreen] = useState(null);
   const [screenParams, setScreenParams] = useState(null);
   const [skippedMatches, setSkippedMatches] = useState({});
@@ -198,7 +196,6 @@ export function AppProvider({ children }) {
 
     if (data.profile) {
       setUser(data.profile);
-      setRescuerAccessState(data.profile.rescuerAccessState || 'not_requested');
     } else if (data.session?.user) {
       setUser((current) => ({
         ...current,
@@ -590,17 +587,6 @@ export function AppProvider({ children }) {
     )));
   };
 
-  const requestRescuerAccess = async () => {
-    if (dataSource === 'supabase') {
-      await requestSupabaseRescuerAccess();
-      await refreshSupabaseData();
-      setRescuerAccessState('request_sent');
-      return;
-    }
-
-    setRescuerAccessState('request_sent');
-  };
-
   const navigate = (screen, params = null) => {
     setActiveScreen(screen);
     setScreenParams(params);
@@ -963,7 +949,6 @@ export function AppProvider({ children }) {
       signOut,
       localDemoAvailable,
       demoSupabaseLoginAvailable,
-      rescuerAccessState, setRescuerAccessState, requestRescuerAccess,
       activeScreen, screenParams, navigate, goBack,
     }}>
       {children}

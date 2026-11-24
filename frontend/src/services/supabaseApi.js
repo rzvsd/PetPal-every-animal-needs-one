@@ -110,13 +110,11 @@ function mapMatchCandidate(row) {
     verification_status: row.verification_status,
   });
   const preferredMode = animal.activeMatchModes?.includes('PLAY') ? 'PLAY' : animal.activeMatchModes?.[0] || 'SOCIAL';
-  const verifiedOwner = row.owner_verification_status === 'VERIFIED';
 
   return {
     animal,
     mode: preferredMode,
     hasLikedBack: Boolean(row.has_liked_back),
-    ownerVerificationStatus: verifiedOwner ? 'VERIFIED' : row.owner_verification_status || 'UNVERIFIED',
     healthDocumentStatus: animal.healthDocumentStatus,
     distanceLabel: `${animal.city || 'Romania'}${animal.coarseArea ? ` / ${animal.coarseArea}` : ''}`,
     exactLocationHidden: true,
@@ -194,15 +192,6 @@ function mapConversation(row, messages) {
     unread: row.unread_count || 0,
     messages: conversationMessages,
   };
-}
-
-function mapRescuerAccessState(row, roles = []) {
-  if (roles.some((role) => ['RESCUER', 'SHELTER_MEMBER'].includes(role))) return 'verified';
-  if (!row?.access_status || row.access_status === 'NOT_REQUESTED') return 'not_requested';
-  if (row.access_status === 'PENDING') return 'request_sent';
-  if (row.access_status === 'VERIFIED') return 'verified';
-  if (row.access_status === 'REJECTED') return 'rejected';
-  return 'not_requested';
 }
 
 export async function getSupabaseSession() {
@@ -355,26 +344,24 @@ async function loadProfile() {
   const userId = userData.user?.id;
   if (!userId) return null;
 
+  // One round trip at start: profile, roles and suspension load together.
+  // A suspended account gets its own screen. An older database without the
+  // function, or a failed call, must not lock anyone out.
   const [
     { data: profile, error: profileError },
     { data: roles, error: rolesError },
-    { data: accessRows, error: accessError },
+    suspension,
   ] = await Promise.all([
-    supabase.from('profiles').select('id, display_name, city, coarse_area, verification_status, show_typing_activity, notification_preferences').eq('id', userId).maybeSingle(),
+    supabase.from('profiles').select('id, display_name, city, coarse_area, show_typing_activity, notification_preferences').eq('id', userId).maybeSingle(),
     supabase.from('profile_roles').select('role').eq('profile_id', userId),
-    supabase.from('my_rescuer_access_view').select('*').limit(1),
+    supabase.rpc('my_suspension').then(({ data, error }) => (error ? null : data), () => null),
   ]);
-  // A suspended account gets its own screen. An older database without the
-  // function, or a failed call, must not lock anyone out.
-  const suspension = await supabase.rpc('my_suspension').then(({ data, error }) => (error ? null : data), () => null);
 
   if (profileError) throw profileError;
   if (rolesError) throw rolesError;
-  if (accessError) throw accessError;
   if (!profile) return null;
 
   const mappedRoles = (roles || []).map((item) => mapRole(item.role));
-  const accessRow = accessRows?.[0] || null;
 
   return {
     id: profile.id,
@@ -382,11 +369,6 @@ async function loadProfile() {
     city: profile.city || '',
     coarseArea: profile.coarse_area || '',
     roles: mappedRoles.length > 0 ? mappedRoles : ['OWNER'],
-    ownerVerificationStatus: profile.verification_status || 'UNVERIFIED',
-    rescuerAccessStatus: accessRow?.access_status || 'NOT_REQUESTED',
-    rescuerAccessState: mapRescuerAccessState(accessRow, mappedRoles),
-    rescuerAccessRequestId: accessRow?.request_id || null,
-    rescuerOrganizationId: accessRow?.organization_id || null,
     showTypingActivity: profile.show_typing_activity !== false,
     notificationPreferences: { ...defaultNotificationPreferences, ...(profile.notification_preferences || {}) },
     email: userData.user.email || '',
@@ -566,12 +548,6 @@ export async function loadSupabaseAppData() {
     conversations,
     paymentSessions,
   };
-}
-
-export async function requestSupabaseRescuerAccess() {
-  const { data, error } = await supabase.rpc('request_rescuer_access');
-  if (error) throw error;
-  return data;
 }
 
 export async function registerSupabasePushToken({
