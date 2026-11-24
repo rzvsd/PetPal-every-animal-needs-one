@@ -138,8 +138,14 @@ export function Journey({ steps, current }) {
   </div>;
 }
 
-export function TaskCheck({ done, label, meta, late, disabled, onToggle }) {
+// readOnly shows the task without a control, for people who can see the
+// checklist but not tick it (the animal's side, view-only helpers).
+export function TaskCheck({ done, label, meta, late, disabled, readOnly, onToggle }) {
   const reduced = useReducedPetMotion();
+  if (readOnly) return <motion.div variants={itemMotion} className={`fx-task is-readonly ${done ? 'is-done' : ''} ${late && !done ? 'is-late' : ''}`}>
+    <span className="fx-task-box" aria-hidden="true">{done && <svg viewBox="0 0 24 24" width="16" height="16"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}</span>
+    <span className="fx-task-text"><span>{label}</span>{meta && <small>{meta}</small>}</span>
+  </motion.div>;
   return <motion.button type="button" variants={itemMotion} layout={!reduced} className={`fx-task ${done ? 'is-done' : ''} ${late && !done ? 'is-late' : ''}`}
     aria-pressed={done} disabled={disabled} onClick={onToggle} whileTap={reduced || done ? undefined : { scale: 0.98 }}>
     <span className="fx-task-box" aria-hidden="true">
