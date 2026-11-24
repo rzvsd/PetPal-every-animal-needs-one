@@ -736,11 +736,14 @@ export function AppProvider({ children }) {
       if (session) {
         await refreshSupabaseData();
         setActiveTab('matches');
-      } else {
-        setAuthNotice(t('auth.accountCreatedNoSession'));
+        return 'signed-in';
       }
+      // Email confirmation is on: the account waits for the link in the email.
+      setAuthNotice(t('auth.accountCreatedCheckEmail').replace('{email}', email));
+      return 'check-email';
     } catch (error) {
       setAuthError(friendlyError(error, t, t('auth.signUpError')));
+      return 'error';
     } finally {
       setAuthLoading(false);
     }

@@ -54,10 +54,16 @@ export default function AuthScreen() {
     }
     if (reset) { await requestPasswordReset(form.email.trim()); return; }
     if (!register) { await signIn({ email: form.email.trim(), password: form.password }); return; }
-    await signUp({
+    const outcome = await signUp({
       email: form.email.trim(), password: form.password, displayName: form.displayName.trim(), city: form.city.trim(),
       coarseArea: form.coarseArea.trim(), ageConfirmed: form.ageConfirmed, termsAccepted: form.termsAccepted,
     });
+    // Created, waiting for the email link: show sign-in with the email filled
+    // in, so after confirming the person only types the password.
+    if (outcome === 'check-email') {
+      setMode('login');
+      setForm(current => ({ ...emptyForm, email: current.email }));
+    }
   };
 
   return <main data-testid="auth-screen" className="pp-auth ui-scroll">
