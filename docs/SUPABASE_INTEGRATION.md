@@ -36,7 +36,7 @@ When Supabase env vars are present, the app can hydrate:
 - Foster conversations and messages from `my_conversations_view` and `conversation_messages_view`
 - Conversation safety actions through `report_conversation` and `block_conversation`
 - User profile and roles from `profiles` and `profile_roles`
-- Rescuer/shelter access requests through `request_rescuer_access` and `my_rescuer_access_view`
+- Suspension state from `my_suspension()` (loaded with the profile and roles in one round trip)
 - Android push-token registration through `register_push_token`
 
 If Supabase env vars are missing or local Supabase is offline, the app keeps using the existing mock prototype data.
