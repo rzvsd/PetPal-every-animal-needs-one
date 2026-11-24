@@ -77,7 +77,7 @@ select throws_ok($$select public.manage_foster_member((select id from ids where 
 select lives_ok($$select public.manage_foster_member((select id from ids where name='home'),'10000000-0000-4000-8000-000000005003','LEAVE')$$,
   'a helper can leave a home');
 select throws_ok($$select public.send_conversation_message((select id from ids where name='conv'),'still here?',gen_random_uuid())$$,
-  'a helper who left can no longer write');
+  'P0001','Conversation not found or not accessible','a helper who left can no longer write');
 reset role;
 select ok(not exists(select 1 from public.conversation_participants where conversation_id = (select id from ids where name='conv')
   and profile_id = '10000000-0000-4000-8000-000000005003'),'a helper who left leaves the chat');
