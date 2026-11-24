@@ -184,6 +184,11 @@ export async function loadPlatformItem(type, id) {
   return (await result(supabase.from(table).select('*').eq('id', id).single())).data;
 }
 
+// One foster request by id, for opening its animal from a chat.
+export async function loadFosterRequest(requestId) {
+  return (await result(supabase.from('foster_requests_view').select('*').eq('id', requestId).maybeSingle())).data;
+}
+
 // One animal or home by id, for opening it from an invitation or an offer.
 export async function loadFosterCase(caseId) {
   return (await result(supabase.from('foster_cases_directory').select('*').eq('id', caseId).maybeSingle())).data;
