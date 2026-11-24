@@ -450,3 +450,32 @@ h3 {
     font-size: 2.5rem;
   }
 }
+
+.caseDetails {
+  white-space: pre-line;
+}
+
+.caseMessages ol {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.caseMessages li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f3f6f4;
+}
+
+.caseMessages li span {
+  margin-left: 8px;
+  color: #53615a;
+  font-size: 0.85rem;
+}
+
+.caseMessages li p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}

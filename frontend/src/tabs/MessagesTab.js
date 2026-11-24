@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { useReducedPetMotion } from '../components/Motion';
 import { SafetyMenu } from '../components/SharedComponents';
 import DialogLayer from '../components/DialogLayer';
+import ReportSheet, { reportSentText } from '../components/ReportSheet';
 import { useBackHandler } from '../navigation/backNavigation';
 import { Avatar, Button, Count, Empty, IconButton, Notice, OverScreen, PageTitle, Row, Skeleton, fmt, person } from '../ui/kit';
 import { list, listItem, push, spring } from '../ui/motion';
@@ -48,13 +49,14 @@ function MessageStatus({ status, t }) {
 }
 
 function ConversationThread({ conv, onBack, t }) {
-  const { messaging, reportConversation, blockConversation, dataSource, lang, requestOpenFosterPage } = useApp();
+  const { messaging, blockConversation, dataSource, lang, requestOpenFosterPage } = useApp();
   const { sendMessage, outbox, drafts, saveDraft, chatError, realtimeReady, openThread, loadThread,
     threadHasMore, loadingThread, markRead, respondToWalk, typingByConversation, startTyping, stopTyping } = messaging;
   const [input, setInput] = useState(drafts[conv.id] || '');
   const [sendError, setSendError] = useState('');
   const [showSafety, setShowSafety] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [reporting, setReporting] = useState(null);
   const [showContext, setShowContext] = useState(false);
   const [notice, setNotice] = useState('');
   const [newMessages, setNewMessages] = useState(false);
@@ -126,15 +128,15 @@ function ConversationThread({ conv, onBack, t }) {
     setShowSafety(false);
     // Blocking cannot be taken back from here, so it asks once.
     if (action === 'block') { setConfirmBlock(true); return; }
-    await runSafety(action);
+    // Reporting uses the same sheet as animals and homes: a reason and what happened.
+    setReporting({ conversationId: conv.id, category: 'SPAM' });
   };
-  const runSafety = async action => {
+  const runSafety = async () => {
     setConfirmBlock(false);
     try {
-      if (action === 'block') await blockConversation(conv.id);
-      else await reportConversation(conv.id, t('messages.conversationReported'));
-      setNotice(t(action === 'block' ? 'messages.userBlocked' : 'messages.conversationReported'));
-    } catch { setNotice(t(action === 'block' ? 'messages.blockFailed' : 'messages.reportFailed')); }
+      await blockConversation(conv.id);
+      setNotice(t('messages.userBlocked'));
+    } catch { setNotice(t('messages.blockFailed')); }
   };
   const scrollChanged = () => {
     const element = scroll.current;
@@ -252,12 +254,13 @@ function ConversationThread({ conv, onBack, t }) {
     </footer>
     <SafetyMenu open={showSafety} onClose={() => setShowSafety(false)} onReport={() => safetyAction('report')} onBlock={() => safetyAction('block')}
       onViewContext={() => { setShowSafety(false); setShowContext(true); }} />
+    <ReportSheet target={reporting} onClose={() => setReporting(null)} onSent={() => { setReporting(null); setNotice(reportSentText(t)); }} />
     <DialogLayer open={confirmBlock} onClose={() => setConfirmBlock(false)} label={t('messages.blockConfirmTitle')} priority={40}>
       <div className="pp-confirm">
         <h2 className="ui-title-m">{t('messages.blockConfirmTitle')}</h2>
         <p className="ui-small">{t(conv.source === 'FOSTER' ? 'messages.blockConfirmFoster' : 'messages.blockConfirmText')}</p>
         <div className="pp-confirm-actions">
-          <button type="button" className="ui-btn ui-btn-danger" onClick={() => runSafety('block')}>{t('messages.block')}</button>
+          <button type="button" className="ui-btn ui-btn-danger" onClick={runSafety}>{t('messages.block')}</button>
           <button type="button" className="ui-btn ui-btn-secondary" onClick={() => setConfirmBlock(false)}>{t('common.cancel')}</button>
         </div>
       </div>

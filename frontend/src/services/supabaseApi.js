@@ -833,10 +833,10 @@ export async function updateSupabasePassword(password) {
   if (error) throw error;
 }
 
-export async function reportSupabaseConversation(conversationId, details = '') {
+export async function reportSupabaseConversation(conversationId, details = '', category = 'CONVERSATION_SAFETY') {
   const { data, error } = await supabase.rpc('report_conversation', {
     conversation_id_input: conversationId,
-    category_input: 'CONVERSATION_SAFETY',
+    category_input: category,
     details_input: details,
   });
 

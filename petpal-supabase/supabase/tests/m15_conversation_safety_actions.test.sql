@@ -110,7 +110,7 @@ select ok(
     where r.reporter_id = '10000000-0000-4000-8000-000000000002'
       and r.reported_profile_id = '10000000-0000-4000-8000-000000000001'
       and r.message_id = (select message_id from m15_message)
-      and r.details like '%' || (select conversation_id::text from m15_conversation) || '%'
+      and r.conversation_id = (select conversation_id from m15_conversation)
   ),
   'conversation report stores reporter, other participant, latest other message, and conversation id'
 );
