@@ -10,7 +10,7 @@ import { durationLabel, freePlaces } from './Find';
 import { PhotoPicker, Toggle, caseToData } from './Wizard';
 import { person } from '../ui/kit';
 
-export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenChat, onOpenPlacement, onChanged, onOpenHomeById, onWithdraw }) {
+export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenChat, onOpenPlacement, onChanged, onOpenHomeById, onWithdraw, onPostAnother }) {
   const { t } = useApp();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,6 +66,7 @@ export function CaseStory({ item, data, busy, onBack, onEdit, onAnswer, onOpenCh
     <div className="fx-stack">
       <Toggle label={t('fx.visibleToHomes')} value={visible} onChange={value => { if (!saving) toggleVisible(value); }} />
       <Button variant="secondary" icon={Edit3} onClick={onEdit}>{t('fx.edit')}</Button>
+      {onPostAnother && <Button variant="secondary" icon={Copy} onClick={onPostAnother}>{t('fx.postAnotherLikeThis')}</Button>}
     </div>
   </Screen>;
 }

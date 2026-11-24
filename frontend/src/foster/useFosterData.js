@@ -4,6 +4,19 @@ import { countUnreadActivity, loadDueFosterTasks, loadFosterDirectory, loadFoste
 const emptyData = { homes: [], team: [], saved: [], organizations: [], spaces: [], incoming: [], outgoing: [],
   placements: [], finished: [], dueTasks: [], myCases: [], consents: [], elsewhere: [], unreadActivity: 0 };
 
+// A rescue can have more than one page (25 rows) of animals, requests or
+// placements. Read every page, up to 500 rows, so none silently go missing.
+export async function allPages(load, maxPages = 20) {
+  const first = await load(0);
+  const rows = [...first.rows];
+  for (let page = 1; page < maxPages && rows.length < (first.count ?? 0); page += 1) {
+    const next = await load(page);
+    if (!next.rows.length) break;
+    rows.push(...next.rows);
+  }
+  return { rows, count: first.count };
+}
+
 // Everything the Foster screens show about the signed-in person, loaded once
 // and refreshed after each change or when the app comes back to the front.
 export function useFosterData(user, live) {
@@ -19,15 +32,15 @@ export function useFosterData(user, live) {
     (async () => {
       const [overview, incoming, outgoing, myCases, consents] = await Promise.all([
         loadFosterOverview(user.id),
-        loadFosterRequests(user.id, 'incoming'),
-        loadFosterRequests(user.id, 'outgoing'),
-        loadFosterDirectory({ type: 'animals', ownerId: user.id }),
-        loadFosterRequests(user.id, 'consent'),
+        allPages(page => loadFosterRequests(user.id, 'incoming', page)),
+        allPages(page => loadFosterRequests(user.id, 'outgoing', page)),
+        allPages(page => loadFosterDirectory({ type: 'animals', ownerId: user.id, page })),
+        allPages(page => loadFosterRequests(user.id, 'consent', page)),
       ]);
       const unreadActivity = await countUnreadActivity().catch(() => 0);
       const elsewhere = await loadMyAnimalsElsewhere(user.id, overview.homes.map(home => home.id));
       const perHome = await Promise.all(overview.homes.map(home => Promise.all([
-        loadFosterRegistry({ homeId: home.id }),
+        allPages(page => loadFosterRegistry({ homeId: home.id, page })),
         loadFosterRegistry({ homeId: home.id, status: 'COMPLETED' }),
       ])));
       const placements = perHome.flatMap(([active]) => active.rows);
