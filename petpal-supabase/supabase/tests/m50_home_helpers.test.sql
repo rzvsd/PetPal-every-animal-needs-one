@@ -7,12 +7,15 @@ insert into auth.users(id,email) values
   ('10000000-0000-4000-8000-000000005001','m50owner@example.test'),
   ('10000000-0000-4000-8000-000000005002','m50foster@example.test'),
   ('10000000-0000-4000-8000-000000005003','m50helper@example.test'),
-  ('10000000-0000-4000-8000-000000005004','m50reader@example.test');
+  ('10000000-0000-4000-8000-000000005004','m50reader@example.test'),
+  ('10000000-0000-4000-8000-000000005005','m50blocked@example.test');
 insert into public.profiles(id,display_name,city) values
   ('10000000-0000-4000-8000-000000005001','M50 Owner','Brasov'),
   ('10000000-0000-4000-8000-000000005002','M50 Foster','Brasov'),
   ('10000000-0000-4000-8000-000000005003','M50 Helper','Brasov'),
-  ('10000000-0000-4000-8000-000000005004','M50 Reader','Brasov');
+  ('10000000-0000-4000-8000-000000005004','M50 Reader','Brasov'),
+  ('10000000-0000-4000-8000-000000005005','M50 Blocked','Brasov');
+insert into public.blocks(blocker_id,blocked_id) values('10000000-0000-4000-8000-000000005001','10000000-0000-4000-8000-000000005005');
 
 set local role authenticated;
 create temp table ids(name text primary key, id uuid) on commit drop;
@@ -27,7 +30,8 @@ insert into ids values('home',public.save_foster_home(null,'{"name":"Team Home",
 reset role;
 insert into public.foster_home_members(home_id,profile_id,role,status,invited_by) values
   ((select id from ids where name='home'),'10000000-0000-4000-8000-000000005003','CARER','ACTIVE','10000000-0000-4000-8000-000000005002'),
-  ((select id from ids where name='home'),'10000000-0000-4000-8000-000000005004','READER','ACTIVE','10000000-0000-4000-8000-000000005002');
+  ((select id from ids where name='home'),'10000000-0000-4000-8000-000000005004','READER','ACTIVE','10000000-0000-4000-8000-000000005002'),
+  ((select id from ids where name='home'),'10000000-0000-4000-8000-000000005005','CARER','ACTIVE','10000000-0000-4000-8000-000000005002');
 set local role authenticated;
 
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000005002',true);
@@ -48,6 +52,8 @@ select ok(exists(select 1 from public.conversation_participants where conversati
   and profile_id = '10000000-0000-4000-8000-000000005003'),'a helper who helps with care joins the chat once the animal is agreed');
 select ok(not exists(select 1 from public.conversation_participants where conversation_id = (select id from ids where name='conv')
   and profile_id = '10000000-0000-4000-8000-000000005004'),'a view-only helper does not join the chat');
+select ok(not exists(select 1 from public.conversation_participants where conversation_id = (select id from ids where name='conv')
+  and profile_id = '10000000-0000-4000-8000-000000005005'),'a helper blocked by someone in the chat does not join it');
 select ok(exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000005003'
   and event_type = 'FOSTER_UPDATE'),'the helper is told the animal was agreed');
 select ok(not exists(select 1 from public.notification_events where profile_id = '10000000-0000-4000-8000-000000005004'

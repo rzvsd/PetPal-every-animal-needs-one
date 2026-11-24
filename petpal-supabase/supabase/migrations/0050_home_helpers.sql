@@ -15,6 +15,15 @@ returns setof uuid language sql stable security definer set search_path = public
 $$;
 revoke all on function public.foster_home_carers(uuid) from public,anon,authenticated;
 
+-- A helper blocked with anyone already in a chat (the animal's side, or the
+-- original owner of a transferred animal) is never added to it.
+create or replace function public.blocked_with_chat(conversation_input uuid,profile_input uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists(select 1 from public.conversation_participants cp where cp.conversation_id = conversation_input
+    and cp.profile_id <> profile_input and public.is_profile_blocked_between(profile_input,cp.profile_id));
+$$;
+revoke all on function public.blocked_with_chat(uuid,uuid) from public,anon,authenticated;
+
 -- Adds one helper to (or removes them from) the chats of a home's agreed animals.
 create or replace function public.sync_helper_chats(home_input uuid,profile_input uuid)
 returns void language plpgsql security definer set search_path = public as $$
@@ -23,9 +32,8 @@ begin
       and m.status = 'ACTIVE' and m.role = 'CARER') then
     insert into public.conversation_participants(conversation_id,profile_id)
     select c.id,profile_input from public.foster_requests r join public.conversations c on c.foster_request_id = r.id
-      join public.animal_listings l on l.id = r.case_id
     where r.home_id = home_input and r.status = 'ACCEPTED'
-      and not public.is_profile_blocked_between(profile_input,l.responsible_id)
+      and not public.blocked_with_chat(c.id,profile_input)
     on conflict do nothing;
   else
     delete from public.conversation_participants cp
@@ -54,9 +62,9 @@ returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.status = 'ACCEPTED' and old.status is distinct from 'ACCEPTED' then
     insert into public.conversation_participants(conversation_id,profile_id)
-    select c.id,h.id from public.conversations c, public.foster_home_carers(new.home_id) h(id), public.animal_listings l
-    where c.foster_request_id = new.id and l.id = new.case_id
-      and not public.is_profile_blocked_between(h.id,l.responsible_id)
+    select c.id,h.id from public.conversations c, public.foster_home_carers(new.home_id) h(id)
+    where c.foster_request_id = new.id
+      and not public.blocked_with_chat(c.id,h.id)
     on conflict do nothing;
   end if;
   return new;
@@ -160,8 +168,10 @@ begin
 end $$;
 
 -- With helpers in a chat, a report names the other side of the arrangement,
--- not a helper: the home owner for the animal's side, the animal's side for
--- everyone at the home. Everything else is as in 0045.
+-- never a helper: someone at the receiving home (owner or helper) reports the
+-- animal's side (who posted the animal); anyone else (who posted it, or the
+-- original owner of a transferred animal) reports the receiving home's owner.
+-- Other chats, and a target who is no longer in the chat, fall back to 0045.
 create or replace function public.report_conversation(
   conversation_id_input uuid,
   category_input text,
@@ -177,6 +187,7 @@ declare
   reported_profile_id_result uuid;
   latest_message_id_result uuid;
   home_owner uuid;
+  case_owner uuid;
   request_row public.foster_requests;
   normalized_category text := upper(coalesce(nullif(trim(category_input), ''), 'CONVERSATION_SAFETY'));
 begin
@@ -194,14 +205,23 @@ begin
   select r.* into request_row from public.conversations c join public.foster_requests r on r.id = c.foster_request_id
   where c.id = conversation_id_input;
   select h.profile_id into home_owner from public.foster_home_profiles h where h.id = request_row.home_id;
+  select l.responsible_id into case_owner from public.animal_listings l where l.id = request_row.case_id;
 
-  select cp.profile_id into reported_profile_id_result
-  from public.conversation_participants cp
-  where cp.conversation_id = conversation_id_input and cp.profile_id <> auth.uid()
-  order by (cp.profile_id in (request_row.sender_id, request_row.recipient_id)) is true desc,
-    (cp.profile_id = home_owner) is true asc,
-    cp.created_at asc, cp.profile_id asc
-  limit 1;
+  if request_row.id is not null then
+    select cp.profile_id into reported_profile_id_result
+    from public.conversation_participants cp
+    where cp.conversation_id = conversation_id_input and cp.profile_id <> auth.uid()
+      and cp.profile_id = case when auth.uid() = home_owner or exists(select 1 from public.foster_home_members m
+          where m.home_id = request_row.home_id and m.profile_id = auth.uid() and m.status = 'ACTIVE')
+        then case_owner else home_owner end;
+  end if;
+  if reported_profile_id_result is null then
+    select cp.profile_id into reported_profile_id_result
+    from public.conversation_participants cp
+    where cp.conversation_id = conversation_id_input and cp.profile_id <> auth.uid()
+    order by cp.created_at asc, cp.profile_id asc
+    limit 1;
+  end if;
   if reported_profile_id_result is null then
     raise exception 'Conversation has no reportable participant';
   end if;
