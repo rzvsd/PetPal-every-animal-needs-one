@@ -161,9 +161,11 @@ export async function loadPlatformQueue(type, query = '', page = 0) {
   if (type === 'REPORT') request = supabase.from('platform_reports_view').select('*', { count: 'exact' }).in('status', ['OPEN', 'IN_REVIEW'])
     .order('priority').order('created_at');
   else if (type === 'ACCOUNT') request = supabase.from('platform_accounts_view').select('*', { count: 'exact' }).order('display_name');
+  else if (type === 'HOME') request = supabase.from('platform_homes_view').select('*', { count: 'exact' }).order('name');
+  else if (type === 'REVIEW') request = supabase.from('platform_reviews_view').select('*', { count: 'exact' }).order('created_at', { ascending: false });
   else request = supabase.from('platform_listings_view').select('*', { count: 'exact' }).order('title');
   if (query.trim()) {
-    const field = type === 'REPORT' ? 'category' : type === 'ACCOUNT' ? 'display_name' : 'title';
+    const field = { REPORT: 'category', ACCOUNT: 'display_name', HOME: 'name', REVIEW: 'home_name' }[type] || 'title';
     request = request.ilike(field, `%${query.trim().replace(/[\\%_]/g, '\\$&')}%`);
   }
   const response = await result(request.order('id').range(page * 25, page * 25 + 24));
@@ -180,7 +182,8 @@ export async function loadPlatformRole() {
 }
 
 export async function loadPlatformItem(type, id) {
-  const table = type === 'ACCOUNT' ? 'platform_accounts_view' : type === 'LISTING' ? 'platform_listings_view' : 'platform_reports_view';
+  const table = { ACCOUNT: 'platform_accounts_view', LISTING: 'platform_listings_view', HOME: 'platform_homes_view', REVIEW: 'platform_reviews_view' }[type]
+    || 'platform_reports_view';
   return (await result(supabase.from(table).select('*').eq('id', id).single())).data;
 }
 

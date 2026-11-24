@@ -364,6 +364,9 @@ async function loadProfile() {
     supabase.from('profile_roles').select('role').eq('profile_id', userId),
     supabase.from('my_rescuer_access_view').select('*').limit(1),
   ]);
+  // A suspended account gets its own screen. An older database without the
+  // function, or a failed call, must not lock anyone out.
+  const suspension = await supabase.rpc('my_suspension').then(({ data, error }) => (error ? null : data), () => null);
 
   if (profileError) throw profileError;
   if (rolesError) throw rolesError;
@@ -388,6 +391,7 @@ async function loadProfile() {
     notificationPreferences: { ...defaultNotificationPreferences, ...(profile.notification_preferences || {}) },
     email: userData.user.email || '',
     phone: userData.user.phone || '',
+    suspension: suspension || null,
   };
 }
 
