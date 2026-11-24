@@ -2,6 +2,8 @@ begin;
 select no_plan();
 
 -- Sale wording (0044): wider Romanian and English phrases, and homes are scanned too.
+select ok(public.looks_like_sale('Pisoi de vânzare'), '"vânzare" with diacritics is sale wording');
+select ok(public.looks_like_sale('Vanzarea se face rapid'), '"vanzarea" is sale wording');
 select ok(public.looks_like_sale('Vind pui de pisică'), '"vind" is sale wording');
 select ok(public.looks_like_sale('Se dă contra cost'), '"contra cost" is sale wording');
 select ok(public.looks_like_sale('Taxă de adopție simbolică'), '"taxă de adopție" is sale wording');

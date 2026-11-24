@@ -11,7 +11,7 @@ immutable
 set search_path = public
 as $$
   select coalesce(text_input, '') ~* (
-    '\m(v[aâ]nd|vind|v[aâ]nz[aă]ri?|vanzare|pre[tț]ul?|contra\s+cost|contra\s+cal[aă]|'
+    '\m(v[aâ]nd|vind|v[aâ]nz[aă]r(e|i|ea)?|pre[tț]ul?|contra\s+cost|contra\s+cal[aă]|'
     || 'tax[aăe]\s+(de\s+)?adop[tț]i[ea]|adoption\s+fee|rehoming\s+fee|negociabil|negotiable|'
     || 'sell|selling|for\s+sale|price)\M'
     || '|\d+\s*(lei|ron|eur|euro|€|\$)'
