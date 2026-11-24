@@ -37,7 +37,7 @@ async function phase(name, tasks) {
   return results;
 }
 
-await phase('40 sign-ins at once', creds.accounts.map(a => () => signIn(cfg, a)));
+await phase('40 sessions ready (sign-in, or reuse of the seed session)', creds.accounts.map(a => () => signIn(cfg, a)));
 await phase('20 fosters load the animal list', fosters.map(f => () =>
   call(f.c.from('foster_cases_directory').select('*').eq('status', 'ACTIVE').range(0, 49))));
 await phase('20 users load the foster-home list', users.map(u => () =>

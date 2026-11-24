@@ -45,6 +45,12 @@ export function readCredentials() {
 }
 
 export async function signIn(cfg, account) {
+  // Reuse the seed session while it has 5+ minutes left (sign-ins are rate limited on hosted).
+  if (account.session && account.session.expires_at * 1000 > Date.now() + 5 * 60 * 1000) {
+    account.c = createClient(cfg.url, cfg.anonKey, { auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${account.session.access_token}` } } });
+    return account;
+  }
   const c = userClient(cfg);
   const data = await call(c.auth.signInWithPassword({ email: account.email, password: account.password }));
   account.c = c;
