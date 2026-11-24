@@ -136,6 +136,7 @@ export const serverErrorsRo = {
   'You are sending messages too quickly. Wait a minute and try again.': 'Trimiți mesaje prea repede. Așteaptă un minut și încearcă din nou.',
   'You cannot report yourself': 'Nu te poți raporta pe tine.',
   'You cannot review your own foster home': 'Nu îți poți lăsa recenzie propriei case.',
+  'Reviews open only after the animal spent 48 hours in care': 'Recenzia se poate lăsa doar după ce animalul a stat 48 de ore în grijă.',
   'Your name must be between 1 and 80 characters': 'Numele trebuie să aibă între 1 și 80 de caractere.',
   // Supabase Auth
   'Invalid login credentials': 'Emailul sau parola nu sunt corecte.',
