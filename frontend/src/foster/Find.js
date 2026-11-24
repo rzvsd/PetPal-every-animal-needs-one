@@ -10,7 +10,7 @@ import { Segment, person } from '../ui/kit';
 const durationKey = { FEW_DAYS: 'fewDays', ONE_TWO_WEEKS: 'oneTwoWeeks', ONE_MONTH: 'oneMonth', UNTIL_ADOPTION: 'untilAdoption', UNKNOWN: 'notSure' };
 export const durationLabel = (value, t) => t(`fx.${durationKey[value] || 'notSure'}`);
 
-export default function Find({ data, onOpenCase, onOpenHome }) {
+export default function Find({ data, onOpenCase, onOpenHome, onPostAnimal, onOfferHome }) {
   const { t, user } = useApp();
   const [type, setType] = useState('animals');
   const [query, setQuery] = useState('');
@@ -48,7 +48,14 @@ export default function Find({ data, onOpenCase, onOpenHome }) {
       <motion.div key={`${type}-${species}-${filters.join()}`} variants={listMotion} initial="hidden" animate="show" style={{ marginTop: 16 }}
         className={type === 'animals' ? 'fx-grid' : 'fx-stack'}>
         {result.loading && !result.rows.length ? [0, 1, 2, 3].map(i => <div key={i} className="fx-skeleton" style={{ height: type === 'animals' ? 220 : 96 }} />)
-          : !result.rows.length ? <div style={{ gridColumn: '1 / -1' }}><Empty art="dog" title={t('fx.nothingFound')} /></div>
+          : !result.rows.length ? <div style={{ gridColumn: '1 / -1' }}>{query.trim() || filters.length
+            ? <Empty art="dog" title={t('fx.nothingFound')}><Button variant="secondary" onClick={() => { setQuery(''); setFilters([]); setPage(0); }}>{t('fx.clearSearch')}</Button></Empty>
+            : type === 'animals'
+              ? <Empty art="dog" title={t('fx.noAnimalsListed')} text={t('fx.noAnimalsListedHint')}>
+                <div className="fx-actions">{onPostAnimal && <Button onClick={onPostAnimal}>{t('fx.postAnimal')}</Button>}
+                  {onOfferHome && !data.ownHomes?.length && <Button variant="secondary" onClick={onOfferHome}>{t('fx.offerMyHome')}</Button>}</div></Empty>
+              : <Empty art="house" title={t('fx.noHomesListed')} text={t('fx.noHomesListedHint')}>
+                {onOfferHome && !data.ownHomes?.length && <Button onClick={onOfferHome}>{t('fx.offerMyHome')}</Button>}</Empty>}</div>
             : type === 'animals' ? result.rows.map(item => <Card key={item.id} className="fx-animal" onClick={() => onOpenCase(item)}>
               <Photo src={item.photo} name={item.name} species={item.species} layoutId={`case-photo-${item.id}`} />
               {item.urgency === 'HIGH' && <span className="fx-badge is-clay"><Zap size={12} />{t('fx.urgent')}</span>}
@@ -91,9 +98,12 @@ export function CareFacts({ item }) {
   </Card>;
 }
 
+// A home paused with "Not now" takes no new animals, whatever its capacity.
 export function freePlaces(home) {
+  if (home.availability === 'UNAVAILABLE') return 0;
   return Math.max(0, (home.capacity || 0) - (home.occupied || 0) - (home.reserved || 0));
 }
+const fullLabel = (home, t) => (home.availability === 'UNAVAILABLE' ? t('fx.pausedHome') : t('fx.full'));
 
 function HomeCard({ home, onClick }) {
   const { t } = useApp();
@@ -104,7 +114,7 @@ function HomeCard({ home, onClick }) {
       <h2>{home.name}</h2>
       <p className="fx-muted"><MapPin size={12} style={{ display: 'inline', marginRight: 3 }} />{home.area || home.city}</p>
       <div className="fx-row" style={{ gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-        <span className={`fx-badge ${free ? '' : 'is-muted'}`}>{free ? fmt(t('fx.placesFree'), { count: free }) : t('fx.full')}</span>
+        <span className={`fx-badge ${free ? '' : 'is-muted'}`}>{free ? fmt(t('fx.placesFree'), { count: free }) : fullLabel(home, t)}</span>
         {home.review_count > 0 && <span className="fx-badge is-sun"><Star size={12} />{home.rating} · {fmt(t('fx.reviews'), { count: home.review_count })}</span>}
       </div>
     </div>
@@ -176,7 +186,7 @@ export function HomeDetail({ home, onBack, onInvite, onReport }) {
         <h2 className="fx-page-title">{home.name}</h2>
         <p className="fx-lead">{[home.area, home.city].filter(Boolean).join(', ')}{home.housing_type ? ` · ${home.housing_type}` : ''}</p>
         <div className="fx-row" style={{ gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-          <span className={`fx-badge ${free ? '' : 'is-muted'}`}>{free ? fmt(t('fx.placesFree'), { count: free }) : t('fx.full')}</span>
+          <span className={`fx-badge ${free ? '' : 'is-muted'}`}>{free ? fmt(t('fx.placesFree'), { count: free }) : fullLabel(home, t)}</span>
           {(home.species || []).map(s => <span key={s} className="fx-badge is-muted">{t(s === 'DOG' ? 'fx.dogs' : 'fx.cats')}</span>)}
           {home.review_count > 0 && <span className="fx-badge is-sun"><Star size={12} />{home.rating} · {fmt(t('fx.reviews'), { count: home.review_count })}</span>}
         </div>

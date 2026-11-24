@@ -137,6 +137,7 @@ export const serverErrorsRo = {
   'You cannot report yourself': 'Nu te poți raporta pe tine.',
   'This animal already has 10 open offers. Try another animal, or try again after the owner answers.': 'Acest animal are deja 10 oferte deschise. Încearcă alt animal sau revino după ce răspunde proprietarul.',
   'This foster home is hidden by PetPal moderation. Contact support.': 'Această casă foster este ascunsă de moderarea PetPal. Contactează-ne.',
+  'This home is not taking animals right now.': 'Această casă nu primește animale acum.',
   'Choose why you are reporting': 'Alege motivul raportului.',
   'Report details are too long': 'Detaliile raportului sunt prea lungi.',
   'You cannot review your own foster home': 'Nu îți poți lăsa recenzie propriei case.',
