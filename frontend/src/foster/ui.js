@@ -7,6 +7,7 @@ import { motionSpring, useReducedPetMotion } from '../components/Motion';
 import { useBackHandler } from '../navigation/backNavigation';
 import { animalPhotoUrl } from '../services/supabaseApi';
 import { useApp } from '../context/AppContext';
+import { useCoverFocus } from '../components/coverFocus';
 
 import { Art } from '../ui/kit';
 export { fmt } from '../ui/kit';
@@ -98,7 +99,9 @@ function ScreenPage({ title, onBack, action, children, footer, tone }) {
   // Checked again when the content changes: the photo may arrive after a loading state.
   useLayoutEffect(showBarTitle, [children]);
   useBackHandler(true, onBack, 15);
-  return <motion.section className={`fx-screen ${tone ? `fx-screen-${tone}` : ''}`} aria-label={typeof title === 'string' ? title : undefined}
+  const page = useRef(null);
+  useCoverFocus(page);
+  return <motion.section ref={page} tabIndex={-1} className={`fx-screen ${tone ? `fx-screen-${tone}` : ''}`} aria-label={typeof title === 'string' ? title : undefined}
     initial={reduced ? { opacity: 0 } : { x: '100%' }} animate={{ x: 0, opacity: 1 }}
     exit={reduced ? { opacity: 0 } : { x: '100%' }} transition={reduced ? { duration: 0.12 } : motionSpring}>
     <header className="fx-screen-header">

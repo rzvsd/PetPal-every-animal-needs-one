@@ -53,8 +53,8 @@
 .ui-avatar.is-round { border-radius: 999px; }
 
 /* Buttons --------------------------------------------------------------- */
-.ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 22px; border-radius: 14px;
-  font-size: 16px; font-weight: 650; line-height: 1.2; white-space: nowrap; transition: background-color .15s, color .15s, opacity .15s; }
+.ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 8px 22px; border-radius: 14px;
+  font-size: 16px; font-weight: 650; line-height: 1.2; text-align: center; transition: background-color .15s, color .15s, opacity .15s; }
 .ui-btn-block { display: flex; width: 100%; }
 .ui-btn-primary { background: var(--pp-green); color: var(--pp-on-accent); }
 .ui-btn-primary:active:not(:disabled) { background: var(--pp-green-strong); }

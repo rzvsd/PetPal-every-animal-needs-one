@@ -97,6 +97,7 @@
 }
 .petpal-screen:has(> .data-source-banner) .petpal-fullscreen { top: 19px; }
 .petpal-fullscreen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--pp-bg); }
+.fx-screen:focus, .petpal-fullscreen:focus { outline: none; }
 .petpal-fullscreen > [data-testid="screen-header"] { flex-shrink: 0; }
 .dialog-layer { position: fixed; inset: 0; height: var(--app-height, 100dvh); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .dialog-layer.dialog-sheet { align-items: flex-end; padding: 0; }
@@ -136,7 +137,7 @@
 .pp-sheet-list { overflow-y: auto; }
 .pp-check { color: var(--pp-action-ink); flex-shrink: 0; }
 
-.pp-tabs { display: flex; align-items: stretch; justify-content: space-around; height: calc(64px + env(safe-area-inset-bottom)); padding: 0 8px env(safe-area-inset-bottom);
+.pp-tabs { display: flex; align-items: stretch; justify-content: space-around; min-height: calc(64px + env(safe-area-inset-bottom)); padding: 0 8px env(safe-area-inset-bottom);
   background: var(--pp-night); color: #fff; z-index: 50; }
 .pp-tab { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; color: rgb(255 255 255 / 62%); }
 .pp-tab[aria-current='page'] { color: var(--pp-accent-2); }
