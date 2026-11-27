@@ -12,7 +12,7 @@
     "db:test": "supabase test db supabase/tests"
   },
   "devDependencies": {
-    "supabase": "^2.95.3"
+    "supabase": "^3.3.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
